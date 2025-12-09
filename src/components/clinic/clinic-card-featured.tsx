@@ -1,37 +1,16 @@
 import Link from 'next/link';
-import { Star, MapPin, Phone, ImageIcon, BadgeCheck } from 'lucide-react';
+import { MapPin, Phone, ImageIcon, BadgeCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance } from '@/types/clinic';
 import { ServiceIcons } from './service-icons';
+import { StarRating } from './star-rating';
 
 interface ClinicCardFeaturedProps {
   clinic: ClinicWithDistance;
   className?: string;
-}
-
-function StarRating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={cn(
-              'h-4 w-4',
-              star <= Math.round(rating)
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'fill-muted text-muted'
-            )}
-          />
-        ))}
-      </div>
-      <span className="font-medium">{rating.toFixed(1)}</span>
-      <span className="text-muted-foreground text-sm">({reviewCount} reviews)</span>
-    </div>
-  );
 }
 
 export function ClinicCardFeatured({ clinic, className }: ClinicCardFeaturedProps) {
@@ -63,7 +42,7 @@ export function ClinicCardFeatured({ clinic, className }: ClinicCardFeaturedProp
           <h3 className="font-semibold text-xl leading-tight line-clamp-2">
             {clinic.name}
           </h3>
-          <StarRating rating={clinic.rating} reviewCount={clinic.reviewCount} />
+          <StarRating rating={clinic.rating} reviewCount={clinic.reviewCount} variant="featured" />
         </div>
       </CardHeader>
 
@@ -89,7 +68,7 @@ export function ClinicCardFeatured({ clinic, className }: ClinicCardFeaturedProp
 
       <CardFooter className="gap-2">
         <Button asChild className="flex-1">
-          <Link href={`/clinics/${clinic.slug}`}>View Details</Link>
+          <Link href={`/pain-management/${clinic.slug}/`}>View Details</Link>
         </Button>
         <Button variant="outline" asChild>
           <a href={`tel:${clinic.phone}`}>Call</a>

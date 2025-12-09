@@ -1,33 +1,9 @@
-import { headers } from "next/headers";
-import { eq, desc, sql, and, gte, inArray } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { desc, sql, and, gte, inArray, eq } from "drizzle-orm";
+import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { estimateOptimizationCost } from "@/lib/ai";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-
-type AdminCheckResult =
-  | { error: string; status: 401 | 403 }
-  | { session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>; user: typeof schema.user.$inferSelect };
-
-/**
- * Helper to check admin status for API routes
- */
-async function checkAdmin(): Promise<AdminCheckResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: eq(schema.user.id, session.user.id),
-  });
-
-  if (!user || user.role !== "admin") {
-    return { error: "Forbidden - Admin access required", status: 403 };
-  }
-
-  return { session, user };
-}
 
 interface ClinicFilters {
   states?: string[];
@@ -40,12 +16,9 @@ interface ClinicFilters {
  * List optimization batches and stats
  */
 export async function GET() {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   try {
@@ -89,31 +62,22 @@ export async function GET() {
       .where(eq(schema.optimizationBatches.status, "completed"));
     const totalCostSpent = costResult[0]?.totalCost || 0;
 
-    return new Response(
-      JSON.stringify({
-        batches,
-        stats: {
-          totalClinics,
-          clinicsWithContent,
-          optimizedClinics,
-          remainingToOptimize: clinicsWithContent - optimizedClinics,
-          pendingReviews,
-          totalCostSpent,
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({
+      batches,
+      stats: {
+        totalClinics,
+        clinicsWithContent,
+        optimizedClinics,
+        remainingToOptimize: clinicsWithContent - optimizedClinics,
+        pendingReviews,
+        totalCostSpent,
+      },
+    });
   } catch (error) {
     console.error("Error fetching optimization data:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch optimization data" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to fetch optimization data" },
+      { status: 500 }
     );
   }
 }
@@ -123,12 +87,9 @@ export async function GET() {
  * Create a new optimization batch
  */
 export async function POST(request: Request) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   const { user } = adminCheck;
@@ -149,10 +110,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const filters = body.clinicFilters || {};
@@ -199,12 +157,9 @@ export async function POST(request: Request) {
     const totalClinics = countResult[0]?.count || 0;
 
     if (totalClinics === 0) {
-      return new Response(
-        JSON.stringify({ error: "No clinics match the specified filters" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
+      return NextResponse.json(
+        { error: "No clinics match the specified filters" },
+        { status: 400 }
       );
     }
 
@@ -239,28 +194,22 @@ export async function POST(request: Request) {
 
     const batch = batchResult[0];
 
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         batch,
         costEstimate: {
           perClinic: costEstimate.perClinic,
           total: costEstimate.total,
           model: costEstimate.model,
         },
-      }),
-      {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
-      }
+      },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error creating optimization batch:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to create optimization batch" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to create optimization batch" },
+      { status: 500 }
     );
   }
 }

@@ -51,7 +51,8 @@
       "Bash(csvtool col:*)",
       "Bash(python3:*)",
       "Bash(mkdir:*)",
-      "Bash(npx drizzle-kit push:*)"
+      "Bash(npx drizzle-kit push:*)",
+      "Bash(git -C /Users/kylesweezey/cc/painclinics show HEAD:src/app/clinics/page.tsx)"
     ]
   },
   "enableAllProjectMcpServers": true,

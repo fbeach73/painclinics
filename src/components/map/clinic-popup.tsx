@@ -55,7 +55,7 @@ export function ClinicPopup({ clinic, onClose }: ClinicPopupProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <Link
-              href={`/clinics/${clinic.slug}`}
+              href={`/pain-management/${clinic.slug}/`}
               className="font-semibold text-sm hover:text-primary line-clamp-2"
             >
               {clinic.name}
@@ -116,7 +116,7 @@ export function ClinicPopup({ clinic, onClose }: ClinicPopupProps) {
         </div>
 
         <Button asChild className="w-full" size="sm">
-          <Link href={`/clinics/${clinic.slug}`}>View Details</Link>
+          <Link href={`/pain-management/${clinic.slug}/`}>View Details</Link>
         </Button>
       </CardContent>
     </Card>

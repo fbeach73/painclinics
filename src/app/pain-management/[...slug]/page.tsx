@@ -10,12 +10,19 @@ import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
-import { getClinicByPermalink, getClinicsByState } from "@/lib/clinic-queries";
+import {
+  getClinicByPermalink,
+  getClinicsByState,
+  getClinicsByCity,
+} from "@/lib/clinic-queries";
+import { stripHtmlTags } from "@/lib/html-utils";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
+  generateCityPageSchema,
 } from "@/lib/structured-data";
 import { US_STATES_REVERSE, getStateName } from "@/lib/us-states";
+import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
@@ -24,19 +31,45 @@ function isValidStateAbbrev(slug: string): boolean {
   return slug.length === 2 && slug.toUpperCase() in US_STATES_REVERSE;
 }
 
+// Check if a slug is a valid city slug (lowercase letters and hyphens, at least 3 chars)
+function isValidCitySlug(citySlug: string): boolean {
+  return citySlug.length >= 2 && /^[a-z-]+$/.test(citySlug);
+}
+
+// Convert city slug back to city name (e.g., "los-angeles" -> "Los Angeles")
+function citySlugToName(slug: string): string {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 interface Props {
   params: Promise<{ slug: string[] }>;
 }
 
-// Generate static params for state pages at build time
+// Generate static params for state and city pages at build time
 export async function generateStaticParams() {
-  const { getAllStatesWithClinics } = await import("@/lib/clinic-queries");
+  const { getAllStatesWithClinics, getAllCitiesWithClinics } = await import(
+    "@/lib/clinic-queries"
+  );
   const states = await getAllStatesWithClinics();
 
   // Generate paths for all states with clinics
-  return states.map((state) => ({
+  const stateParams = states.map((state) => ({
     slug: [state.toLowerCase()],
   }));
+
+  // Generate paths for all cities with clinics
+  const cities = await getAllCitiesWithClinics();
+  const cityParams = cities.map((c) => ({
+    slug: [
+      c.stateAbbreviation!.toLowerCase(),
+      c.city.toLowerCase().replace(/\s+/g, "-"),
+    ],
+  }));
+
+  return [...stateParams, ...cityParams];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -53,6 +86,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `Pain Management Clinics in ${stateName} | ${stateClinics.length} Verified Clinics`;
     const description = `Find top-rated pain management clinics in ${stateName}. Browse ${stateClinics.length} verified clinics, read patient reviews, and schedule appointments for pain relief.`;
     const canonicalUrl = `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/`;
+
+    // Calculate average coordinates for state centroid
+    const clinicsWithCoords = stateClinics.filter(
+      (c) => c.mapLatitude && c.mapLongitude
+    );
+    const avgLat =
+      clinicsWithCoords.length > 0
+        ? clinicsWithCoords.reduce((sum, c) => sum + (c.mapLatitude || 0), 0) /
+          clinicsWithCoords.length
+        : null;
+    const avgLng =
+      clinicsWithCoords.length > 0
+        ? clinicsWithCoords.reduce((sum, c) => sum + (c.mapLongitude || 0), 0) /
+          clinicsWithCoords.length
+        : null;
 
     return {
       title,
@@ -83,7 +131,95 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           "max-snippet": -1,
         },
       },
+      other: {
+        "geo.region": `US-${stateAbbrev}`,
+        "geo.placename": stateName,
+        ...(avgLat && avgLng
+          ? {
+              "geo.position": `${avgLat.toFixed(4)};${avgLng.toFixed(4)}`,
+              ICBM: `${avgLat.toFixed(4)}, ${avgLng.toFixed(4)}`,
+            }
+          : {}),
+      },
     };
+  }
+
+  // Check if this is a city page (2 segments: state + city)
+  if (slug.length === 2) {
+    const [stateSlug, citySlug] = slug;
+    if (
+      stateSlug &&
+      isValidStateAbbrev(stateSlug) &&
+      citySlug &&
+      isValidCitySlug(citySlug)
+    ) {
+      const stateAbbrev = stateSlug.toUpperCase();
+      const stateName = getStateName(stateAbbrev);
+      const cityName = citySlugToName(citySlug);
+      const cityClinics = await getClinicsByCity(cityName, stateAbbrev);
+
+      if (cityClinics.length > 0) {
+        const title = `Pain Management Clinics in ${cityName}, ${stateAbbrev} | ${cityClinics.length} Verified Clinics`;
+        const description = `Find top-rated pain management clinics in ${cityName}, ${stateName}. Browse ${cityClinics.length} verified clinic${cityClinics.length !== 1 ? "s" : ""}, read patient reviews, and schedule appointments.`;
+        const canonicalUrl = `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/${citySlug}/`;
+
+        // Calculate average coordinates for city centroid
+        const clinicsWithCoords = cityClinics.filter(
+          (c) => c.mapLatitude && c.mapLongitude
+        );
+        const avgLat =
+          clinicsWithCoords.length > 0
+            ? clinicsWithCoords.reduce((sum, c) => sum + (c.mapLatitude || 0), 0) /
+              clinicsWithCoords.length
+            : null;
+        const avgLng =
+          clinicsWithCoords.length > 0
+            ? clinicsWithCoords.reduce((sum, c) => sum + (c.mapLongitude || 0), 0) /
+              clinicsWithCoords.length
+            : null;
+
+        return {
+          title,
+          description,
+          alternates: {
+            canonical: canonicalUrl,
+          },
+          openGraph: {
+            title,
+            description,
+            url: canonicalUrl,
+            type: "website",
+            siteName: "Pain Clinics Directory",
+          },
+          twitter: {
+            card: "summary",
+            title,
+            description,
+          },
+          robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+              index: true,
+              follow: true,
+              "max-video-preview": -1,
+              "max-image-preview": "large",
+              "max-snippet": -1,
+            },
+          },
+          other: {
+            "geo.region": `US-${stateAbbrev}`,
+            "geo.placename": `${cityName}, ${stateAbbrev}`,
+            ...(avgLat && avgLng
+              ? {
+                  "geo.position": `${avgLat.toFixed(4)};${avgLng.toFixed(4)}`,
+                  ICBM: `${avgLat.toFixed(4)}, ${avgLng.toFixed(4)}`,
+                }
+              : {}),
+          },
+        };
+      }
+    }
   }
 
   // Clinic page metadata
@@ -100,12 +236,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${clinic.title} - Pain Management in ${clinic.city}, ${clinic.stateAbbreviation || clinic.state}`;
 
   // Clean description - remove HTML tags
-  const cleanContent = clinic.content
-    ?.replace(/<[^>]*>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/\s+/g, " ")
-    .trim();
+  const cleanContent = clinic.content ? stripHtmlTags(clinic.content) : null;
 
   const description =
     cleanContent?.substring(0, 160) ||
@@ -156,6 +287,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         "max-image-preview": "large",
         "max-snippet": -1,
       },
+    },
+    other: {
+      "geo.region": `US-${clinic.stateAbbreviation}`,
+      "geo.placename": `${clinic.city}, ${clinic.stateAbbreviation}`,
+      ...(clinic.mapLatitude && clinic.mapLongitude
+        ? {
+            "geo.position": `${clinic.mapLatitude};${clinic.mapLongitude}`,
+            ICBM: `${clinic.mapLatitude}, ${clinic.mapLongitude}`,
+          }
+        : {}),
+      "business:contact_data:locality": clinic.city,
+      "business:contact_data:region": clinic.stateAbbreviation || "",
+      "business:contact_data:postal_code": clinic.postalCode,
+      "business:contact_data:country_name": "United States",
     },
   };
 }
@@ -260,6 +405,105 @@ export default async function PainManagementClinicPage({ params }: Props) {
         />
       </>
     );
+  }
+
+  // Check if this is a city page (2 segments: state + city)
+  if (slug.length === 2) {
+    const [stateSlug, citySlug] = slug;
+    if (
+      stateSlug &&
+      isValidStateAbbrev(stateSlug) &&
+      citySlug &&
+      isValidCitySlug(citySlug)
+    ) {
+      const stateAbbrev = stateSlug.toUpperCase();
+      const stateName = getStateName(stateAbbrev);
+      const cityName = citySlugToName(citySlug);
+      const cityClinics = await getClinicsByCity(cityName, stateAbbrev);
+
+      // If no clinics in city, show 404
+      if (cityClinics.length === 0) {
+        notFound();
+      }
+
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+      // Generate city page structured data
+      const cityStructuredData = generateCityPageSchema(
+        cityName,
+        stateAbbrev,
+        stateName,
+        cityClinics,
+        baseUrl
+      );
+
+      const breadcrumbData = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: baseUrl,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Clinics",
+            item: `${baseUrl}/clinics`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: stateName,
+            item: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 4,
+            name: cityName,
+            item: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/${citySlug}/`,
+          },
+        ],
+      };
+
+      // Transform clinics to the expected format for the city page component
+      const clinicSummaries = cityClinics.map((clinic) => ({
+        id: clinic.id,
+        title: clinic.title,
+        permalink: clinic.permalink,
+        city: clinic.city,
+        stateAbbreviation: clinic.stateAbbreviation,
+        phone: clinic.phone,
+        rating: clinic.rating,
+        reviewCount: clinic.reviewCount,
+        streetAddress: clinic.streetAddress,
+        postalCode: clinic.postalCode,
+      }));
+
+      return (
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(cityStructuredData),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+          />
+          <CityPainManagementPageContent
+            cityName={cityName}
+            stateName={stateName}
+            stateAbbrev={stateAbbrev}
+            clinics={clinicSummaries}
+          />
+        </>
+      );
+    }
   }
 
   // Clinic page logic

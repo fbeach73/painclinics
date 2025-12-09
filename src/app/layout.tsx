@@ -19,36 +19,34 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Agentic Coding Boilerplate",
-    template: "%s | Agentic Coding Boilerplate",
+    default: "Pain Clinics Directory - Find Pain Management Near You",
+    template: "%s | Pain Clinics Directory",
   },
   description:
-    "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling - perfect for building AI-powered applications and autonomous agents by Leon van Zyl",
+    "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
   keywords: [
-    "Next.js",
-    "React",
-    "TypeScript",
-    "AI",
-    "OpenRouter",
-    "Boilerplate",
-    "Authentication",
-    "PostgreSQL",
+    "pain management",
+    "pain clinic",
+    "chronic pain treatment",
+    "pain specialist",
+    "pain doctor near me",
+    "pain management doctor",
+    "back pain treatment",
+    "pain relief clinic",
   ],
-  authors: [{ name: "Leon van Zyl" }],
-  creator: "Leon van Zyl",
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Agentic Coding Boilerplate",
-    title: "Agentic Coding Boilerplate",
+    siteName: "Pain Clinics Directory",
+    title: "Pain Clinics Directory - Find Pain Management Near You",
     description:
-      "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling",
+      "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Agentic Coding Boilerplate",
+    title: "Pain Clinics Directory - Find Pain Management Near You",
     description:
-      "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling",
+      "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
   },
   robots: {
     index: true,
@@ -56,24 +54,14 @@ export const metadata: Metadata = {
   },
 };
 
-// JSON-LD structured data for SEO
+// JSON-LD structured data for SEO (WebSite and Organization schemas are on homepage)
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Agentic Coding Boilerplate",
+  "@type": "WebSite",
+  name: "Pain Clinics Directory",
   description:
-    "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling",
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Any",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  author: {
-    "@type": "Person",
-    name: "Leon van Zyl",
-  },
+    "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com",
 };
 
 export default function RootLayout({

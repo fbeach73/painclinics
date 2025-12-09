@@ -108,5 +108,76 @@ export async function getClinicsByCity(city: string, stateAbbrev?: string) {
     .orderBy(asc(clinics.title));
 }
 
+/**
+ * Get all unique cities with clinics for a specific state.
+ *
+ * @param stateAbbrev - Two-letter state abbreviation (e.g., "CA", "NY")
+ * @returns Array of unique city names
+ */
+export async function getCitiesForState(stateAbbrev: string) {
+  const results = await db
+    .selectDistinct({ city: clinics.city })
+    .from(clinics)
+    .where(sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`)
+    .orderBy(asc(clinics.city));
+  return results.map((r) => r.city);
+}
+
+/**
+ * Get all cities with clinics across all states.
+ * Includes clinic count per city, grouped by state.
+ *
+ * @returns Array of { city, stateAbbreviation, count } objects
+ */
+export async function getAllCitiesWithClinics() {
+  return db
+    .select({
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(clinics)
+    .groupBy(clinics.city, clinics.stateAbbreviation)
+    .orderBy(asc(clinics.stateAbbreviation), asc(clinics.city));
+}
+
+/**
+ * Get all city permalinks for sitemap generation.
+ * Converts city names to URL-friendly slugs.
+ *
+ * @returns Array of { state, city, count } objects with slugified values
+ */
+export async function getAllCityPermalinks() {
+  const cities = await getAllCitiesWithClinics();
+  return cities.map((c) => ({
+    state: c.stateAbbreviation?.toLowerCase(),
+    city: c.city.toLowerCase().replace(/\s+/g, "-"),
+    count: c.count,
+  }));
+}
+
+/**
+ * Get clinic data with image fields for image sitemap generation.
+ * Includes permalink, title, location, and all image fields.
+ *
+ * @returns Array of clinic records with image data
+ */
+export async function getClinicsWithImages() {
+  return db
+    .select({
+      permalink: clinics.permalink,
+      updatedAt: clinics.updatedAt,
+      title: clinics.title,
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      mapLatitude: clinics.mapLatitude,
+      mapLongitude: clinics.mapLongitude,
+      imageFeatured: clinics.imageFeatured,
+      imageUrl: clinics.imageUrl,
+      featImage: clinics.featImage,
+    })
+    .from(clinics);
+}
+
 // Type export for the clinic record
 export type ClinicRecord = typeof clinics.$inferSelect;

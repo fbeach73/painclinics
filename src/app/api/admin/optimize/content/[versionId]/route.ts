@@ -1,32 +1,8 @@
-import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-
-type AdminCheckResult =
-  | { error: string; status: 401 | 403 }
-  | { session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>; user: typeof schema.user.$inferSelect };
-
-/**
- * Helper to check admin status for API routes
- */
-async function checkAdmin(): Promise<AdminCheckResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: eq(schema.user.id, session.user.id),
-  });
-
-  if (!user || user.role !== "admin") {
-    return { error: "Forbidden - Admin access required", status: 403 };
-  }
-
-  return { session, user };
-}
 
 /**
  * GET /api/admin/optimize/content/[versionId]
@@ -36,12 +12,9 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ versionId: string }> }
 ) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   const { versionId } = await params;
@@ -52,12 +25,9 @@ export async function GET(
     });
 
     if (!version) {
-      return new Response(
-        JSON.stringify({ error: "Content version not found" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
+      return NextResponse.json(
+        { error: "Content version not found" },
+        { status: 404 }
       );
     }
 
@@ -66,36 +36,27 @@ export async function GET(
       where: eq(schema.clinics.id, version.clinicId),
     });
 
-    return new Response(
-      JSON.stringify({
-        version,
-        clinic: clinic
-          ? {
-              id: clinic.id,
-              title: clinic.title,
-              city: clinic.city,
-              state: clinic.state,
-              streetAddress: clinic.streetAddress,
-              phone: clinic.phone,
-              rating: clinic.rating,
-              reviewCount: clinic.reviewCount,
-              reviewKeywords: clinic.reviewKeywords,
-            }
-          : null,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({
+      version,
+      clinic: clinic
+        ? {
+            id: clinic.id,
+            title: clinic.title,
+            city: clinic.city,
+            state: clinic.state,
+            streetAddress: clinic.streetAddress,
+            phone: clinic.phone,
+            rating: clinic.rating,
+            reviewCount: clinic.reviewCount,
+            reviewKeywords: clinic.reviewKeywords,
+          }
+        : null,
+    });
   } catch (error) {
     console.error("Error fetching content version:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch content version" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to fetch content version" },
+      { status: 500 }
     );
   }
 }
@@ -108,12 +69,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ versionId: string }> }
 ) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   const { user } = adminCheck;
@@ -128,19 +86,13 @@ export async function PUT(
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   if (!body.action || !["approve", "reject", "apply"].includes(body.action)) {
-    return new Response(
-      JSON.stringify({ error: "Invalid action. Must be approve, reject, or apply" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Invalid action. Must be approve, reject, or apply" },
+      { status: 400 }
     );
   }
 
@@ -150,12 +102,9 @@ export async function PUT(
     });
 
     if (!version) {
-      return new Response(
-        JSON.stringify({ error: "Content version not found" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
+      return NextResponse.json(
+        { error: "Content version not found" },
+        { status: 404 }
       );
     }
 
@@ -164,14 +113,9 @@ export async function PUT(
       case "approve": {
         // Can approve pending versions
         if (version.status !== "pending") {
-          return new Response(
-            JSON.stringify({
-              error: `Cannot approve version with status: ${version.status}`,
-            }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
+          return NextResponse.json(
+            { error: `Cannot approve version with status: ${version.status}` },
+            { status: 400 }
           );
         }
 
@@ -196,26 +140,15 @@ export async function PUT(
           `);
         }
 
-        return new Response(
-          JSON.stringify({ success: true, message: "Content approved" }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return NextResponse.json({ success: true, message: "Content approved" });
       }
 
       case "reject": {
         // Can reject pending versions
         if (version.status !== "pending") {
-          return new Response(
-            JSON.stringify({
-              error: `Cannot reject version with status: ${version.status}`,
-            }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
+          return NextResponse.json(
+            { error: `Cannot reject version with status: ${version.status}` },
+            { status: 400 }
           );
         }
 
@@ -239,26 +172,15 @@ export async function PUT(
           `);
         }
 
-        return new Response(
-          JSON.stringify({ success: true, message: "Content rejected" }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return NextResponse.json({ success: true, message: "Content rejected" });
       }
 
       case "apply": {
         // Can apply approved versions
         if (version.status !== "approved") {
-          return new Response(
-            JSON.stringify({
-              error: `Cannot apply version with status: ${version.status}. Must be approved first.`,
-            }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
+          return NextResponse.json(
+            { error: `Cannot apply version with status: ${version.status}. Must be approved first.` },
+            { status: 400 }
           );
         }
 
@@ -281,26 +203,17 @@ export async function PUT(
           })
           .where(eq(schema.contentVersions.id, versionId));
 
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: "Content applied to clinic",
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return NextResponse.json({
+          success: true,
+          message: "Content applied to clinic",
+        });
       }
     }
   } catch (error) {
     console.error("Error updating content version:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to update content version" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to update content version" },
+      { status: 500 }
     );
   }
 }

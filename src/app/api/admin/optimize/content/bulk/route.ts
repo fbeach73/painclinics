@@ -1,44 +1,17 @@
-import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { eq, inArray, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-
-type AdminCheckResult =
-  | { error: string; status: 401 | 403 }
-  | { session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>; user: typeof schema.user.$inferSelect };
-
-/**
- * Helper to check admin status for API routes
- */
-async function checkAdmin(): Promise<AdminCheckResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: eq(schema.user.id, session.user.id),
-  });
-
-  if (!user || user.role !== "admin") {
-    return { error: "Forbidden - Admin access required", status: 403 };
-  }
-
-  return { session, user };
-}
 
 /**
  * POST /api/admin/optimize/content/bulk
  * Bulk approve, reject, or apply content versions
  */
 export async function POST(request: Request) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   const { user } = adminCheck;
@@ -52,31 +25,20 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   if (!body.action || !["approve", "reject", "apply"].includes(body.action)) {
-    return new Response(
-      JSON.stringify({
-        error: "Invalid action. Must be approve, reject, or apply",
-      }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Invalid action. Must be approve, reject, or apply" },
+      { status: 400 }
     );
   }
 
   if (!body.versionIds || body.versionIds.length === 0) {
-    return new Response(
-      JSON.stringify({ error: "No version IDs provided" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "No version IDs provided" },
+      { status: 400 }
     );
   }
 
@@ -205,28 +167,19 @@ export async function POST(request: Request) {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        action: body.action,
-        successCount,
-        errorCount,
-        totalProcessed: versions.length,
-        errors: errors.length > 0 ? errors : undefined,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({
+      success: true,
+      action: body.action,
+      successCount,
+      errorCount,
+      totalProcessed: versions.length,
+      errors: errors.length > 0 ? errors : undefined,
+    });
   } catch (error) {
     console.error("Error processing bulk action:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to process bulk action" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to process bulk action" },
+      { status: 500 }
     );
   }
 }

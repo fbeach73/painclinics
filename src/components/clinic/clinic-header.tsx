@@ -1,44 +1,23 @@
 'use client';
 
-import { Star, BadgeCheck, MapPin, Phone, Navigation, Clock } from 'lucide-react';
+import { BadgeCheck, MapPin, Phone, Navigation, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { type DayName, WEEKDAY_INDEX_TO_NAME } from '@/lib/day-constants';
+import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
+import { formatTime } from '@/lib/time-utils';
 import { cn } from '@/lib/utils';
 import type { Clinic } from '@/types/clinic';
+import { StarRating } from './star-rating';
 
 interface ClinicHeaderProps {
   clinic: Clinic;
   className?: string;
 }
 
-function StarRating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={cn(
-              'h-5 w-5',
-              star <= Math.round(rating)
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'fill-muted text-muted'
-            )}
-          />
-        ))}
-      </div>
-      <span className="text-lg font-semibold">{rating.toFixed(1)}</span>
-      <span className="text-muted-foreground">({reviewCount} reviews)</span>
-    </div>
-  );
-}
-
-type DayName = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
-
 function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string } {
   const now = new Date();
-  const dayNames: DayName[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const currentDay = dayNames[now.getDay()] as DayName;
+  const currentDay = WEEKDAY_INDEX_TO_NAME[now.getDay()] as DayName;
   const dayHours = clinic.hours[currentDay];
 
   if (dayHours.closed) {
@@ -60,18 +39,9 @@ function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string 
   return { isOpen: false, statusText: 'Closed' };
 }
 
-function formatTime(time: string): string {
-  const parts = time.split(':');
-  const hours = parseInt(parts[0] ?? '0', 10);
-  const minutes = parseInt(parts[1] ?? '0', 10);
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHours = hours % 12 || 12;
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-}
-
 export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
   const { isOpen, statusText } = isCurrentlyOpen(clinic);
-  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(clinic.address.formatted)}`;
+  const googleMapsUrl = buildGoogleMapsDirectionsUrl(clinic.address.formatted);
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -86,7 +56,7 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
             </Badge>
           )}
         </div>
-        <StarRating rating={clinic.rating} reviewCount={clinic.reviewCount} />
+        <StarRating rating={clinic.rating} reviewCount={clinic.reviewCount} variant="full" />
       </div>
 
       {/* Contact info */}

@@ -1,25 +1,16 @@
 import Link from 'next/link';
-import { Star, MapPin, Phone } from 'lucide-react';
+import { MapPin, Phone } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance } from '@/types/clinic';
 import { ServiceIcons } from './service-icons';
+import { StarRating } from './star-rating';
 
 interface ClinicCardProps {
   clinic: ClinicWithDistance;
   className?: string;
-}
-
-function StarRating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-      <span className="font-medium">{rating.toFixed(1)}</span>
-      <span className="text-muted-foreground text-sm">({reviewCount})</span>
-    </div>
-  );
 }
 
 export function ClinicCard({ clinic, className }: ClinicCardProps) {
@@ -57,7 +48,7 @@ export function ClinicCard({ clinic, className }: ClinicCardProps) {
 
       <CardFooter>
         <Button asChild className="w-full">
-          <Link href={`/clinics/${clinic.slug}`}>View Details</Link>
+          <Link href={`/pain-management/${clinic.slug}/`}>View Details</Link>
         </Button>
       </CardFooter>
     </Card>

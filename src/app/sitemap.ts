@@ -1,6 +1,7 @@
 import {
   getAllClinicPermalinks,
   getAllStatesWithClinics,
+  getAllCityPermalinks,
 } from "@/lib/clinic-queries";
 import type { MetadataRoute } from "next";
 
@@ -32,6 +33,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
+  // City landing pages
+  const allCities = await getAllCityPermalinks();
+  const cityPages: MetadataRoute.Sitemap = allCities
+    .filter((c) => c.state && c.city)
+    .map((c) => ({
+      url: `${baseUrl}/pain-management/${c.state}/${c.city}/`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }));
+
   // Dynamic clinic pages from database
   const allClinics = await getAllClinicPermalinks();
 
@@ -39,8 +51,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}/${clinic.permalink}/`,
     lastModified: clinic.updatedAt || new Date(),
     changeFrequency: "weekly" as const,
-    priority: 0.8,
+    priority: 0.7,
   }));
 
-  return [...staticPages, ...statePages, ...clinicPages];
+  return [...staticPages, ...statePages, ...cityPages, ...clinicPages];
 }

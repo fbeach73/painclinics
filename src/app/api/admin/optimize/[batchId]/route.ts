@@ -1,32 +1,8 @@
-import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-
-type AdminCheckResult =
-  | { error: string; status: 401 | 403 }
-  | { session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>; user: typeof schema.user.$inferSelect };
-
-/**
- * Helper to check admin status for API routes
- */
-async function checkAdmin(): Promise<AdminCheckResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: eq(schema.user.id, session.user.id),
-  });
-
-  if (!user || user.role !== "admin") {
-    return { error: "Forbidden - Admin access required", status: 403 };
-  }
-
-  return { session, user };
-}
 
 /**
  * GET /api/admin/optimize/[batchId]
@@ -36,12 +12,9 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ batchId: string }> }
 ) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   const { batchId } = await params;
@@ -52,10 +25,7 @@ export async function GET(
     });
 
     if (!batch) {
-      return new Response(JSON.stringify({ error: "Batch not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Batch not found" }, { status: 404 });
     }
 
     // Get content version stats for this batch
@@ -98,31 +68,22 @@ export async function GET(
       versionStats.map((s) => [s.status, s.count])
     );
 
-    return new Response(
-      JSON.stringify({
-        batch,
-        versionStats: {
-          pending: statsMap.pending || 0,
-          approved: statsMap.approved || 0,
-          rejected: statsMap.rejected || 0,
-          applied: statsMap.applied || 0,
-          rolledBack: statsMap.rolled_back || 0,
-        },
-        recentVersions,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({
+      batch,
+      versionStats: {
+        pending: statsMap.pending || 0,
+        approved: statsMap.approved || 0,
+        rejected: statsMap.rejected || 0,
+        applied: statsMap.applied || 0,
+        rolledBack: statsMap.rolled_back || 0,
+      },
+      recentVersions,
+    });
   } catch (error) {
     console.error("Error fetching batch details:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch batch details" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to fetch batch details" },
+      { status: 500 }
     );
   }
 }
@@ -135,12 +96,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ batchId: string }> }
 ) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
-    return new Response(JSON.stringify({ error: adminCheck.error }), {
-      status: adminCheck.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return adminErrorResponse(adminCheck);
   }
 
   const { batchId } = await params;
@@ -151,22 +109,14 @@ export async function DELETE(
     });
 
     if (!batch) {
-      return new Response(JSON.stringify({ error: "Batch not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Batch not found" }, { status: 404 });
     }
 
     // Can only cancel pending, paused, or awaiting_review batches
     if (!["pending", "paused", "awaiting_review"].includes(batch.status || "")) {
-      return new Response(
-        JSON.stringify({
-          error: `Cannot cancel batch with status: ${batch.status}`,
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
+      return NextResponse.json(
+        { error: `Cannot cancel batch with status: ${batch.status}` },
+        { status: 400 }
       );
     }
 
@@ -184,21 +134,12 @@ export async function DELETE(
       })
       .where(eq(schema.optimizationBatches.id, batchId));
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Batch cancelled" }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({ success: true, message: "Batch cancelled" });
   } catch (error) {
     console.error("Error cancelling batch:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to cancel batch" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Failed to cancel batch" },
+      { status: 500 }
     );
   }
 }

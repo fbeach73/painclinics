@@ -1,11 +1,7 @@
-import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { checkAdminApi } from "@/lib/admin-auth";
 import { type RawClinicCSVRow } from "@/lib/clinic-transformer";
 import { previewCSV, validateCSVHeaders } from "@/lib/csv-parser";
-import { db } from "@/lib/db";
-import * as schema from "@/lib/schema";
 
 /**
  * Required CSV headers for clinic data
@@ -19,36 +15,12 @@ const REQUIRED_HEADERS = [
   "Map Longitude",
 ];
 
-type AdminCheckResult =
-  | { error: string; status: number }
-  | { session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>; user: typeof schema.user.$inferSelect };
-
-/**
- * Helper to check admin status for API routes
- */
-async function checkAdmin(): Promise<AdminCheckResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return { error: "Unauthorized", status: 401 };
-  }
-
-  const user = await db.query.user.findFirst({
-    where: eq(schema.user.id, session.user.id),
-  });
-
-  if (!user || user.role !== "admin") {
-    return { error: "Forbidden - Admin access required", status: 403 };
-  }
-
-  return { session, user };
-}
-
 /**
  * POST /api/admin/import/upload
  * Upload a CSV file, validate headers, and return preview
  */
 export async function POST(request: NextRequest) {
-  const adminCheck = await checkAdmin();
+  const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
     return NextResponse.json(
       { error: adminCheck.error },
