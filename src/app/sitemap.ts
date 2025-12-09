@@ -1,26 +1,46 @@
+import {
+  getAllClinicPermalinks,
+  getAllStatesWithClinics,
+} from "@/lib/clinic-queries";
 import type { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
 
-  return [
+  // Static pages
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: "monthly",
+      changeFrequency: "daily",
       priority: 1,
     },
     {
-      url: `${baseUrl}/dashboard`,
+      url: `${baseUrl}/clinics`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/chat`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
+      changeFrequency: "daily",
+      priority: 0.9,
     },
   ];
+
+  // State landing pages
+  const allStates = await getAllStatesWithClinics();
+  const statePages: MetadataRoute.Sitemap = allStates.map((state) => ({
+    url: `${baseUrl}/pain-management/${state.toLowerCase()}/`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.85,
+  }));
+
+  // Dynamic clinic pages from database
+  const allClinics = await getAllClinicPermalinks();
+
+  const clinicPages: MetadataRoute.Sitemap = allClinics.map((clinic) => ({
+    url: `${baseUrl}/${clinic.permalink}/`,
+    lastModified: clinic.updatedAt || new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...statePages, ...clinicPages];
 }

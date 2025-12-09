@@ -40,7 +40,18 @@
       "Bash(npx eslint:*)",
       "mcp__playwright__browser_resize",
       "mcp__playwright__browser_snapshot",
-      "mcp__playwright__browser_press_key"
+      "mcp__playwright__browser_press_key",
+      "Bash(pnpm db:generate:*)",
+      "Bash(pnpm db:push:*)",
+      "Bash(source:*)",
+      "Bash(curl:*)",
+      "Bash(export POSTGRES_URL)",
+      "Bash(psql:*)",
+      "Bash(wc:*)",
+      "Bash(csvtool col:*)",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx drizzle-kit push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

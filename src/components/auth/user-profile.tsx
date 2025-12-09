@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -18,6 +19,17 @@ import { SignInButton } from "./sign-in-button";
 export function UserProfile() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      // Check if user is admin
+      fetch("/api/admin/check")
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => setIsAdmin(data?.isAdmin ?? false))
+        .catch(() => setIsAdmin(false));
+    }
+  }, [session?.user?.id]);
 
   if (isPending) {
     return <div>Loading...</div>;
@@ -73,6 +85,17 @@ export function UserProfile() {
             Your Profile
           </Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin" className="flex items-center">
+                <Settings className="mr-2 h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} variant="destructive">
           <LogOut className="mr-2 h-4 w-4" />

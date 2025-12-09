@@ -8,6 +8,20 @@
       "when": 1762409965425,
       "tag": "0000_chilly_the_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765170950588,
+      "tag": "0001_demonic_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765200917843,
+      "tag": "0002_calm_logan",
+      "breakpoints": true
     }
   ]
 }

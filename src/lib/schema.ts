@@ -1,4 +1,14 @@
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { createId } from "@paralleldrive/cuid2";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  integer,
+  doublePrecision,
+  jsonb,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable(
   "user",
@@ -8,6 +18,7 @@ export const user = pgTable(
     email: text("email").notNull().unique(),
     emailVerified: boolean("email_verified").default(false).notNull(),
     image: text("image"),
+    role: text("role").default("user").notNull(), // "user" | "admin"
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -77,3 +88,239 @@ export const verification = pgTable("verification", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+// ============================================
+// Clinic Data Import Tables
+// ============================================
+
+export const clinics = pgTable(
+  "clinics",
+  {
+    // Primary identification
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    wpId: integer("wp_id"),
+    placeId: text("place_id").unique(),
+    title: text("title").notNull(),
+    permalink: text("permalink").notNull().unique(),
+    postType: text("post_type").default("pain-management"),
+    clinicType: text("clinic_type"),
+
+    // Location
+    streetAddress: text("street_address"),
+    city: text("city").notNull(),
+    state: text("state").notNull(),
+    stateAbbreviation: text("state_abbreviation"),
+    postalCode: text("postal_code").notNull(),
+    mapLatitude: doublePrecision("map_latitude").notNull(),
+    mapLongitude: doublePrecision("map_longitude").notNull(),
+    detailedAddress: text("detailed_address"),
+
+    // Contact
+    phone: text("phone"),
+    phones: text("phones").array(),
+    website: text("website"),
+    emails: text("emails").array(),
+
+    // Reviews & Ratings
+    reviewCount: integer("review_count").default(0),
+    rating: doublePrecision("rating"),
+    reviewsPerScore: jsonb("reviews_per_score"),
+    reviewKeywords: jsonb("review_keywords"),
+    featuredReviews: jsonb("featured_reviews"),
+
+    // Business Hours
+    clinicHours: jsonb("clinic_hours"),
+    closedOn: text("closed_on"),
+    popularTimes: jsonb("popular_times"),
+
+    // Content
+    content: text("content"),
+    newPostContent: text("new_post_content"),
+
+    // Images
+    imageUrl: text("image_url"),
+    imageFeatured: text("image_featured"),
+    featImage: text("feat_image"),
+    clinicImageUrls: text("clinic_image_urls").array(),
+    clinicImageMedia: text("clinic_image_media").array(),
+    qrCode: text("qr_code"),
+
+    // Amenities & Features
+    amenities: text("amenities").array(),
+    checkboxFeatures: text("checkbox_features").array(),
+    googleListingLink: text("google_listing_link"),
+
+    // Q&A
+    questions: jsonb("questions"),
+
+    // Social Media
+    facebook: text("facebook"),
+    instagram: text("instagram"),
+    twitter: text("twitter"),
+    youtube: text("youtube"),
+    linkedin: text("linkedin"),
+    tiktok: text("tiktok"),
+    pinterest: text("pinterest"),
+
+    // Metadata
+    importBatchId: text("import_batch_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("clinics_place_id_idx").on(table.placeId),
+    index("clinics_city_idx").on(table.city),
+    index("clinics_state_idx").on(table.state),
+    index("clinics_postal_code_idx").on(table.postalCode),
+    index("clinics_rating_idx").on(table.rating),
+    index("clinics_import_batch_idx").on(table.importBatchId),
+  ]
+);
+
+export const importBatches = pgTable("import_batches", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  fileName: text("file_name"),
+  status: text("status").default("pending"), // pending, processing, completed, failed, rolled_back
+  totalRecords: integer("total_records").default(0),
+  successCount: integer("success_count").default(0),
+  errorCount: integer("error_count").default(0),
+  skipCount: integer("skip_count").default(0),
+  errors: jsonb("errors"),
+  importedBy: text("imported_by").references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// ============================================
+// Content Optimization Tables
+// ============================================
+
+export const optimizationBatches = pgTable(
+  "optimization_batches",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name"),
+    status: text("status").default("pending"), // pending, processing, paused, awaiting_review, completed, failed, cancelled
+
+    // Configuration
+    batchSize: integer("batch_size").default(50),
+    reviewFrequency: integer("review_frequency").default(250), // Pause every N records
+    targetWordCount: integer("target_word_count").default(400),
+    includeKeywords: boolean("include_keywords").default(true),
+    generateFaq: boolean("generate_faq").default(true),
+    faqCount: integer("faq_count").default(4),
+
+    // Filters (JSON for flexibility)
+    clinicFilters: jsonb("clinic_filters"), // { states?: string[], minReviewCount?: number, excludeOptimized?: boolean }
+
+    // Progress tracking
+    totalClinics: integer("total_clinics").default(0),
+    processedCount: integer("processed_count").default(0),
+    successCount: integer("success_count").default(0),
+    errorCount: integer("error_count").default(0),
+    skippedCount: integer("skipped_count").default(0),
+
+    // Review tracking
+    pendingReviewCount: integer("pending_review_count").default(0),
+    approvedCount: integer("approved_count").default(0),
+    rejectedCount: integer("rejected_count").default(0),
+
+    // Cost tracking
+    totalInputTokens: integer("total_input_tokens").default(0),
+    totalOutputTokens: integer("total_output_tokens").default(0),
+    estimatedCost: doublePrecision("estimated_cost").default(0),
+
+    // Execution state
+    currentOffset: integer("current_offset").default(0), // For resume capability
+    errors: jsonb("errors"), // Array of error objects
+    aiModel: text("ai_model").default("anthropic/claude-sonnet-4"),
+    promptVersion: text("prompt_version").default("v1.0"),
+
+    // User tracking
+    startedBy: text("started_by").references(() => user.id),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    startedAt: timestamp("started_at"),
+    pausedAt: timestamp("paused_at"),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => [
+    index("optimization_batches_status_idx").on(table.status),
+    index("optimization_batches_started_by_idx").on(table.startedBy),
+  ]
+);
+
+export const contentVersions = pgTable(
+  "content_versions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    version: integer("version").notNull().default(1),
+
+    // Content fields
+    originalContent: text("original_content"),
+    optimizedContent: text("optimized_content"),
+
+    // Optimization metadata
+    keywordsUsed: jsonb("keywords_used"), // Array of keywords integrated
+    faqGenerated: jsonb("faq_generated"), // Array of { question: string, answer: string }
+    changesSummary: text("changes_summary"),
+
+    // Word counts
+    wordCountBefore: integer("word_count_before"),
+    wordCountAfter: integer("word_count_after"),
+
+    // Status tracking
+    status: text("status").default("pending"), // pending, approved, rejected, applied, rolled_back
+
+    // Batch reference
+    optimizationBatchId: text("optimization_batch_id").references(
+      () => optimizationBatches.id
+    ),
+
+    // AI tracking
+    aiModel: text("ai_model"),
+    promptVersion: text("prompt_version"),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    cost: doublePrecision("cost"),
+
+    // Validation
+    validationPassed: boolean("validation_passed"),
+    validationWarnings: jsonb("validation_warnings"), // Array of warning strings
+    validationErrors: jsonb("validation_errors"), // Array of error strings
+    requiresManualReview: boolean("requires_manual_review").default(false),
+
+    // Review tracking
+    reviewedAt: timestamp("reviewed_at"),
+    reviewedBy: text("reviewed_by").references(() => user.id),
+    reviewNotes: text("review_notes"),
+
+    // Applied tracking
+    appliedAt: timestamp("applied_at"),
+    appliedBy: text("applied_by").references(() => user.id),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    optimizedAt: timestamp("optimized_at"),
+  },
+  (table) => [
+    index("content_versions_clinic_idx").on(table.clinicId),
+    index("content_versions_batch_idx").on(table.optimizationBatchId),
+    index("content_versions_status_idx").on(table.status),
+  ]
+);
