@@ -52,7 +52,14 @@
       "Bash(python3:*)",
       "Bash(mkdir:*)",
       "Bash(npx drizzle-kit push:*)",
-      "Bash(git -C /Users/kylesweezey/cc/painclinics show HEAD:src/app/clinics/page.tsx)"
+      "Bash(git -C /Users/kylesweezey/cc/painclinics show HEAD:src/app/clinics/page.tsx)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: implement Local SEO & Schema.org optimization with admin analytics\n\nComplete implementation of 9-phase Local SEO enhancement plan:\n\nPhase 1-3: Database & Schema Enhancements\n- Add city query functions (getCitiesForState, getAllCitiesWithClinics, getAllCityPermalinks)\n- Extend clinic schema with reviews, social links, services, amenities, hasMap\n- Add WebSite, Organization, CityPage, and FAQ schema generators\n- Update breadcrumb schema to support 5-level navigation with city\n\nPhase 4: City Landing Pages\n- Create city-page.tsx component with semantic microdata\n- Add city page routing (2-segment URL handling)\n- Generate static params for all city pages\n- Implement city-specific metadata with geo tags\n\nPhase 5-6: Geo Meta Tags & Homepage Schema\n- Add geo meta tags to clinic, city, and state pages\n- Inject WebSite and Organization JSON-LD on homepage\n- Update root layout metadata with SEO keywords\n\nPhase 7: Enhanced Sitemap\n- Add city landing pages with priority 0.8\n- Include image sitemap extensions for clinics\n\nPhase 8-9: Admin Analytics\n- Create keywords analytics API with sentiment classification\n- Build analytics dashboard with summary cards and keyword table\n- Add state filter dropdown and sentiment badges\n- Add Analytics link to admin sidebar\n\nAdditional changes:\n- Remove deprecated clinics pages and mock data\n- Refactor admin API routes to use centralized auth\n- Add utility libraries (admin-auth, time-utils, maps-utils, html-utils)\n- Add star-rating component\n- Add shadcn Select component\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(pnpm drizzle-kit push:*)",
+      "Bash(pnpm drizzle-kit migrate:*)",
+      "Bash(pnpm tsx:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\":*)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" psql:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

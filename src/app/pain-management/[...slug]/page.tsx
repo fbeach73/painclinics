@@ -5,7 +5,7 @@ import { ClinicGallery } from "@/components/clinic/clinic-gallery";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
-import { ClinicServices } from "@/components/clinic/clinic-services";
+import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -544,7 +544,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
               {/* Services Section */}
               {clinic.services.length > 0 && (
-                <ClinicServices services={clinic.services} />
+                <ClinicServicesLegacy services={clinic.services} />
               )}
 
               {/* Insurance Section */}

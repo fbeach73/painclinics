@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Upload, Home, LayoutDashboard, Settings, Database, Sparkles, BarChart3 } from "lucide-react";
+import { Upload, Home, LayoutDashboard, Settings, Database, Sparkles, BarChart3, Grid3X3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin/import", label: "Data Import", icon: Upload },
   { href: "/admin/optimize", label: "Content Optimization", icon: Sparkles },
   { href: "/admin/clinics", label: "Clinics", icon: Database },
+  { href: "/admin/services", label: "Services", icon: Grid3X3 },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

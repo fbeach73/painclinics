@@ -5,19 +5,33 @@ import type {
   ServiceType,
   InsuranceType,
 } from "@/types/clinic";
+import type { ClinicService } from "@/types/service";
 import { stripHtmlTags } from "./html-utils";
 import type { ClinicRecord } from "./clinic-queries";
 import type { ClinicHour } from "./clinic-transformer";
 
 /**
+ * Extended clinic record with junction table services.
+ */
+export interface ClinicRecordWithServices extends ClinicRecord {
+  clinicServices?: ClinicService[];
+}
+
+/**
  * Transform a database clinic record to the Clinic type used by frontend components.
+ * Uses the clinic_services junction table for service data.
  *
- * @param dbClinic - The raw database clinic record
+ * @param dbClinic - The raw database clinic record (with clinicServices from junction table)
  * @returns A Clinic object compatible with existing components
  */
-export function transformDbClinicToType(dbClinic: ClinicRecord): Clinic {
+export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Clinic {
   const email = dbClinic.emails?.[0];
   const website = dbClinic.website;
+
+  // Get services from junction table
+  const services = dbClinic.clinicServices?.length
+    ? mapClinicServicesToServiceTypes(dbClinic.clinicServices)
+    : [];
 
   return {
     id: dbClinic.id,
@@ -38,7 +52,7 @@ export function transformDbClinicToType(dbClinic: ClinicRecord): Clinic {
     ...(email ? { email } : {}),
     ...(website ? { website } : {}),
     hours: transformClinicHours(dbClinic.clinicHours as ClinicHour[] | null),
-    services: mapAmenitiesToServices(dbClinic.amenities),
+    services,
     insuranceAccepted: [], // Insurance data not stored in current schema
     rating: dbClinic.rating || 0,
     reviewCount: dbClinic.reviewCount || 0,
@@ -47,6 +61,42 @@ export function transformDbClinicToType(dbClinic: ClinicRecord): Clinic {
     isVerified: true, // All imported clinics are considered verified
     isFeatured: false, // Featured status not stored in current schema
   };
+}
+
+/**
+ * Map ClinicService objects from the junction table to legacy ServiceType array.
+ * This maintains backward compatibility with existing components that expect ServiceType[].
+ *
+ * @param clinicServices - Array of ClinicService objects with service details
+ * @returns Array of ServiceType values
+ */
+function mapClinicServicesToServiceTypes(clinicServices: ClinicService[]): ServiceType[] {
+  const slugToServiceType: Record<string, ServiceType> = {
+    "injection-therapy": "injection-therapy",
+    "physical-therapy": "physical-therapy",
+    "medication-management": "medication-management",
+    "nerve-blocks": "nerve-blocks",
+    "spinal-cord-stimulation": "spinal-cord-stimulation",
+    "regenerative-medicine": "regenerative-medicine",
+    acupuncture: "acupuncture",
+    "chiropractic-care": "chiropractic",
+    "massage-therapy": "massage-therapy",
+    "psychological-services": "psychological-services",
+  };
+
+  const services: ServiceType[] = [];
+  const seen = new Set<ServiceType>();
+
+  for (const cs of clinicServices) {
+    if (!cs.service) continue;
+    const serviceType = slugToServiceType[cs.service.slug];
+    if (serviceType && !seen.has(serviceType)) {
+      services.push(serviceType);
+      seen.add(serviceType);
+    }
+  }
+
+  return services;
 }
 
 /**
@@ -152,56 +202,6 @@ function parseTimeRange(timeStr: string): { open: string; close: string } {
 
   // If we can't parse it, return the original string as open time
   return { open: timeStr, close: "" };
-}
-
-/**
- * Map amenities array to ServiceType array.
- * Maps known amenities to their corresponding ServiceType values.
- *
- * @param amenities - Array of amenity strings from database
- * @returns Array of ServiceType values
- */
-function mapAmenitiesToServices(amenities: string[] | null): ServiceType[] {
-  if (!amenities || !Array.isArray(amenities)) {
-    return [];
-  }
-
-  const amenityToService: Record<string, ServiceType> = {
-    "injection therapy": "injection-therapy",
-    "physical therapy": "physical-therapy",
-    "medication management": "medication-management",
-    "nerve blocks": "nerve-blocks",
-    "spinal cord stimulation": "spinal-cord-stimulation",
-    "regenerative medicine": "regenerative-medicine",
-    acupuncture: "acupuncture",
-    chiropractic: "chiropractic",
-    "massage therapy": "massage-therapy",
-    "psychological services": "psychological-services",
-    // Additional common variations
-    injections: "injection-therapy",
-    "physical rehabilitation": "physical-therapy",
-    "pain medication": "medication-management",
-    "nerve block": "nerve-blocks",
-    "stem cell therapy": "regenerative-medicine",
-    "prp therapy": "regenerative-medicine",
-    massage: "massage-therapy",
-    psychology: "psychological-services",
-    "mental health": "psychological-services",
-  };
-
-  const services: ServiceType[] = [];
-  const seen = new Set<ServiceType>();
-
-  for (const amenity of amenities) {
-    const normalized = amenity.toLowerCase().trim();
-    const service = amenityToService[normalized];
-    if (service && !seen.has(service)) {
-      services.push(service);
-      seen.add(service);
-    }
-  }
-
-  return services;
 }
 
 /**

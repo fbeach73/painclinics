@@ -1,6 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
+import { relations } from "drizzle-orm";
 import {
   pgTable,
+  pgEnum,
   text,
   timestamp,
   boolean,
@@ -9,6 +11,19 @@ import {
   doublePrecision,
   jsonb,
 } from "drizzle-orm/pg-core";
+
+// ============================================
+// Enums
+// ============================================
+
+export const serviceCategoryEnum = pgEnum("service_category", [
+  "injection",
+  "procedure",
+  "physical",
+  "diagnostic",
+  "management",
+  "specialized",
+]);
 
 export const user = pgTable(
   "user",
@@ -324,3 +339,75 @@ export const contentVersions = pgTable(
     index("content_versions_status_idx").on(table.status),
   ]
 );
+
+// ============================================
+// Services Tables
+// ============================================
+
+export const services = pgTable(
+  "services",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull().unique(),
+    slug: text("slug").notNull().unique(),
+    iconName: text("icon_name").notNull(),
+    description: text("description"),
+    category: serviceCategoryEnum("category").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    displayOrder: integer("display_order").default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("services_slug_idx").on(table.slug),
+    index("services_category_idx").on(table.category),
+  ]
+);
+
+export const clinicServices = pgTable(
+  "clinic_services",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    serviceId: text("service_id")
+      .notNull()
+      .references(() => services.id, { onDelete: "cascade" }),
+    isFeatured: boolean("is_featured").default(false).notNull(),
+    displayOrder: integer("display_order").default(0),
+    addedAt: timestamp("added_at").defaultNow().notNull(),
+    addedBy: text("added_by").references(() => user.id),
+  },
+  (table) => [
+    index("clinic_services_clinic_idx").on(table.clinicId),
+    index("clinic_services_service_idx").on(table.serviceId),
+    index("clinic_services_featured_idx").on(table.clinicId, table.isFeatured),
+  ]
+);
+
+// ============================================
+// Relations
+// ============================================
+
+export const servicesRelations = relations(services, ({ many }) => ({
+  clinicServices: many(clinicServices),
+}));
+
+export const clinicServicesRelations = relations(clinicServices, ({ one }) => ({
+  clinic: one(clinics, {
+    fields: [clinicServices.clinicId],
+    references: [clinics.id],
+  }),
+  service: one(services, {
+    fields: [clinicServices.serviceId],
+    references: [services.id],
+  }),
+}));

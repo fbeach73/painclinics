@@ -5,15 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance } from '@/types/clinic';
-import { ServiceIcons } from './service-icons';
+import type { ClinicService } from '@/types/service';
+import { ServiceIcons, DynamicServiceIcons } from './service-icons';
 import { StarRating } from './star-rating';
 
 interface ClinicCardFeaturedProps {
   clinic: ClinicWithDistance;
+  /** Database-driven clinic services (if available, takes precedence) */
+  clinicServices?: ClinicService[];
   className?: string;
 }
 
-export function ClinicCardFeatured({ clinic, className }: ClinicCardFeaturedProps) {
+export function ClinicCardFeatured({ clinic, clinicServices, className }: ClinicCardFeaturedProps) {
+  // Use database services if provided, otherwise fall back to legacy services
+  const hasDatabaseServices = clinicServices && clinicServices.length > 0;
+
   return (
     <Card className={cn('flex flex-col h-full overflow-hidden', className)}>
       {/* Image placeholder */}
@@ -62,7 +68,11 @@ export function ClinicCardFeatured({ clinic, className }: ClinicCardFeaturedProp
         </p>
 
         <div className="pt-2">
-          <ServiceIcons services={clinic.services} max={5} size="md" />
+          {hasDatabaseServices ? (
+            <DynamicServiceIcons services={clinicServices} max={5} size="md" />
+          ) : (
+            <ServiceIcons services={clinic.services} max={5} size="md" />
+          )}
         </div>
       </CardContent>
 

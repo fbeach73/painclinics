@@ -1,4 +1,4 @@
-import { sql, asc } from "drizzle-orm";
+import { sql, asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
 
@@ -177,6 +177,60 @@ export async function getClinicsWithImages() {
       featImage: clinics.featImage,
     })
     .from(clinics);
+}
+
+/**
+ * Fetch a single clinic by its ID.
+ *
+ * @param id - The clinic ID
+ * @returns The clinic record or null if not found
+ */
+export async function getClinicById(id: string) {
+  const results = await db
+    .select()
+    .from(clinics)
+    .where(eq(clinics.id, id))
+    .limit(1);
+
+  return results[0] || null;
+}
+
+/**
+ * Get all clinics for admin listing with basic info.
+ * Returns limited fields for performance.
+ *
+ * @param limit - Maximum number of clinics to return (default: 100)
+ * @param offset - Number of clinics to skip (default: 0)
+ * @returns Array of clinic records with basic info
+ */
+export async function getClinicsForAdmin(limit = 100, offset = 0) {
+  return db
+    .select({
+      id: clinics.id,
+      title: clinics.title,
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      permalink: clinics.permalink,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      updatedAt: clinics.updatedAt,
+    })
+    .from(clinics)
+    .orderBy(asc(clinics.stateAbbreviation), asc(clinics.city), asc(clinics.title))
+    .limit(limit)
+    .offset(offset);
+}
+
+/**
+ * Get total clinic count for pagination.
+ *
+ * @returns Total number of clinics
+ */
+export async function getClinicCount() {
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(clinics);
+  return result[0]?.count ?? 0;
 }
 
 // Type export for the clinic record

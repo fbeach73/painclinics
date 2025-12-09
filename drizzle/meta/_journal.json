@@ -22,6 +22,13 @@
       "when": 1765200917843,
       "tag": "0002_calm_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765257027287,
+      "tag": "0003_eminent_xavin",
+      "breakpoints": true
     }
   ]
 }
