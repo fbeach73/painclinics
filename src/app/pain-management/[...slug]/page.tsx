@@ -1,4 +1,3 @@
-// import { headers } from "next/headers"; // unused while auth is disabled
 import { notFound } from "next/navigation";
 import { ExternalLink, Phone } from "lucide-react";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -525,7 +524,10 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // Skip session check for now - will re-enable after diagnosing root cause
+  // NOTE: Auth session check disabled due to 500 errors on Vercel production.
+  // The betterAuth library causes serverless function crashes even when wrapped
+  // in try-catch with dynamic imports. Ownership features will show as if user
+  // is not logged in. TODO: Investigate betterAuth + Vercel compatibility.
   const currentUserId: string | null = null;
 
   const clinic = transformDbClinicToType(dbClinic);
