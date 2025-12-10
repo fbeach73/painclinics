@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+// import { headers } from "next/headers"; // unused while auth is disabled
 import { notFound } from "next/navigation";
 import { ExternalLink, Phone } from "lucide-react";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -525,16 +525,8 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // Get session for ownership check (using lightweight session helper)
-  let currentUserId: string | null = null;
-  try {
-    const { authSession } = await import("@/lib/auth-session");
-    const session = await authSession.api.getSession({ headers: await headers() });
-    currentUserId = session?.user?.id || null;
-  } catch (error) {
-    // If auth fails, continue without session - page will still work
-    console.error("Failed to get session:", error);
-  }
+  // Skip session check for now - will re-enable after diagnosing root cause
+  const currentUserId: string | null = null;
 
   const clinic = transformDbClinicToType(dbClinic);
   const structuredData = generateClinicStructuredData(dbClinic);
