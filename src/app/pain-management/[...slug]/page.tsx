@@ -54,26 +54,33 @@ interface Props {
 
 // Generate static params for state and city pages at build time
 export async function generateStaticParams() {
-  const { getAllStatesWithClinics, getAllCitiesWithClinics } = await import(
-    "@/lib/clinic-queries"
-  );
-  const states = await getAllStatesWithClinics();
+  try {
+    const { getAllStatesWithClinics, getAllCitiesWithClinics } = await import(
+      "@/lib/clinic-queries"
+    );
+    const states = await getAllStatesWithClinics();
 
-  // Generate paths for all states with clinics
-  const stateParams = states.map((state) => ({
-    slug: [state.toLowerCase()],
-  }));
+    // Generate paths for all states with clinics
+    const stateParams = states.map((state) => ({
+      slug: [state.toLowerCase()],
+    }));
 
-  // Generate paths for all cities with clinics
-  const cities = await getAllCitiesWithClinics();
-  const cityParams = cities.map((c) => ({
-    slug: [
-      c.stateAbbreviation!.toLowerCase(),
-      c.city.toLowerCase().replace(/\s+/g, "-"),
-    ],
-  }));
+    // Generate paths for all cities with clinics
+    const cities = await getAllCitiesWithClinics();
+    const cityParams = cities.map((c) => ({
+      slug: [
+        c.stateAbbreviation!.toLowerCase(),
+        c.city.toLowerCase().replace(/\s+/g, "-"),
+      ],
+    }));
 
-  return [...stateParams, ...cityParams];
+    return [...stateParams, ...cityParams];
+  } catch (error) {
+    // If database is unavailable (e.g., in CI), return empty array
+    // Pages will be generated on-demand at runtime instead
+    console.warn("generateStaticParams: Database unavailable, skipping static generation:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -518,13 +525,14 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // Get session for ownership check (with dynamic import to avoid module-level errors)
+  // Get session for ownership check (with error handling)
   let currentUserId: string | null = null;
   try {
     const { auth } = await import("@/lib/auth");
     const session = await auth.api.getSession({ headers: await headers() });
     currentUserId = session?.user?.id || null;
   } catch (error) {
+    // If auth fails, continue without session - page will still work
     console.error("Failed to get session:", error);
   }
 
