@@ -517,9 +517,14 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // Get session for ownership check
-  const session = await auth.api.getSession({ headers: await headers() });
-  const currentUserId = session?.user?.id || null;
+  // Get session for ownership check (with error handling)
+  let currentUserId: string | null = null;
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    currentUserId = session?.user?.id || null;
+  } catch (error) {
+    console.error("Failed to get session:", error);
+  }
 
   const clinic = transformDbClinicToType(dbClinic);
   const structuredData = generateClinicStructuredData(dbClinic);
