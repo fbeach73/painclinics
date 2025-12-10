@@ -3,7 +3,6 @@ import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
-import { getAllStatesWithClinics, getClinicCountsByState } from '@/lib/clinic-queries';
 import {
   generateWebSiteSchema,
   generateOrganizationSchema,
@@ -15,8 +14,18 @@ export const revalidate = 3600;
 
 export default async function Home() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
-  const states = await getAllStatesWithClinics();
-  const stateCounts = await getClinicCountsByState();
+
+  // Fetch states and counts with fallback for CI builds
+  let states: string[] = [];
+  let stateCounts: { stateAbbreviation: string | null; count: number }[] = [];
+
+  try {
+    const { getAllStatesWithClinics, getClinicCountsByState } = await import('@/lib/clinic-queries');
+    states = await getAllStatesWithClinics();
+    stateCounts = await getClinicCountsByState();
+  } catch (error) {
+    console.warn("Homepage: Database unavailable, using empty data:", error);
+  }
 
   // Create a map for quick count lookup
   const countMap = new Map(
