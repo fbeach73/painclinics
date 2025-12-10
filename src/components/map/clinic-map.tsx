@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox';
 import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
 import { ClinicMarker } from './clinic-marker';
@@ -22,6 +22,7 @@ export function ClinicMap({
   className = 'h-[60vh] min-h-[400px] w-full',
 }: ClinicMapProps) {
   const [selectedClinic, setSelectedClinic] = useState<ClinicWithDistance | null>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const initialViewState = useMemo(() => ({
     longitude: userLocation.coordinates.lng,
@@ -29,15 +30,46 @@ export function ClinicMap({
     zoom: 11,
   }), [userLocation.coordinates.lat, userLocation.coordinates.lng]);
 
-  const handleMarkerHover = useCallback(
-    (clinic: ClinicWithDistance | null) => {
+  const handleMarkerEnter = useCallback(
+    (clinic: ClinicWithDistance) => {
+      // Clear any pending close timeout
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
       setSelectedClinic(clinic);
       onClinicSelect?.(clinic);
     },
     [onClinicSelect]
   );
 
+  const handleMarkerLeave = useCallback(() => {
+    // Delay closing to allow mouse to move to popup
+    closeTimeoutRef.current = setTimeout(() => {
+      setSelectedClinic(null);
+      onClinicSelect?.(null);
+    }, 150);
+  }, [onClinicSelect]);
+
+  const handlePopupEnter = useCallback(() => {
+    // Cancel close when entering popup
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handlePopupLeave = useCallback(() => {
+    // Close popup when leaving it
+    setSelectedClinic(null);
+    onClinicSelect?.(null);
+  }, [onClinicSelect]);
+
   const handlePopupClose = useCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
     setSelectedClinic(null);
     onClinicSelect?.(null);
   }, [onClinicSelect]);
@@ -83,8 +115,8 @@ export function ClinicMap({
             <ClinicMarker
               isSelected={selectedClinic?.id === clinic.id}
               isFeatured={clinic.isFeatured}
-              onMouseEnter={() => handleMarkerHover(clinic)}
-              onMouseLeave={() => handleMarkerHover(null)}
+              onMouseEnter={() => handleMarkerEnter(clinic)}
+              onMouseLeave={handleMarkerLeave}
             />
           </Marker>
         ))}
@@ -100,7 +132,12 @@ export function ClinicMap({
             closeOnClick={false}
             onClose={handlePopupClose}
           >
-            <ClinicPopup clinic={selectedClinic} onClose={handlePopupClose} />
+            <div
+              onMouseEnter={handlePopupEnter}
+              onMouseLeave={handlePopupLeave}
+            >
+              <ClinicPopup clinic={selectedClinic} onClose={handlePopupClose} />
+            </div>
           </Popup>
         )}
       </Map>
