@@ -251,5 +251,61 @@ export async function getClinicCount() {
   return result[0]?.count ?? 0;
 }
 
+/**
+ * Get clinics near a geographic coordinate using Haversine formula.
+ * Returns clinics within the specified radius, ordered by distance.
+ * Featured clinics are prioritized within distance groups.
+ *
+ * @param lat - Latitude of the center point
+ * @param lng - Longitude of the center point
+ * @param radiusMiles - Maximum distance in miles (default: 50)
+ * @param limit - Maximum number of clinics to return (default: 50)
+ * @returns Array of clinic records with distance
+ */
+export async function getNearbyClinicsByCoordinates(
+  lat: number,
+  lng: number,
+  radiusMiles = 50,
+  limit = 50
+) {
+  // Haversine formula in SQL for distance calculation
+  const distanceSql = sql<number>`
+    (3959 * acos(
+      cos(radians(${lat})) *
+      cos(radians(${clinics.mapLatitude})) *
+      cos(radians(${clinics.mapLongitude}) - radians(${lng})) +
+      sin(radians(${lat})) *
+      sin(radians(${clinics.mapLatitude}))
+    ))
+  `;
+
+  return db
+    .select({
+      id: clinics.id,
+      title: clinics.title,
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      permalink: clinics.permalink,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      mapLatitude: clinics.mapLatitude,
+      mapLongitude: clinics.mapLongitude,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+      imageFeatured: clinics.imageFeatured,
+      distance: distanceSql,
+    })
+    .from(clinics)
+    .where(
+      sql`${clinics.mapLatitude} IS NOT NULL AND ${clinics.mapLongitude} IS NOT NULL AND ${distanceSql} <= ${radiusMiles}`
+    )
+    .orderBy(desc(featuredOrderSql), sql`${distanceSql}`)
+    .limit(limit);
+}
+
 // Type export for the clinic record
 export type ClinicRecord = typeof clinics.$inferSelect;
+export type NearbyClinic = Awaited<ReturnType<typeof getNearbyClinicsByCoordinates>>[number];
