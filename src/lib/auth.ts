@@ -1,20 +1,27 @@
 import { betterAuth, type BetterAuthPlugin } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { eq } from "drizzle-orm"
-import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
-import { Polar } from "@polar-sh/sdk"
 import { db } from "./db"
 import * as schema from "./schema"
-import {
-  handleSubscriptionActive,
-  handleSubscriptionCanceled,
-  handleOrderPaid,
-} from "./polar-webhooks"
 import { generateUnsubscribeToken, sendWelcomeEmail } from "./email"
 
-// Initialize Polar client and plugin (only if access token is available)
-const polarPlugin: BetterAuthPlugin | null = process.env.POLAR_ACCESS_TOKEN
-  ? (polar({
+// Initialize Polar plugin lazily to avoid import errors when Polar env vars are missing
+let polarPlugin: BetterAuthPlugin | null = null
+
+// Initialize Polar plugin synchronously for module-level export
+// This won't throw if Polar isn't configured
+if (process.env.POLAR_ACCESS_TOKEN) {
+  // Polar will be initialized, but we need sync access for betterAuth config
+  // Use a simpler approach: only import Polar modules if env var is set
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { polar, checkout, portal, webhooks } = require("@polar-sh/better-auth")
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Polar } = require("@polar-sh/sdk")
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const polarWebhooks = require("./polar-webhooks")
+
+    polarPlugin = polar({
       client: new Polar({
         accessToken: process.env.POLAR_ACCESS_TOKEN,
         server: process.env.NODE_ENV === "production" ? "production" : "sandbox",
@@ -38,13 +45,17 @@ const polarPlugin: BetterAuthPlugin | null = process.env.POLAR_ACCESS_TOKEN
         portal(),
         webhooks({
           secret: process.env.POLAR_WEBHOOK_SECRET || "",
-          onSubscriptionActive: handleSubscriptionActive,
-          onSubscriptionCanceled: handleSubscriptionCanceled,
-          onOrderPaid: handleOrderPaid,
+          onSubscriptionActive: polarWebhooks.handleSubscriptionActive,
+          onSubscriptionCanceled: polarWebhooks.handleSubscriptionCanceled,
+          onOrderPaid: polarWebhooks.handleOrderPaid,
         }),
       ],
-    }) as unknown as BetterAuthPlugin)
-  : null
+    }) as unknown as BetterAuthPlugin
+  } catch (error) {
+    console.warn("Failed to initialize Polar plugin:", error)
+    polarPlugin = null
+  }
+}
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
