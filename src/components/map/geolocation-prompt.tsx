@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPin, Loader2, Search } from 'lucide-react';
+import { MapPin, Loader2, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import type { PermissionState } from '@/hooks/use-geolocation';
 interface GeolocationPromptProps {
   onEnableLocation: () => void;
   onSearchLocation?: (query: string) => void;
+  onClose?: () => void;
   isLoading?: boolean;
   permissionState: PermissionState;
   error?: string | null;
@@ -18,6 +19,7 @@ interface GeolocationPromptProps {
 export function GeolocationPrompt({
   onEnableLocation,
   onSearchLocation,
+  onClose,
   isLoading = false,
   permissionState,
   error,
@@ -37,7 +39,18 @@ export function GeolocationPrompt({
 
   return (
     <div className="absolute inset-x-0 bottom-0 z-10 p-4 pointer-events-none">
-      <Card className="mx-auto max-w-md shadow-lg pointer-events-auto">
+      <Card className="mx-auto max-w-md shadow-lg pointer-events-auto relative">
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 h-6 w-6"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+        )}
         <CardContent className="p-4 space-y-4">
           <div className="text-center">
             <h3 className="font-semibold text-sm">Find Clinics Near You</h3>

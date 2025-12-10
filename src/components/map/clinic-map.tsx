@@ -29,8 +29,8 @@ export function ClinicMap({
     zoom: 11,
   }), [userLocation.coordinates.lat, userLocation.coordinates.lng]);
 
-  const handleMarkerClick = useCallback(
-    (clinic: ClinicWithDistance) => {
+  const handleMarkerHover = useCallback(
+    (clinic: ClinicWithDistance | null) => {
       setSelectedClinic(clinic);
       onClinicSelect?.(clinic);
     },
@@ -83,7 +83,8 @@ export function ClinicMap({
             <ClinicMarker
               isSelected={selectedClinic?.id === clinic.id}
               isFeatured={clinic.isFeatured}
-              onClick={() => handleMarkerClick(clinic)}
+              onMouseEnter={() => handleMarkerHover(clinic)}
+              onMouseLeave={() => handleMarkerHover(null)}
             />
           </Marker>
         ))}

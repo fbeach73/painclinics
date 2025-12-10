@@ -10,6 +10,8 @@ interface ClinicMarkerProps {
   isFeatured?: boolean;
   featuredTier?: FeaturedTier;
   onClick?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export function ClinicMarker({
@@ -17,6 +19,8 @@ export function ClinicMarker({
   isFeatured = false,
   featuredTier = 'none',
   onClick,
+  onMouseEnter,
+  onMouseLeave,
 }: ClinicMarkerProps) {
   const isPremium = featuredTier === 'premium';
   const isBasicFeatured = isFeatured && featuredTier === 'basic';
@@ -31,6 +35,8 @@ export function ClinicMarker({
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
         'flex items-center justify-center rounded-full shadow-md transition-transform duration-150 ease-in-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2',
         markerSize,
