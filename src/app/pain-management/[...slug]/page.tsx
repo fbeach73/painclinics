@@ -11,7 +11,8 @@ import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth } from "@/lib/auth";
+// Dynamic import to avoid module-level errors
+// import { auth } from "@/lib/auth";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
 import {
   getClinicByPermalink,
@@ -517,9 +518,10 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // Get session for ownership check (with error handling)
+  // Get session for ownership check (with dynamic import to avoid module-level errors)
   let currentUserId: string | null = null;
   try {
+    const { auth } = await import("@/lib/auth");
     const session = await auth.api.getSession({ headers: await headers() });
     currentUserId = session?.user?.id || null;
   } catch (error) {

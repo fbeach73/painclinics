@@ -72,7 +72,8 @@
       "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"\\d clinics\")",
       "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT clinic_image_urls FROM clinics WHERE permalink = ''pain-management/joshua-meyer-md-al-36207'';\")",
       "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT DISTINCT unnest(regexp_matches(img, ''^https?://([^/]+)/'', ''g'')) as domain FROM clinics, unnest(clinic_image_urls) as img LIMIT 20;\")",
-      "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT clinic_image_urls[1] FROM clinics WHERE clinic_image_urls[1] LIKE ''%lh3.ggpht%'' LIMIT 1;\")"
+      "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT clinic_image_urls[1] FROM clinics WHERE clinic_image_urls[1] LIKE ''%lh3.ggpht%'' LIMIT 1;\")",
+      "Bash(gh api:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
