@@ -10,6 +10,7 @@ import {
   handleSubscriptionCanceled,
   handleOrderPaid,
 } from "./polar-webhooks"
+import { generateUnsubscribeToken, sendWelcomeEmail } from "./email"
 
 // Initialize Polar client
 const polarClient = new Polar({
@@ -68,6 +69,15 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
+        before: async (user) => {
+          // Generate unsubscribe token for new users
+          return {
+            data: {
+              ...user,
+              unsubscribeToken: generateUnsubscribeToken(),
+            },
+          }
+        },
         after: async (user) => {
           // Auto-promote user to admin if their email matches ADMIN_EMAIL
           const adminEmail = process.env.ADMIN_EMAIL
@@ -76,6 +86,19 @@ export const auth = betterAuth({
               .update(schema.user)
               .set({ role: "admin" })
               .where(eq(schema.user.id, user.id))
+          }
+
+          // Send welcome email to new users
+          if (user.email) {
+            // Get the unsubscribe token we just created
+            const unsubscribeToken =
+              "unsubscribeToken" in user
+                ? (user.unsubscribeToken as string)
+                : undefined
+            await sendWelcomeEmail(user.email, user.name || "there", {
+              userId: user.id,
+              unsubscribeToken,
+            })
           }
         },
       },

@@ -375,7 +375,12 @@ export async function approveClaim(
   await sendClaimApprovedEmail(
     claim.businessEmail,
     claim.clinic.title,
-    dashboardUrl
+    dashboardUrl,
+    {
+      userId: claim.userId,
+      clinicId: claim.clinicId,
+      claimId,
+    }
   );
 
   return {
@@ -426,7 +431,12 @@ export async function rejectClaim(
   await sendClaimRejectedEmail(
     claim.businessEmail,
     claim.clinic.title,
-    rejectionReason
+    rejectionReason,
+    {
+      userId: claim.userId,
+      clinicId: claim.clinicId,
+      claimId,
+    }
   );
 
   return {

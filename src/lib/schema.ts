@@ -38,6 +38,16 @@ export const featuredTierEnum = pgEnum("featured_tier", [
   "premium",
 ]);
 
+export const emailStatusEnum = pgEnum("email_status", [
+  "queued",
+  "delivered",
+  "bounced",
+  "complained",
+  "failed",
+  "opened",
+  "clicked",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -47,6 +57,9 @@ export const user = pgTable(
     emailVerified: boolean("email_verified").default(false).notNull(),
     image: text("image"),
     role: text("role").default("user").notNull(), // "user" | "admin" | "clinic_owner"
+    // Email preferences
+    emailUnsubscribedAt: timestamp("email_unsubscribed_at"),
+    unsubscribeToken: text("unsubscribe_token").unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -530,6 +543,45 @@ export const claimRateLimits = pgTable(
 );
 
 // ============================================
+// Email Logs Table
+// ============================================
+
+export const emailLogs = pgTable(
+  "email_logs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("user_id").references(() => user.id),
+    recipientEmail: text("recipient_email").notNull(),
+    templateName: text("template_name").notNull(),
+    subject: text("subject").notNull(),
+    mailgunMessageId: text("mailgun_message_id").unique(),
+    status: emailStatusEnum("status").default("queued"),
+    metadata: jsonb("metadata"), // { clinicId?, claimId?, subscriptionId? }
+    errorMessage: text("error_message"),
+    sentAt: timestamp("sent_at").defaultNow(),
+    deliveredAt: timestamp("delivered_at"),
+    openedAt: timestamp("opened_at"),
+    clickedAt: timestamp("clicked_at"),
+    bouncedAt: timestamp("bounced_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("email_logs_user_idx").on(table.userId),
+    index("email_logs_recipient_idx").on(table.recipientEmail),
+    index("email_logs_template_idx").on(table.templateName),
+    index("email_logs_status_idx").on(table.status),
+    index("email_logs_mailgun_id_idx").on(table.mailgunMessageId),
+    index("email_logs_sent_at_idx").on(table.sentAt),
+  ]
+);
+
+// ============================================
 // Relations
 // ============================================
 
@@ -537,6 +589,7 @@ export const userRelations = relations(user, ({ many }) => ({
   ownedClinics: many(clinics),
   claims: many(clinicClaims),
   subscriptions: many(featuredSubscriptions),
+  emailLogs: many(emailLogs),
 }));
 
 export const clinicsRelations = relations(clinics, ({ one, many }) => ({
@@ -590,5 +643,12 @@ export const clinicServicesRelations = relations(clinicServices, ({ one }) => ({
   service: one(services, {
     fields: [clinicServices.serviceId],
     references: [services.id],
+  }),
+}));
+
+export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
+  user: one(user, {
+    fields: [emailLogs.userId],
+    references: [user.id],
   }),
 }));

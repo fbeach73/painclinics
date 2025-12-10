@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { db } from "./db"
 import * as schema from "./schema"
-import { sendFeaturedConfirmedEmail, sendPaymentFailedEmail } from "./email"
+import { sendFeaturedConfirmedEmail, sendPaymentFailedEmail, sendSubscriptionCanceledEmail, sendFeaturedRenewalEmail } from "./email"
 
 // Webhook payload types - using 'unknown' to avoid type compatibility issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,7 +95,11 @@ export async function handleSubscriptionActive(payload: WebhookPayload) {
         where: eq(schema.user.id, userId),
       })
       if (user?.email) {
-        await sendFeaturedConfirmedEmail(user.email, clinic.title, tier)
+        await sendFeaturedConfirmedEmail(user.email, clinic.title, tier, {
+          userId,
+          clinicId,
+          unsubscribeToken: user.unsubscribeToken ?? undefined,
+        })
       }
     }
   } catch (error) {
@@ -131,6 +135,33 @@ export async function handleSubscriptionCanceled(payload: WebhookPayload) {
       })
       .where(eq(schema.featuredSubscriptions.id, subscription.id))
 
+    // Send subscription canceled email
+    const clinic = await db.query.clinics.findFirst({
+      where: eq(schema.clinics.id, subscription.clinicId),
+    })
+
+    if (clinic && subscription.userId) {
+      const user = await db.query.user.findFirst({
+        where: eq(schema.user.id, subscription.userId),
+      })
+
+      if (user?.email) {
+        // Use the subscription endDate or fallback to currentPeriodEnd from webhook
+        const endDate = subscription.endDate || new Date(data.currentPeriodEnd || Date.now())
+        await sendSubscriptionCanceledEmail(
+          user.email,
+          clinic.title,
+          endDate,
+          {
+            userId: subscription.userId,
+            clinicId: subscription.clinicId,
+            subscriptionId: subscription.id,
+            unsubscribeToken: user.unsubscribeToken ?? undefined,
+          }
+        )
+      }
+    }
+
     // Note: We don't remove featured status immediately
     // A scheduled job should check featuredUntil dates and expire features
   } catch (error) {
@@ -163,8 +194,55 @@ export async function handleOrderPaid(payload: WebhookPayload) {
       return
     }
 
-    // For renewals, the subscription active webhook will handle the update
-    // This is mostly for logging/analytics
+    // Check if this is a renewal (subscription already existed before this order)
+    // The subscription.startDate would be before this order's createdAt for renewals
+    const orderCreatedAt = new Date(data.createdAt)
+    const isRenewal = subscription.startDate && subscription.startDate < orderCreatedAt
+
+    // Send renewal email for recurring payments (not the first payment)
+    if (isRenewal && subscription.userId) {
+      const user = await db.query.user.findFirst({
+        where: eq(schema.user.id, subscription.userId),
+      })
+
+      const clinic = await db.query.clinics.findFirst({
+        where: eq(schema.clinics.id, subscription.clinicId),
+      })
+
+      if (user?.email && clinic) {
+        // Extract payment details from order
+        const amount = data.totalAmount
+          ? `$${(data.totalAmount / 100).toFixed(2)}`
+          : "$9.99"
+
+        // Try to get payment method info - fallback to generic text
+        const paymentMethodLast4 = data.paymentMethod?.last4 || "****"
+
+        // Calculate next billing date (add one month for monthly billing)
+        const nextBillingDate = subscription.endDate
+          ? subscription.endDate.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : "your next billing cycle"
+
+        await sendFeaturedRenewalEmail(
+          user.email,
+          clinic.title,
+          amount,
+          paymentMethodLast4,
+          nextBillingDate,
+          {
+            userId: subscription.userId,
+            clinicId: subscription.clinicId,
+            subscriptionId: subscription.id,
+            invoiceUrl: data.invoiceUrl,
+            unsubscribeToken: user.unsubscribeToken ?? undefined,
+          }
+        )
+      }
+    }
   } catch (error) {
     console.error("[Polar Webhook] Error handling order paid:", error)
     throw error
@@ -178,7 +256,9 @@ export async function handlePaymentFailed(email: string, clinicId: string) {
     })
 
     if (clinic) {
-      await sendPaymentFailedEmail(email, clinic.title)
+      await sendPaymentFailedEmail(email, clinic.title, {
+        clinicId,
+      })
     }
   } catch (error) {
     console.error("[Polar Webhook] Error handling payment failed:", error)

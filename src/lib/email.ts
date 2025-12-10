@@ -1,5 +1,29 @@
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
+import { createId } from "@paralleldrive/cuid2";
+import { createEmailLog, updateEmailLog } from "./email-logger";
+import {
+  renderClaimVerificationEmail,
+  renderClaimApprovedEmail,
+  renderClaimRejectedEmail,
+  renderFeaturedWelcomeEmail,
+  renderFeaturedRenewalEmail,
+  renderPaymentFailedEmail,
+  renderSubscriptionCanceledEmail,
+  renderWelcomeEmail,
+  renderPasswordResetEmail,
+  EMAIL_TEMPLATES,
+  type ClaimVerificationProps,
+  type ClaimApprovedProps,
+  type ClaimRejectedProps,
+  type FeaturedWelcomeProps,
+  type FeaturedRenewalProps,
+  type PaymentFailedProps,
+  type SubscriptionCanceledProps,
+  type WelcomeProps,
+  type PasswordResetProps,
+  type EmailTemplateName,
+} from "@/emails";
 
 const mailgun = new Mailgun(FormData);
 
@@ -13,337 +37,396 @@ const mg =
 
 const FROM_EMAIL = "Pain Clinics Directory <noreply@painclinics.com>";
 
-interface SendEmailParams {
+// ============================================
+// Unsubscribe Token Utilities
+// ============================================
+
+export function generateUnsubscribeToken(): string {
+  return createId();
+}
+
+export function getUnsubscribeUrl(token: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  return `${baseUrl}/unsubscribe/${token}`;
+}
+
+// ============================================
+// Core Email Sending Function
+// ============================================
+
+interface SendEmailOptions {
   to: string;
   subject: string;
   html: string;
+  templateName: EmailTemplateName | string;
+  userId?: string | undefined;
+  metadata?: Record<string, string> | undefined;
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailParams) {
-  if (!mg || !process.env.MAILGUN_DOMAIN) {
-    console.warn("Mailgun not configured. Email not sent:", { to, subject });
-    return null;
-  }
+export interface SendEmailResult {
+  success: boolean;
+  messageId?: string | undefined;
+  logId: string;
+  error?: unknown;
+}
 
-  return mg.messages.create(process.env.MAILGUN_DOMAIN, {
-    from: FROM_EMAIL,
-    to,
+export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+  const { to, subject, html, templateName, userId, metadata } = options;
+
+  // Create log entry
+  const logId = await createEmailLog({
+    userId,
+    recipientEmail: to,
+    templateName,
     subject,
-    html,
+    metadata,
   });
+
+  try {
+    if (!mg || !process.env.MAILGUN_DOMAIN) {
+      console.warn("Mailgun not configured. Email not sent:", { to, subject });
+      await updateEmailLog(logId, {
+        status: "failed",
+        errorMessage: "Mailgun not configured",
+      });
+      return { success: false, logId, error: new Error("Mailgun not configured") };
+    }
+
+    const result = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+    });
+
+    await updateEmailLog(logId, {
+      mailgunMessageId: result.id,
+      status: "delivered",
+    });
+
+    return { success: true, messageId: result.id, logId };
+  } catch (error) {
+    await updateEmailLog(logId, {
+      status: "failed",
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+    });
+    console.error("Email send failed:", error);
+    return { success: false, error, logId };
+  }
 }
 
 // ============================================
 // Email Template Functions
 // ============================================
 
-export async function sendClaimSubmittedEmail(to: string, clinicName: string) {
+export async function sendClaimSubmittedEmail(
+  to: string,
+  clinicName: string,
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    claimId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
   const subject = `Claim Request Received - ${clinicName}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2563eb; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-        .highlight { background: #dbeafe; padding: 15px; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 20px; font-size: 12px; color: #6b7280; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Claim Request Received</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>We have received your ownership claim request for:</p>
-          <div class="highlight">
-            <strong>${clinicName}</strong>
-          </div>
-          <p><strong>What happens next?</strong></p>
-          <ul>
-            <li>Our team will review your claim within 1-2 business days</li>
-            <li>We may contact you to verify your ownership</li>
-            <li>You'll receive an email once your claim is approved or if we need additional information</li>
-          </ul>
-          <p>Thank you for claiming your listing on Pain Clinics Directory!</p>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Pain Clinics Directory</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const props: ClaimVerificationProps = {
+    clinicName,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
 
-  return sendEmail({ to, subject, html });
+  const html = await renderClaimVerificationEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.CLAIM_VERIFICATION,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.claimId && { claimId: options.claimId }),
+    },
+  });
 }
 
 export async function sendClaimApprovedEmail(
   to: string,
   clinicName: string,
-  dashboardUrl: string
-) {
+  dashboardUrl: string,
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    claimId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
   const subject = `Claim Approved - ${clinicName}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #16a34a; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-        .highlight { background: #dcfce7; padding: 15px; border-radius: 6px; margin: 15px 0; }
-        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 20px; font-size: 12px; color: #6b7280; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Congratulations! Claim Approved</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>Great news! Your ownership claim for the following listing has been approved:</p>
-          <div class="highlight">
-            <strong>${clinicName}</strong>
-          </div>
-          <p>You now have full access to manage your listing, including:</p>
-          <ul>
-            <li>Update business hours and contact information</li>
-            <li>Add photos and services</li>
-            <li>Respond to reviews</li>
-            <li>Upgrade to a Featured Listing for more visibility</li>
-          </ul>
-          <p>
-            <a href="${dashboardUrl}" class="button" style="color: white;">Go to Your Dashboard</a>
-          </p>
-          <p>Thank you for being part of Pain Clinics Directory!</p>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Pain Clinics Directory</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const props: ClaimApprovedProps = {
+    clinicName,
+    dashboardUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
 
-  return sendEmail({ to, subject, html });
+  const html = await renderClaimApprovedEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.CLAIM_APPROVED,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.claimId && { claimId: options.claimId }),
+    },
+  });
 }
 
 export async function sendClaimRejectedEmail(
   to: string,
   clinicName: string,
-  reason: string
-) {
+  reason: string,
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    claimId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
   const subject = `Claim Request Update - ${clinicName}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #dc2626; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-        .highlight { background: #fef2f2; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #fecaca; }
-        .footer { margin-top: 20px; font-size: 12px; color: #6b7280; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Claim Request Update</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>We have reviewed your ownership claim for:</p>
-          <div class="highlight">
-            <strong>${clinicName}</strong>
-          </div>
-          <p>Unfortunately, we were unable to approve your claim at this time.</p>
-          <p><strong>Reason:</strong></p>
-          <p>${reason}</p>
-          <p>If you believe this decision was made in error, please contact our support team with additional documentation to verify your ownership.</p>
-          <p>You may submit a new claim request after 30 days.</p>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Pain Clinics Directory</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const props: ClaimRejectedProps = {
+    clinicName,
+    reason,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
 
-  return sendEmail({ to, subject, html });
+  const html = await renderClaimRejectedEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.CLAIM_REJECTED,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.claimId && { claimId: options.claimId }),
+    },
+  });
 }
 
 export async function sendFeaturedConfirmedEmail(
   to: string,
   clinicName: string,
-  tier: "basic" | "premium"
-) {
-  const tierLabel = tier === "premium" ? "Premium" : "Basic";
-  const tierColor = tier === "premium" ? "#fbbf24" : "#60a5fa";
+  tier: "basic" | "premium",
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    subscriptionId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
   const subject = `Featured Listing Activated - ${clinicName}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: ${tierColor}; color: ${tier === "premium" ? "#1f2937" : "white"}; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-        .highlight { background: #fffbeb; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #fde68a; }
-        .badge { display: inline-block; background: ${tierColor}; color: ${tier === "premium" ? "#1f2937" : "white"}; padding: 4px 12px; border-radius: 9999px; font-weight: bold; font-size: 14px; }
-        .footer { margin-top: 20px; font-size: 12px; color: #6b7280; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">${tier === "premium" ? "Premium" : "Featured"} Listing Activated!</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>Your ${tierLabel} featured listing is now active for:</p>
-          <div class="highlight">
-            <strong>${clinicName}</strong>
-            <br><br>
-            <span class="badge">${tierLabel} Featured</span>
-          </div>
-          <p><strong>Your listing now includes:</strong></p>
-          <ul>
-            ${tier === "premium" ? "<li>Priority placement in search results</li>" : ""}
-            <li>Featured badge on your listing</li>
-            <li>Highlighted display in search results</li>
-            <li>Featured marker on the map</li>
-            ${tier === "premium" ? "<li>Larger map marker for maximum visibility</li>" : ""}
-          </ul>
-          <p>Your subscription will automatically renew each month. You can manage your subscription from your dashboard.</p>
-          <p>Thank you for choosing Pain Clinics Directory!</p>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Pain Clinics Directory</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const props: FeaturedWelcomeProps = {
+    clinicName,
+    tier,
+    dashboardUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
 
-  return sendEmail({ to, subject, html });
+  const html = await renderFeaturedWelcomeEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.FEATURED_WELCOME,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.subscriptionId && { subscriptionId: options.subscriptionId }),
+    },
+  });
 }
 
-export async function sendPaymentFailedEmail(to: string, clinicName: string) {
-  const subject = `Payment Failed - Action Required for ${clinicName}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #f97316; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-        .highlight { background: #fff7ed; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #fed7aa; }
-        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 20px; font-size: 12px; color: #6b7280; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Payment Failed - Action Required</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>We were unable to process your payment for the featured listing:</p>
-          <div class="highlight">
-            <strong>${clinicName}</strong>
-          </div>
-          <p><strong>What this means:</strong></p>
-          <ul>
-            <li>Your featured listing may be paused until payment is resolved</li>
-            <li>Your listing will remain visible but without featured benefits</li>
-          </ul>
-          <p><strong>To resolve this:</strong></p>
-          <ol>
-            <li>Go to your dashboard and update your payment method</li>
-            <li>Ensure your card has sufficient funds</li>
-            <li>We will automatically retry the payment</li>
-          </ol>
-          <p>If you have any questions, please contact our support team.</p>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Pain Clinics Directory</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+export async function sendFeaturedRenewalEmail(
+  to: string,
+  clinicName: string,
+  amount: string,
+  paymentMethodLast4: string,
+  nextBillingDate: string,
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    subscriptionId?: string | undefined;
+    invoiceUrl?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const subject = `Payment Receipt - ${clinicName}`;
+  const props: FeaturedRenewalProps = {
+    clinicName,
+    amount,
+    paymentMethodLast4,
+    nextBillingDate,
+    invoiceUrl: options?.invoiceUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
 
-  return sendEmail({ to, subject, html });
+  const html = await renderFeaturedRenewalEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.FEATURED_RENEWAL,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.subscriptionId && { subscriptionId: options.subscriptionId }),
+    },
+  });
+}
+
+export async function sendPaymentFailedEmail(
+  to: string,
+  clinicName: string,
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    subscriptionId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const updatePaymentUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const subject = `Payment Failed - Action Required for ${clinicName}`;
+  const props: PaymentFailedProps = {
+    clinicName,
+    updatePaymentUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderPaymentFailedEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.PAYMENT_FAILED,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.subscriptionId && { subscriptionId: options.subscriptionId }),
+    },
+  });
 }
 
 export async function sendSubscriptionCanceledEmail(
   to: string,
   clinicName: string,
-  endDate: Date
-) {
+  endDate: Date,
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    subscriptionId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
   const formattedDate = endDate.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
   const subject = `Subscription Canceled - ${clinicName}`;
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #6b7280; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
-        .highlight { background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 15px 0; }
-        .footer { margin-top: 20px; font-size: 12px; color: #6b7280; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Subscription Canceled</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>Your featured listing subscription has been canceled for:</p>
-          <div class="highlight">
-            <strong>${clinicName}</strong>
-          </div>
-          <p>Your featured status will remain active until <strong>${formattedDate}</strong>.</p>
-          <p>After this date, your listing will return to standard visibility.</p>
-          <p>If you change your mind, you can resubscribe at any time from your dashboard.</p>
-          <p>Thank you for using Pain Clinics Directory.</p>
-          <div class="footer">
-            <p>This is an automated message. Please do not reply to this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Pain Clinics Directory</p>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const reactivateUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const props: SubscriptionCanceledProps = {
+    clinicName,
+    endDate: formattedDate,
+    reactivateUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
 
-  return sendEmail({ to, subject, html });
+  const html = await renderSubscriptionCanceledEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.SUBSCRIPTION_CANCELED,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.subscriptionId && { subscriptionId: options.subscriptionId }),
+    },
+  });
+}
+
+export async function sendWelcomeEmail(
+  to: string,
+  userName: string,
+  options?: {
+    userId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/dashboard`;
+  const subject = "Welcome to Pain Clinics Directory!";
+  const props: WelcomeProps = {
+    userName,
+    dashboardUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderWelcomeEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.WELCOME,
+    userId: options?.userId,
+  });
+}
+
+export async function sendPasswordResetEmail(
+  to: string,
+  resetUrl: string,
+  options?: {
+    userId?: string | undefined;
+    expiresIn?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const subject = "Reset Your Password - Pain Clinics Directory";
+  const props: PasswordResetProps = {
+    resetUrl,
+    expiresIn: options?.expiresIn || "1 hour",
+  };
+
+  const html = await renderPasswordResetEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.PASSWORD_RESET,
+    userId: options?.userId,
+  });
 }

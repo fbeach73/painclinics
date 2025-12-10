@@ -8,6 +8,9 @@ import {
   canUserClaimClinic,
 } from "@/lib/claim-rate-limit";
 import { sendClaimSubmittedEmail } from "@/lib/email";
+import { db } from "@/lib/db";
+import { clinics } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 const VALID_ROLES = ["owner", "manager", "authorized_representative"] as const;
 
@@ -148,9 +151,24 @@ export async function POST(request: NextRequest) {
     // Record the claim attempt for rate limiting
     await recordClaimAttempt(ipAddress);
 
+    // Get clinic name for email
+    const [clinic] = await db
+      .select({ title: clinics.title })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
     // Send confirmation email to the claimant
     try {
-      await sendClaimSubmittedEmail(businessEmail.trim().toLowerCase(), "your clinic");
+      await sendClaimSubmittedEmail(
+        businessEmail.trim().toLowerCase(),
+        clinic?.title || "your clinic",
+        {
+          userId: session.user.id,
+          clinicId,
+          claimId: createdClaim.id,
+        }
+      );
     } catch (emailError) {
       // Log but don't fail the request if email fails
       console.error("Failed to send claim confirmation email:", emailError);
