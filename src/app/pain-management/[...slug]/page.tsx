@@ -525,11 +525,11 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // Get session for ownership check (with error handling)
+  // Get session for ownership check (using lightweight session helper)
   let currentUserId: string | null = null;
   try {
-    const { auth } = await import("@/lib/auth");
-    const session = await auth.api.getSession({ headers: await headers() });
+    const { authSession } = await import("@/lib/auth-session");
+    const session = await authSession.api.getSession({ headers: await headers() });
     currentUserId = session?.user?.id || null;
   } catch (error) {
     // If auth fails, continue without session - page will still work
