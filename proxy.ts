@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * URL normalization middleware for SEO preservation.
+ * URL normalization proxy for SEO preservation.
+ * In Next.js 16+, proxy.ts replaces middleware.ts for Node.js runtime.
  * Handles:
  * 1. Legacy /clinics/[slug] redirects to /pain-management/[slug]/
  * 2. Case normalization (lowercase)
  * 3. Trailing slash normalization (add if missing)
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip static files and API routes
