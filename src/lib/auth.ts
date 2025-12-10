@@ -1,8 +1,50 @@
-import { betterAuth } from "better-auth"
+import { betterAuth, type BetterAuthPlugin } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { eq } from "drizzle-orm"
+import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
+import { Polar } from "@polar-sh/sdk"
 import { db } from "./db"
 import * as schema from "./schema"
+import {
+  handleSubscriptionActive,
+  handleSubscriptionCanceled,
+  handleOrderPaid,
+} from "./polar-webhooks"
+
+// Initialize Polar client
+const polarClient = new Polar({
+  accessToken: process.env.POLAR_ACCESS_TOKEN!,
+  server: process.env.NODE_ENV === "production" ? "production" : "sandbox",
+})
+
+// Create Polar plugin with type assertion to handle version mismatch
+const polarPlugin = polar({
+  client: polarClient,
+  createCustomerOnSignUp: true,
+  use: [
+    checkout({
+      products: [
+        {
+          productId: process.env.POLAR_BASIC_PRODUCT_ID || "",
+          slug: "featured-basic",
+        },
+        {
+          productId: process.env.POLAR_PREMIUM_PRODUCT_ID || "",
+          slug: "featured-premium",
+        },
+      ],
+      successUrl: "/my-clinics/{metadata.clinicId}/featured?success=true&checkout_id={CHECKOUT_ID}",
+      authenticatedUsersOnly: true,
+    }),
+    portal(),
+    webhooks({
+      secret: process.env.POLAR_WEBHOOK_SECRET!,
+      onSubscriptionActive: handleSubscriptionActive,
+      onSubscriptionCanceled: handleSubscriptionCanceled,
+      onOrderPaid: handleOrderPaid,
+    }),
+  ],
+}) as unknown as BetterAuthPlugin
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -22,6 +64,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  plugins: [polarPlugin],
   databaseHooks: {
     user: {
       create: {

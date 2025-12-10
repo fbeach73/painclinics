@@ -1,6 +1,8 @@
 // Content Validation for Optimization
 // Ensures critical elements are preserved during optimization
 
+import { stripHtmlTags } from "@/lib/html-utils";
+
 export interface ValidationResult {
   passed: boolean;
   warnings: string[];
@@ -69,8 +71,8 @@ export function extractH3Tags(content: string): string[] {
  * Count words in content (excluding HTML tags)
  */
 export function countWords(content: string): number {
-  // Remove HTML tags
-  const textOnly = content.replace(/<[^>]*>/g, " ");
+  // Remove HTML tags and normalize whitespace
+  const textOnly = stripHtmlTags(content);
   // Split by whitespace and filter empty strings
   const words = textOnly.split(/\s+/).filter((w) => w.length > 0);
   return words.length;

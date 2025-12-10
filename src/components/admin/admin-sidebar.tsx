@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Upload, Home, LayoutDashboard, Settings, Database, Sparkles, BarChart3, Grid3X3 } from "lucide-react";
+import { Upload, Home, LayoutDashboard, Settings, Database, Sparkles, BarChart3, Grid3X3, Shield, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -10,6 +10,8 @@ const navItems = [
   { href: "/admin/optimize", label: "Content Optimization", icon: Sparkles },
   { href: "/admin/clinics", label: "Clinics", icon: Database },
   { href: "/admin/services", label: "Services", icon: Grid3X3 },
+  { href: "/admin/claims", label: "Claims", icon: Shield },
+  { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

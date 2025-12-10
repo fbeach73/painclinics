@@ -1,4 +1,6 @@
+import { stripHtmlTags } from "./html-utils";
 import type { clinics } from "./schema";
+import { parseTimeRange } from "./time-utils";
 
 type DbClinic = typeof clinics.$inferSelect;
 
@@ -45,16 +47,7 @@ export function generateClinicStructuredData(clinic: DbClinic) {
 
   // Clean description - remove HTML tags and truncate
   const cleanDescription = clinic.content
-    ? clinic.content
-        .replace(/<[^>]*>/g, "")
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .substring(0, 200)
-        .trim()
+    ? stripHtmlTags(clinic.content).substring(0, 200)
     : `${clinic.title} provides pain management services in ${clinic.city}, ${clinic.stateAbbreviation || clinic.state}.`;
 
   const structuredData: Record<string, unknown> = {
@@ -205,9 +198,9 @@ function formatOpeningHours(hours: ClinicHour[] | null) {
   return hours
     .filter((h) => h.hours && h.hours !== "Closed")
     .map((h) => {
-      const parts = h.hours.split("-").map((t) => t.trim());
-      const open = parts[0] || "9:00 AM";
-      const close = parts[1] || "5:00 PM";
+      const parsed = parseTimeRange(h.hours);
+      const open = parsed?.open || "9:00 AM";
+      const close = parsed?.close || "5:00 PM";
       return {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: h.day,

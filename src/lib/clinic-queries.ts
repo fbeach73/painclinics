@@ -1,6 +1,19 @@
-import { sql, asc, eq } from "drizzle-orm";
+import { sql, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
+
+/**
+ * SQL fragment to order by featured status.
+ * Premium > Basic > None, then by rating.
+ */
+const featuredOrderSql = sql`
+  CASE
+    WHEN ${clinics.featuredTier} = 'premium' AND ${clinics.isFeatured} = true AND (${clinics.featuredUntil} IS NULL OR ${clinics.featuredUntil} > NOW()) THEN 3
+    WHEN ${clinics.featuredTier} = 'basic' AND ${clinics.isFeatured} = true AND (${clinics.featuredUntil} IS NULL OR ${clinics.featuredUntil} > NOW()) THEN 2
+    WHEN ${clinics.isFeatured} = true AND (${clinics.featuredUntil} IS NULL OR ${clinics.featuredUntil} > NOW()) THEN 1
+    ELSE 0
+  END
+`;
 
 /**
  * Fetch a single clinic by its permalink slug.
@@ -37,8 +50,9 @@ export async function getAllClinicPermalinks() {
 }
 
 /**
- * Fetch all clinics in a specific state, ordered by city and title.
+ * Fetch all clinics in a specific state, ordered by featured status, then city and title.
  * Handles case-insensitive state abbreviation lookup.
+ * Featured clinics (premium first, then basic) appear before non-featured clinics.
  *
  * @param stateAbbrev - Two-letter state abbreviation (e.g., "AL", "CA")
  * @returns Array of clinic records
@@ -48,7 +62,7 @@ export async function getClinicsByState(stateAbbrev: string) {
     .select()
     .from(clinics)
     .where(sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`)
-    .orderBy(asc(clinics.city), asc(clinics.title));
+    .orderBy(desc(featuredOrderSql), asc(clinics.city), asc(clinics.title));
 }
 
 /**
@@ -85,6 +99,7 @@ export async function getClinicCountsByState() {
 
 /**
  * Search clinics by city and optional state.
+ * Featured clinics appear first, ordered by tier (premium > basic > none).
  *
  * @param city - City name (case-insensitive)
  * @param stateAbbrev - Optional state abbreviation filter
@@ -98,14 +113,14 @@ export async function getClinicsByCity(city: string, stateAbbrev?: string) {
       .where(
         sql`LOWER(${clinics.city}) = LOWER(${city}) AND UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`
       )
-      .orderBy(asc(clinics.title));
+      .orderBy(desc(featuredOrderSql), desc(clinics.rating), asc(clinics.title));
   }
 
   return db
     .select()
     .from(clinics)
     .where(sql`LOWER(${clinics.city}) = LOWER(${city})`)
-    .orderBy(asc(clinics.title));
+    .orderBy(desc(featuredOrderSql), desc(clinics.rating), asc(clinics.title));
 }
 
 /**
@@ -198,6 +213,7 @@ export async function getClinicById(id: string) {
 /**
  * Get all clinics for admin listing with basic info.
  * Returns limited fields for performance.
+ * Featured clinics appear first.
  *
  * @param limit - Maximum number of clinics to return (default: 100)
  * @param offset - Number of clinics to skip (default: 0)
@@ -214,9 +230,11 @@ export async function getClinicsForAdmin(limit = 100, offset = 0) {
       rating: clinics.rating,
       reviewCount: clinics.reviewCount,
       updatedAt: clinics.updatedAt,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
     })
     .from(clinics)
-    .orderBy(asc(clinics.stateAbbreviation), asc(clinics.city), asc(clinics.title))
+    .orderBy(desc(featuredOrderSql), asc(clinics.stateAbbreviation), asc(clinics.city), asc(clinics.title))
     .limit(limit)
     .offset(offset);
 }

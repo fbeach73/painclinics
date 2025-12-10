@@ -1,6 +1,8 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ExternalLink, Phone } from "lucide-react";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
+import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
@@ -9,6 +11,7 @@ import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/lib/auth";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
 import {
   getClinicByPermalink,
@@ -514,9 +517,19 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
+  // Get session for ownership check
+  const session = await auth.api.getSession({ headers: await headers() });
+  const currentUserId = session?.user?.id || null;
+
   const clinic = transformDbClinicToType(dbClinic);
   const structuredData = generateClinicStructuredData(dbClinic);
   const breadcrumbData = generateBreadcrumbStructuredData(dbClinic);
+
+  // Determine if we should show the claim benefits banner
+  // Only show if the clinic is not owned and the current user doesn't own it
+  const isOwned = !!clinic.ownerUserId;
+  const isOwnedByCurrentUser = !!(currentUserId && clinic.ownerUserId === currentUserId);
+  const showClaimBanner = !isOwned && !isOwnedByCurrentUser;
 
   return (
     <>
@@ -532,8 +545,17 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
       <main className="flex-1">
         <div className="container py-8">
+          {/* Claim Benefits Banner - shown for unclaimed clinics */}
+          {showClaimBanner && (
+            <ClaimBenefitsBanner
+              clinicId={clinic.id}
+              clinicName={clinic.name}
+              className="mb-8"
+            />
+          )}
+
           {/* Clinic Header */}
-          <ClinicHeader clinic={clinic} className="mb-8" />
+          <ClinicHeader clinic={clinic} currentUserId={currentUserId} className="mb-8" />
 
           {/* Main Content Grid */}
           <div className="grid gap-8 lg:grid-cols-3">

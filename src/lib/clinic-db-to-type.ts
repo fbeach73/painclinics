@@ -6,9 +6,11 @@ import type {
   InsuranceType,
 } from "@/types/clinic";
 import type { ClinicService } from "@/types/service";
-import { stripHtmlTags } from "./html-utils";
+
 import type { ClinicRecord } from "./clinic-queries";
-import type { ClinicHour } from "./clinic-transformer";
+import { extractPermalinkSlug, type ClinicHour } from "./clinic-transformer";
+import { stripHtmlTags } from "./html-utils";
+import { parseTimeRange } from "./time-utils";
 
 /**
  * Extended clinic record with junction table services.
@@ -36,7 +38,7 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
   return {
     id: dbClinic.id,
     name: dbClinic.title,
-    slug: extractSlugFromPermalink(dbClinic.permalink),
+    slug: extractPermalinkSlug(dbClinic.permalink),
     address: {
       street: dbClinic.streetAddress || "",
       city: dbClinic.city,
@@ -58,8 +60,11 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
     reviewCount: dbClinic.reviewCount || 0,
     photos: dbClinic.clinicImageUrls || [],
     about: stripHtmlTags(dbClinic.content || ""),
-    isVerified: true, // All imported clinics are considered verified
-    isFeatured: false, // Featured status not stored in current schema
+    isVerified: dbClinic.isVerified ?? false,
+    isFeatured: dbClinic.isFeatured ?? false,
+    ownerUserId: dbClinic.ownerUserId,
+    featuredTier: dbClinic.featuredTier,
+    featuredUntil: dbClinic.featuredUntil,
   };
 }
 
@@ -97,17 +102,6 @@ function mapClinicServicesToServiceTypes(clinicServices: ClinicService[]): Servi
   }
 
   return services;
-}
-
-/**
- * Extract the final slug segment from a permalink path.
- *
- * @param permalink - Full permalink path (e.g., "pain-management/clinic-name-al-35243")
- * @returns The slug portion (e.g., "clinic-name-al-35243")
- */
-function extractSlugFromPermalink(permalink: string): string {
-  const parts = permalink.split("/").filter(Boolean);
-  return parts[parts.length - 1] || permalink;
 }
 
 /**
@@ -162,46 +156,19 @@ function transformClinicHours(hours: ClinicHour[] | null): OperatingHours {
     const key = dayMap[day];
     if (!key) continue;
 
-    if (!timeStr || timeStr === "Closed") {
-      result[key] = { open: "", close: "", closed: true };
-    } else {
-      const parsed = parseTimeRange(timeStr);
+    const parsed = parseTimeRange(timeStr);
+    if (parsed) {
       result[key] = {
         open: parsed.open,
         close: parsed.close,
         closed: false,
       };
+    } else {
+      result[key] = { open: "", close: "", closed: true };
     }
   }
 
   return result;
-}
-
-/**
- * Parse a time range string like "8:00 AM - 5:00 PM" into open/close times.
- *
- * @param timeStr - Time range string from database
- * @returns Object with open and close times
- */
-function parseTimeRange(timeStr: string): { open: string; close: string } {
-  // Handle various formats: "8:00 AM - 5:00 PM", "8AM-5PM", "8:00AM-5:00PM"
-  const parts = timeStr
-    .split(/[-–]/)
-    .map((t) => t.trim())
-    .filter(Boolean);
-
-  const openTime = parts[0];
-  const closeTime = parts[1];
-
-  if (openTime && closeTime) {
-    return {
-      open: openTime,
-      close: closeTime,
-    };
-  }
-
-  // If we can't parse it, return the original string as open time
-  return { open: timeStr, close: "" };
 }
 
 /**

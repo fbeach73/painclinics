@@ -72,6 +72,9 @@ export interface Clinic {
   about: string;
   isVerified: boolean;
   isFeatured: boolean;
+  ownerUserId?: string | null;
+  featuredTier?: 'none' | 'basic' | 'premium' | null;
+  featuredUntil?: Date | null;
 }
 
 export interface ClinicWithDistance extends Clinic {

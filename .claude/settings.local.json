@@ -59,7 +59,11 @@
       "Bash(pnpm tsx:*)",
       "Bash(pnpm tsc:*)",
       "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\":*)",
-      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" psql:*)"
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" psql:*)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm view:*)",
+      "Bash(head:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

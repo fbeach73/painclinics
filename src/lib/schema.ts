@@ -25,6 +25,19 @@ export const serviceCategoryEnum = pgEnum("service_category", [
   "specialized",
 ]);
 
+export const claimStatusEnum = pgEnum("claim_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "expired",
+]);
+
+export const featuredTierEnum = pgEnum("featured_tier", [
+  "none",
+  "basic",
+  "premium",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -33,7 +46,7 @@ export const user = pgTable(
     email: text("email").notNull().unique(),
     emailVerified: boolean("email_verified").default(false).notNull(),
     image: text("image"),
-    role: text("role").default("user").notNull(), // "user" | "admin"
+    role: text("role").default("user").notNull(), // "user" | "admin" | "clinic_owner"
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -186,14 +199,27 @@ export const clinics = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
+
+    // Ownership & Claiming
+    ownerUserId: text("owner_user_id").references(() => user.id),
+    isVerified: boolean("is_verified").default(false).notNull(),
+    claimedAt: timestamp("claimed_at"),
+
+    // Featured Listings
+    isFeatured: boolean("is_featured").default(false).notNull(),
+    featuredTier: featuredTierEnum("featured_tier").default("none"),
+    featuredUntil: timestamp("featured_until"),
   },
   (table) => [
     index("clinics_place_id_idx").on(table.placeId),
     index("clinics_city_idx").on(table.city),
     index("clinics_state_idx").on(table.state),
+    index("clinics_state_city_idx").on(table.stateAbbreviation, table.city),
     index("clinics_postal_code_idx").on(table.postalCode),
     index("clinics_rating_idx").on(table.rating),
     index("clinics_import_batch_idx").on(table.importBatchId),
+    index("clinics_owner_idx").on(table.ownerUserId),
+    index("clinics_featured_idx").on(table.isFeatured),
   ]
 );
 
@@ -394,8 +420,163 @@ export const clinicServices = pgTable(
 );
 
 // ============================================
+// Clinic Claims Tables
+// ============================================
+
+export const clinicClaims = pgTable(
+  "clinic_claims",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    // Claimant information
+    fullName: text("full_name").notNull(),
+    role: text("role").notNull(), // "owner" | "manager" | "authorized_representative"
+    businessEmail: text("business_email").notNull(),
+    businessPhone: text("business_phone").notNull(),
+    additionalNotes: text("additional_notes"),
+
+    // Status tracking
+    status: claimStatusEnum("status").default("pending").notNull(),
+    adminNotes: text("admin_notes"),
+    rejectionReason: text("rejection_reason"),
+
+    // Anti-fraud tracking
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+
+    // Review tracking
+    reviewedAt: timestamp("reviewed_at"),
+    reviewedBy: text("reviewed_by").references(() => user.id),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("clinic_claims_clinic_idx").on(table.clinicId),
+    index("clinic_claims_user_idx").on(table.userId),
+    index("clinic_claims_status_idx").on(table.status),
+  ]
+);
+
+export const featuredSubscriptions = pgTable(
+  "featured_subscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    // Polar integration
+    polarSubscriptionId: text("polar_subscription_id").unique(),
+    polarCustomerId: text("polar_customer_id"),
+    polarProductId: text("polar_product_id"),
+
+    // Subscription details
+    tier: featuredTierEnum("tier").default("none").notNull(),
+    billingCycle: text("billing_cycle"), // "monthly" | "annual"
+
+    // Status
+    status: text("status").default("active").notNull(), // "active" | "canceled" | "past_due" | "expired"
+
+    // Dates
+    startDate: timestamp("start_date").notNull(),
+    endDate: timestamp("end_date"),
+    canceledAt: timestamp("canceled_at"),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("featured_subscriptions_clinic_idx").on(table.clinicId),
+    index("featured_subscriptions_user_idx").on(table.userId),
+    index("featured_subscriptions_polar_sub_idx").on(table.polarSubscriptionId),
+    index("featured_subscriptions_status_idx").on(table.status),
+  ]
+);
+
+export const claimRateLimits = pgTable(
+  "claim_rate_limits",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    ipAddress: text("ip_address").notNull(),
+    claimCount: integer("claim_count").default(1).notNull(),
+    windowStart: timestamp("window_start").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("claim_rate_limits_ip_idx").on(table.ipAddress)]
+);
+
+// ============================================
 // Relations
 // ============================================
+
+export const userRelations = relations(user, ({ many }) => ({
+  ownedClinics: many(clinics),
+  claims: many(clinicClaims),
+  subscriptions: many(featuredSubscriptions),
+}));
+
+export const clinicsRelations = relations(clinics, ({ one, many }) => ({
+  owner: one(user, {
+    fields: [clinics.ownerUserId],
+    references: [user.id],
+  }),
+  claims: many(clinicClaims),
+  featuredSubscription: one(featuredSubscriptions),
+  clinicServices: many(clinicServices),
+}));
+
+export const clinicClaimsRelations = relations(clinicClaims, ({ one }) => ({
+  clinic: one(clinics, {
+    fields: [clinicClaims.clinicId],
+    references: [clinics.id],
+  }),
+  user: one(user, {
+    fields: [clinicClaims.userId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [clinicClaims.reviewedBy],
+    references: [user.id],
+  }),
+}));
+
+export const featuredSubscriptionsRelations = relations(
+  featuredSubscriptions,
+  ({ one }) => ({
+    clinic: one(clinics, {
+      fields: [featuredSubscriptions.clinicId],
+      references: [clinics.id],
+    }),
+    user: one(user, {
+      fields: [featuredSubscriptions.userId],
+      references: [user.id],
+    }),
+  })
+);
 
 export const servicesRelations = relations(services, ({ many }) => ({
   clinicServices: many(clinicServices),

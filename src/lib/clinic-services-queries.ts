@@ -1,4 +1,4 @@
-import { eq, asc, and, sql } from "drizzle-orm";
+import { eq, asc, and, sql, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinicServices, services, clinics } from "@/lib/schema";
 import type { ClinicService, Service, SetServiceInput } from "@/types/service";
@@ -242,6 +242,7 @@ export async function getFeaturedServiceCount(clinicId: string): Promise<number>
 /**
  * Get services available to add to a clinic.
  * Returns all active services that the clinic doesn't already have.
+ * Uses a single LEFT JOIN query for efficiency.
  *
  * @param clinicId - The clinic ID
  * @returns Array of available services
@@ -249,33 +250,32 @@ export async function getFeaturedServiceCount(clinicId: string): Promise<number>
 export async function getAvailableServicesForClinic(
   clinicId: string
 ): Promise<Service[]> {
-  // Get IDs of services already assigned to this clinic
-  const existingServices = await db
-    .select({ serviceId: clinicServices.serviceId })
-    .from(clinicServices)
-    .where(eq(clinicServices.clinicId, clinicId));
-
-  const existingIds = existingServices.map((s) => s.serviceId);
-
-  // Get all active services not in the existing list
-  if (existingIds.length === 0) {
-    return db
-      .select()
-      .from(services)
-      .where(eq(services.isActive, true))
-      .orderBy(asc(services.category), asc(services.displayOrder), asc(services.name));
-  }
-
-  return db
-    .select()
+  // Single query using LEFT JOIN to find services not assigned to this clinic
+  const results = await db
+    .select({
+      id: services.id,
+      name: services.name,
+      slug: services.slug,
+      iconName: services.iconName,
+      description: services.description,
+      category: services.category,
+      isActive: services.isActive,
+      displayOrder: services.displayOrder,
+      createdAt: services.createdAt,
+      updatedAt: services.updatedAt,
+    })
     .from(services)
-    .where(
+    .leftJoin(
+      clinicServices,
       and(
-        eq(services.isActive, true),
-        sql`${services.id} != ALL(${existingIds})`
+        eq(clinicServices.serviceId, services.id),
+        eq(clinicServices.clinicId, clinicId)
       )
     )
+    .where(and(eq(services.isActive, true), isNull(clinicServices.id)))
     .orderBy(asc(services.category), asc(services.displayOrder), asc(services.name));
+
+  return results;
 }
 
 // Type export for the clinic_services record

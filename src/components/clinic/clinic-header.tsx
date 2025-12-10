@@ -8,10 +8,13 @@ import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import { formatTime } from '@/lib/time-utils';
 import { cn } from '@/lib/utils';
 import type { Clinic } from '@/types/clinic';
+import { FeaturedBadge, type FeaturedTier } from './featured-badge';
 import { StarRating } from './star-rating';
+import { ClaimListingButton } from './claim-listing-button';
 
 interface ClinicHeaderProps {
   clinic: Clinic;
+  currentUserId?: string | null;
   className?: string;
 }
 
@@ -39,9 +42,13 @@ function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string 
   return { isOpen: false, statusText: 'Closed' };
 }
 
-export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
+export function ClinicHeader({ clinic, currentUserId, className }: ClinicHeaderProps) {
   const { isOpen, statusText } = isCurrentlyOpen(clinic);
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(clinic.address.formatted);
+
+  const isOwned = !!clinic.ownerUserId;
+  const isOwnedByCurrentUser = !!(currentUserId && clinic.ownerUserId === currentUserId);
+  const featuredTier = (clinic.featuredTier || 'none') as FeaturedTier;
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -49,12 +56,20 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
       <div className="space-y-3">
         <div className="flex items-start gap-3 flex-wrap">
           <h1 className="text-3xl font-bold tracking-tight">{clinic.name}</h1>
+          <FeaturedBadge tier={featuredTier} size="md" className="mt-1" />
           {clinic.isVerified && (
             <Badge className="gap-1 mt-1">
               <BadgeCheck className="h-3.5 w-3.5" />
               Verified
             </Badge>
           )}
+          <ClaimListingButton
+            clinicId={clinic.id}
+            clinicName={clinic.name}
+            isOwned={isOwned}
+            isOwnedByCurrentUser={isOwnedByCurrentUser}
+            className="mt-1"
+          />
         </div>
         <StarRating rating={clinic.rating} reviewCount={clinic.reviewCount} variant="full" />
       </div>

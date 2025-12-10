@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,11 +55,12 @@ export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryPr
                 )}
               >
                 {photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={photo}
                     alt={`${clinicName} photo ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -89,13 +91,14 @@ export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryPr
             </Button>
 
             {/* Image display */}
-            <div className="aspect-video bg-muted flex items-center justify-center">
+            <div className="relative aspect-video bg-muted flex items-center justify-center">
               {selectedIndex !== null && displayPhotos[selectedIndex] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={displayPhotos[selectedIndex]}
                   alt={`${clinicName} photo ${selectedIndex + 1}`}
-                  className="w-full h-full object-contain"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 1200px) 100vw, 896px"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">

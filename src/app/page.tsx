@@ -9,6 +9,9 @@ import {
 } from '@/lib/structured-data';
 import { getStateName } from '@/lib/us-states';
 
+// ISR: Revalidate every hour
+export const revalidate = 3600;
+
 export default async function Home() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
   const states = await getAllStatesWithClinics();
