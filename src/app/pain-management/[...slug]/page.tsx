@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ExternalLink, Phone, Edit } from "lucide-react";
+import { ExternalLink, Phone } from "lucide-react";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
+import { ClinicEditButton } from "@/components/clinic/clinic-edit-button";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
@@ -12,8 +12,6 @@ import { EmbeddedMap } from "@/components/map/embedded-map";
 import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// NOTE: Auth disabled - causes 500 errors on Vercel production
-// import { auth } from "@/lib/auth";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
 import {
   getClinicByPermalink,
@@ -537,32 +535,13 @@ export default async function PainManagementClinicPage({ params }: Props) {
     clinicServices,
   };
 
-  // NOTE: Auth session check disabled due to 500 errors on Vercel production.
-  // The betterAuth library causes serverless function crashes even when wrapped
-  // in try-catch with dynamic imports. Ownership features will show as if user
-  // is not logged in. TODO: Investigate betterAuth + Vercel compatibility.
-  const currentUserId: string | null = null;
-  const currentUserRole: string | null = null;
-
   const clinic = transformDbClinicToType(dbClinicWithServices);
   const structuredData = generateClinicStructuredData(dbClinicWithServices);
   const breadcrumbData = generateBreadcrumbStructuredData(dbClinicWithServices);
 
-  // Determine if we should show the claim benefits banner
-  // Only show if the clinic is not owned and the current user doesn't own it
-  const isOwned = !!clinic.ownerUserId;
-  const isOwnedByCurrentUser = !!(currentUserId && clinic.ownerUserId === currentUserId);
-  const showClaimBanner = !isOwned && !isOwnedByCurrentUser;
-
-  // Determine if user can edit this listing (ADMIN or CLINIC OWNER only)
-  const isAdmin = currentUserRole === "admin";
-  const isClinicOwner = !!(currentUserId && clinic.ownerUserId === currentUserId);
-  const canEditListing = isAdmin || isClinicOwner;
-
-  // Determine the edit URL based on role
-  const editUrl = isAdmin
-    ? `/admin/clinics/${clinic.id}`
-    : `/my-clinics/${clinic.id}/edit`;
+  // Show claim banner only for unclaimed clinics
+  // The ClaimBenefitsBanner handles user-specific logic client-side
+  const showClaimBanner = !clinic.ownerUserId;
 
   return (
     <>
@@ -587,20 +566,14 @@ export default async function PainManagementClinicPage({ params }: Props) {
             />
           )}
 
-          {/* Edit Listing Button - ONLY shown to ADMIN or CLINIC OWNER */}
-          {canEditListing && (
-            <div className="mb-6 flex justify-end">
-              <Button asChild variant="outline" size="sm">
-                <Link href={editUrl}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Listing
-                </Link>
-              </Button>
-            </div>
-          )}
+          {/* Edit Listing Button - Client component handles auth check */}
+          <ClinicEditButton
+            clinicId={clinic.id}
+            ownerUserId={clinic.ownerUserId ?? null}
+          />
 
           {/* Clinic Header */}
-          <ClinicHeader clinic={clinic} currentUserId={currentUserId} className="mb-8" />
+          <ClinicHeader clinic={clinic} className="mb-8" />
 
           {/* Main Content Grid */}
           <div className="grid gap-8 lg:grid-cols-3">

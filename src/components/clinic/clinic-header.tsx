@@ -3,6 +3,7 @@
 import { BadgeCheck, MapPin, Phone, Navigation, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/auth-client';
 import { type DayName, WEEKDAY_INDEX_TO_NAME } from '@/lib/day-constants';
 import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import { formatTime } from '@/lib/time-utils';
@@ -14,7 +15,6 @@ import { ClaimListingButton } from './claim-listing-button';
 
 interface ClinicHeaderProps {
   clinic: Clinic;
-  currentUserId?: string | null;
   className?: string;
 }
 
@@ -42,10 +42,12 @@ function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string 
   return { isOpen: false, statusText: 'Closed' };
 }
 
-export function ClinicHeader({ clinic, currentUserId, className }: ClinicHeaderProps) {
+export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
+  const { data: session } = useSession();
   const { isOpen, statusText } = isCurrentlyOpen(clinic);
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(clinic.address.formatted);
 
+  const currentUserId = session?.user?.id || null;
   const isOwned = !!clinic.ownerUserId;
   const isOwnedByCurrentUser = !!(currentUserId && clinic.ownerUserId === currentUserId);
   const featuredTier = (clinic.featuredTier || 'none') as FeaturedTier;
