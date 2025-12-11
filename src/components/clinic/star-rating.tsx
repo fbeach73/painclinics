@@ -41,13 +41,13 @@ export function StarRating({
                 'h-4 w-4',
                 star <= Math.round(rating)
                   ? 'fill-yellow-400 text-yellow-400'
-                  : 'fill-muted text-muted'
+                  : 'fill-slate-200 text-slate-200 dark:fill-slate-700 dark:text-slate-700'
               )}
             />
           ))}
         </div>
-        <span className="font-medium">{rating.toFixed(1)}</span>
-        <span className="text-muted-foreground text-sm">({reviewCount} reviews)</span>
+        <span className="font-semibold text-slate-800 dark:text-slate-300">{rating.toFixed(1)}</span>
+        <span className="text-slate-500 dark:text-slate-400 text-sm">({reviewCount} reviews)</span>
       </div>
     );
   }

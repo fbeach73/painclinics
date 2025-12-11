@@ -32,6 +32,7 @@ export interface ReviewsPerScore {
 
 /**
  * Raw CSV row type with all possible WordPress export fields
+ * Supports both old (legacy) and new column naming conventions
  */
 export interface RawClinicCSVRow {
   ID?: string;
@@ -54,23 +55,53 @@ export interface RawClinicCSVRow {
   emails?: string;
   Reviews?: string;
   Rating?: string;
+
+  // Reviews Per Score - Legacy format (individual columns)
   "Reviews Per Score Rating_1"?: string;
   "Reviews Per Score Rating_2"?: string;
   "Reviews Per Score Rating_3"?: string;
   "Reviews Per Score Rating_4"?: string;
   "Reviews Per Score Rating_5"?: string;
+  // Reviews Per Score - New format (pipe-delimited)
+  "Reviews Per Score Rating_review_score_number"?: string;
+  "Reviews Per Score Rating_review_score_count"?: string;
+
+  // Review Keywords - Legacy format
   "Review Keywords_Keyword"?: string;
   "Review Keywords_Count"?: string;
+  // Review Keywords - New format
+  "Review Keywords_keyword"?: string;
+  "Review Keywords_keyword_count"?: string;
+
+  // Clinic Hours - Legacy format
   "Clinic Hours_Days"?: string;
   "Clinic Hours_Hours"?: string;
+  // Clinic Hours - New format
+  "Clinic Hours_day"?: string;
+  "Clinic Hours_hours"?: string;
+
   "Closed On"?: string;
+
+  // Popular Times - Legacy format
   "Popular times_Hours"?: string;
   "Popular times_Popularity"?: string;
+  // Popular Times - New format
+  "Popular times_hour_of_day"?: string;
+  "Popular times_average_popularity"?: string;
+
+  // Featured Reviews - Legacy format
   "Featured Reviews_Google review user profile username"?: string;
   "Featured Reviews_Google review user profile URL"?: string;
   "Featured Reviews_Google Review"?: string;
   "Featured Reviews_Google review publish date"?: string;
   "Featured Reviews_Google review star rating"?: string;
+  // Featured Reviews - New format
+  "Featured Reviews_username"?: string;
+  "Featured Reviews_profile_url"?: string;
+  "Featured Reviews_review"?: string;
+  "Featured Reviews_date_review_left"?: string;
+  "Featured Reviews_rating"?: string;
+
   Content?: string;
   "New Post Content"?: string;
   "Image URL"?: string;
@@ -82,14 +113,29 @@ export interface RawClinicCSVRow {
   Amenities?: string;
   "Checkbox Features"?: string;
   "Google Listing Link"?: string;
+
+  // Questions - Legacy format
   Questions?: string;
+  // Questions - New format (pipe-delimited Q&A pairs)
+  Question?: string;
+  Answer?: string;
+
+  // Social Media
   Facebook?: string;
+  facebook?: string;
   Instagram?: string;
+  instagram?: string;
   Twitter?: string;
+  twitter?: string;
   YouTube?: string;
+  youtube?: string;
   LinkedIn?: string;
+  linkedin?: string;
   TikTok?: string;
+  tiktok?: string;
   Pinterest?: string;
+  pinterest?: string;
+
   [key: string]: string | undefined;
 }
 
@@ -134,7 +180,7 @@ export interface TransformedClinic {
   amenities: string[] | null;
   checkboxFeatures: string[] | null;
   googleListingLink: string | null;
-  questions: Record<string, unknown> | null;
+  questions: QuestionAnswer[] | null;
   facebook: string | null;
   instagram: string | null;
   twitter: string | null;
@@ -248,11 +294,32 @@ export function parsePopularTimes(
 
 /**
  * Parse reviews per score into an object
+ * Supports both legacy format (individual columns) and new pipe-delimited format
  */
 export function parseReviewsPerScore(row: RawClinicCSVRow): ReviewsPerScore | null {
   const scores: ReviewsPerScore = {};
   let hasAny = false;
 
+  // Try new pipe-delimited format first
+  const scoreNumbers = row["Reviews Per Score Rating_review_score_number"];
+  const scoreCounts = row["Reviews Per Score Rating_review_score_count"];
+
+  if (scoreNumbers && scoreCounts) {
+    const scoreArr = scoreNumbers.split("|").map((s) => parseInt(s.trim(), 10));
+    const countArr = scoreCounts.split("|").map((c) => parseInt(c.trim(), 10));
+
+    scoreArr.forEach((score, i) => {
+      const count = countArr[i];
+      if (!isNaN(score) && count !== undefined && !isNaN(count)) {
+        scores[`${score}`] = count;
+        hasAny = true;
+      }
+    });
+
+    if (hasAny) return scores;
+  }
+
+  // Fall back to legacy format (individual columns)
   for (let i = 1; i <= 5; i++) {
     const value = row[`Reviews Per Score Rating_${i}`];
     if (value) {
@@ -310,6 +377,39 @@ export function parseCheckboxFeatures(features: string | undefined): string[] | 
   if (!features) return null;
   const parsed = features.split("|").map((f) => f.trim()).filter(Boolean);
   return parsed.length > 0 ? parsed : null;
+}
+
+/**
+ * Question and Answer pair
+ */
+export interface QuestionAnswer {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Parse questions and answers from pipe-separated strings
+ * New format uses separate Question and Answer columns
+ */
+export function parseQuestions(
+  questions: string | undefined,
+  answers: string | undefined
+): QuestionAnswer[] | null {
+  if (!questions || !answers) return null;
+
+  const qArr = questions.split("|").map((q) => q.trim()).filter(Boolean);
+  const aArr = answers.split("|").map((a) => a.trim());
+
+  if (qArr.length === 0) return null;
+
+  const result = qArr
+    .map((question, i) => ({
+      question,
+      answer: aArr[i] || "",
+    }))
+    .filter((qa) => qa.question && qa.answer);
+
+  return result.length > 0 ? result : null;
 }
 
 /**
@@ -443,25 +543,33 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     reviewCount: safeParseInt(row.Reviews) || 0,
     rating: safeParseFloat(row.Rating),
     reviewsPerScore: parseReviewsPerScore(row),
+    // Review Keywords: try new format first, then legacy
     reviewKeywords: parseReviewKeywords(
-      row["Review Keywords_Keyword"],
-      row["Review Keywords_Count"]
+      row["Review Keywords_keyword"] || row["Review Keywords_Keyword"],
+      row["Review Keywords_keyword_count"] || row["Review Keywords_Count"]
     ),
+    // Clinic Hours: try new format first, then legacy
     clinicHours: parseClinicHours(
-      row["Clinic Hours_Days"],
-      row["Clinic Hours_Hours"]
+      row["Clinic Hours_day"] || row["Clinic Hours_Days"],
+      row["Clinic Hours_hours"] || row["Clinic Hours_Hours"]
     ),
     closedOn: emptyToNull(row["Closed On"]),
+    // Popular Times: try new format first, then legacy
     popularTimes: parsePopularTimes(
-      row["Popular times_Hours"],
-      row["Popular times_Popularity"]
+      row["Popular times_hour_of_day"] || row["Popular times_Hours"],
+      row["Popular times_average_popularity"] || row["Popular times_Popularity"]
     ),
+    // Featured Reviews: try new format first, then legacy
     featuredReviews: parseFeaturedReviews(
-      row["Featured Reviews_Google review user profile username"],
-      row["Featured Reviews_Google review user profile URL"],
-      row["Featured Reviews_Google Review"],
-      row["Featured Reviews_Google review publish date"],
-      row["Featured Reviews_Google review star rating"]
+      row["Featured Reviews_username"] ||
+        row["Featured Reviews_Google review user profile username"],
+      row["Featured Reviews_profile_url"] ||
+        row["Featured Reviews_Google review user profile URL"],
+      row["Featured Reviews_review"] || row["Featured Reviews_Google Review"],
+      row["Featured Reviews_date_review_left"] ||
+        row["Featured Reviews_Google review publish date"],
+      row["Featured Reviews_rating"] ||
+        row["Featured Reviews_Google review star rating"]
     ),
     content: emptyToNull(row.Content),
     newPostContent: emptyToNull(row["New Post Content"]),
@@ -474,14 +582,16 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     amenities: parseAmenities(row.Amenities),
     checkboxFeatures: parseCheckboxFeatures(row["Checkbox Features"]),
     googleListingLink: emptyToNull(row["Google Listing Link"]),
-    questions: null, // Parse if needed later
-    facebook: emptyToNull(row.Facebook),
-    instagram: emptyToNull(row.Instagram),
-    twitter: emptyToNull(row.Twitter),
-    youtube: emptyToNull(row.YouTube),
-    linkedin: emptyToNull(row.LinkedIn),
-    tiktok: emptyToNull(row.TikTok),
-    pinterest: emptyToNull(row.Pinterest),
+    // Questions: try new format (separate columns) first
+    questions: parseQuestions(row.Question, row.Answer),
+    // Social Media: try lowercase first (new format), then Title case (legacy)
+    facebook: emptyToNull(row.facebook || row.Facebook),
+    instagram: emptyToNull(row.instagram || row.Instagram),
+    twitter: emptyToNull(row.twitter || row.Twitter),
+    youtube: emptyToNull(row.youtube || row.YouTube),
+    linkedin: emptyToNull(row.linkedin || row.LinkedIn),
+    tiktok: emptyToNull(row.tiktok || row.TikTok),
+    pinterest: emptyToNull(row.pinterest || row.Pinterest),
   };
 }
 

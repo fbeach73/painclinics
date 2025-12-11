@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import * as schema from "@/lib/schema";
+import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 import {
   removeServiceFromClinic,
   updateClinicService,
 } from "@/lib/clinic-services-queries";
+import { db } from "@/lib/db";
+import * as schema from "@/lib/schema";
 
 /**
  * PATCH /api/owner/clinics/[clinicId]/services/[serviceId] - Update a service for a clinic

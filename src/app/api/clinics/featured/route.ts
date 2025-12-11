@@ -84,41 +84,63 @@ export async function GET(request: Request) {
     const clinics = await getFeaturedClinics(queryOptions);
 
     // Transform to frontend-friendly format
-    const formattedClinics = clinics.map((clinic) => ({
-      id: clinic.id,
-      name: clinic.title,
-      slug: clinic.permalink?.replace("pain-management/", "") || "",
-      address: {
-        street: clinic.streetAddress || "",
-        city: clinic.city,
-        state: clinic.stateAbbreviation || "",
-        zipCode: clinic.postalCode || "",
-        formatted: [
-          clinic.streetAddress,
-          clinic.city,
-          clinic.stateAbbreviation,
-          clinic.postalCode,
-        ]
-          .filter(Boolean)
-          .join(", "),
-      },
-      coordinates: {
-        lat: clinic.mapLatitude ?? 0,
-        lng: clinic.mapLongitude ?? 0,
-      },
-      phone: clinic.phone || "",
-      rating: clinic.rating ?? 0,
-      reviewCount: clinic.reviewCount ?? 0,
-      isFeatured: clinic.isFeatured,
-      featuredTier: clinic.featuredTier || "none",
-      isVerified: clinic.isVerified,
-      photos: [clinic.imageFeatured, clinic.imageUrl].filter(Boolean) as string[],
-      distance: lat !== undefined ? clinic.distance : null,
-      distanceFormatted:
-        lat !== undefined && clinic.distance
-          ? formatDistance(clinic.distance)
-          : null,
-    }));
+    const formattedClinics = clinics.map((clinic) => {
+      // Build photos array with fallbacks: imageFeatured > clinicImageUrls > imageUrl
+      const photos: string[] = [];
+      if (clinic.imageFeatured) {
+        photos.push(clinic.imageFeatured);
+      }
+      if (clinic.clinicImageUrls && clinic.clinicImageUrls.length > 0) {
+        // Add clinic images, avoiding duplicates
+        for (const url of clinic.clinicImageUrls) {
+          if (url && !photos.includes(url)) {
+            photos.push(url);
+          }
+        }
+      }
+      // Fallback to imageUrl if we still have no images
+      if (photos.length === 0 && clinic.imageUrl) {
+        // imageUrl may contain multiple URLs separated by |
+        const urls = clinic.imageUrl.split("|").filter(Boolean);
+        photos.push(...urls);
+      }
+
+      return {
+        id: clinic.id,
+        name: clinic.title,
+        slug: clinic.permalink?.replace("pain-management/", "") || "",
+        address: {
+          street: clinic.streetAddress || "",
+          city: clinic.city,
+          state: clinic.stateAbbreviation || "",
+          zipCode: clinic.postalCode || "",
+          formatted: [
+            clinic.streetAddress,
+            clinic.city,
+            clinic.stateAbbreviation,
+            clinic.postalCode,
+          ]
+            .filter(Boolean)
+            .join(", "),
+        },
+        coordinates: {
+          lat: clinic.mapLatitude ?? 0,
+          lng: clinic.mapLongitude ?? 0,
+        },
+        phone: clinic.phone || "",
+        rating: clinic.rating ?? 0,
+        reviewCount: clinic.reviewCount ?? 0,
+        isFeatured: clinic.isFeatured,
+        featuredTier: clinic.featuredTier || "none",
+        isVerified: clinic.isVerified,
+        photos,
+        distance: lat !== undefined ? clinic.distance : null,
+        distanceFormatted:
+          lat !== undefined && clinic.distance
+            ? formatDistance(clinic.distance)
+            : null,
+      };
+    });
 
     return NextResponse.json({
       clinics: formattedClinics,

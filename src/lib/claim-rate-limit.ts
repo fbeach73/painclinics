@@ -1,5 +1,4 @@
 import { eq, and, gte, sql } from "drizzle-orm";
-
 import { db } from "./db";
 import { claimRateLimits, clinicClaims, clinics } from "./schema";
 

@@ -11,9 +11,9 @@
  * Run with: pnpm tsx src/scripts/migrate-amenities.ts
  */
 
+import { eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics, services, clinicServices } from "@/lib/schema";
-import { eq, isNotNull, sql } from "drizzle-orm";
 
 // Mapping from checkbox_features to service slugs
 // Based on actual data in the database:

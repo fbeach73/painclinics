@@ -1,8 +1,8 @@
+import { createId } from "@paralleldrive/cuid2";
+import { eq } from "drizzle-orm";
+import type { EmailTemplateName } from "@/emails";
 import { db } from "./db";
 import { emailLogs } from "./schema";
-import { eq } from "drizzle-orm";
-import { createId } from "@paralleldrive/cuid2";
-import type { EmailTemplateName } from "@/emails";
 
 interface LogEmailParams {
   userId?: string | undefined;

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Building2, Edit, Eye, MapPin, Phone, Star, Image, Wrench } from "lucide-react";
-import { requireOwner } from "@/lib/session";
-import { getOwnedClinics, getOwnerClinicStats } from "@/lib/owner-queries";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getOwnedClinics, getOwnerClinicStats } from "@/lib/owner-queries";
+import { requireOwner } from "@/lib/session";
 
 export default async function MyClinicsPage() {
   const session = await requireOwner();

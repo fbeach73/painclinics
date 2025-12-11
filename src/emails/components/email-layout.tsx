@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   Html,
   Head,
@@ -9,7 +10,6 @@ import {
   Link,
   Hr,
 } from "@react-email/components";
-import * as React from "react";
 
 interface EmailLayoutProps {
   previewText: string;

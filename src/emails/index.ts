@@ -1,13 +1,13 @@
 import { render } from "@react-email/components";
-import { ClaimVerification } from "./claim-verification";
 import { ClaimApproved } from "./claim-approved";
 import { ClaimRejected } from "./claim-rejected";
-import { FeaturedWelcome } from "./featured-welcome";
+import { ClaimVerification } from "./claim-verification";
 import { FeaturedRenewal } from "./featured-renewal";
+import { FeaturedWelcome } from "./featured-welcome";
+import { PasswordReset } from "./password-reset";
 import { PaymentFailed } from "./payment-failed";
 import { SubscriptionCanceled } from "./subscription-canceled";
 import { Welcome } from "./welcome";
-import { PasswordReset } from "./password-reset";
 
 // Re-export components for direct use if needed
 export {

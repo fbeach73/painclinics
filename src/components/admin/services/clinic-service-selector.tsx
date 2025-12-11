@@ -2,17 +2,18 @@
 
 import * as React from "react";
 import { Star, Search, Loader2, GripVertical, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import {
   SERVICE_CATEGORIES,
   type Service,
@@ -21,7 +22,6 @@ import {
   type ServiceCategory,
 } from "@/types/service";
 import { SERVICE_ICONS } from "./service-icon-picker";
-import { cn } from "@/lib/utils";
 
 interface ClinicServiceSelectorProps {
   clinicId: string;

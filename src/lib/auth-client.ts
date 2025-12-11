@@ -1,8 +1,8 @@
-import { createAuthClient } from "better-auth/react"
 import { polarClient } from "@polar-sh/better-auth/client"
+import { createAuthClient } from "better-auth/react"
 
 // Type assertion to handle version mismatch between better-auth and @polar-sh/better-auth
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const polarClientPlugin = polarClient() as any
 
 export const authClient = createAuthClient({
@@ -14,7 +14,7 @@ export const authClient = createAuthClient({
 export const { signIn, signOut, signUp, useSession, getSession } = authClient
 
 // Polar-specific exports - these methods exist after adding the polar plugin
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const checkout = (authClient as any).checkout
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const customer = (authClient as any).customer

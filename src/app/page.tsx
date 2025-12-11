@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
+import { HomepageFeaturedSection } from '@/components/featured';
+import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
-import { HomepageFeaturedSection } from '@/components/featured';
 import {
   generateWebSiteSchema,
   generateOrganizationSchema,

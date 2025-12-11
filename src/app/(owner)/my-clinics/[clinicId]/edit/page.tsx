@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { requireClinicOwnership } from "@/lib/session";
 import { ClinicEditForm } from "@/components/owner/clinic-edit-form";
+import { requireClinicOwnership } from "@/lib/session";
 
 export default async function ClinicEditPage({
   params,

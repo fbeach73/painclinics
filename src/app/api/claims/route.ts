@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { createClaim, getUserClaims } from "@/lib/claim-queries";
 import {
@@ -7,10 +8,9 @@ import {
   recordClaimAttempt,
   canUserClaimClinic,
 } from "@/lib/claim-rate-limit";
-import { sendClaimSubmittedEmail } from "@/lib/email";
 import { db } from "@/lib/db";
+import { sendClaimSubmittedEmail } from "@/lib/email";
 import { clinics } from "@/lib/schema";
-import { eq } from "drizzle-orm";
 
 const VALID_ROLES = ["owner", "manager", "authorized_representative"] as const;
 

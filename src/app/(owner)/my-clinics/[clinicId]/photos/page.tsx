@@ -1,11 +1,11 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft, ImagePlus } from "lucide-react";
-import { requireClinicOwnership } from "@/lib/session";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireClinicOwnership } from "@/lib/session";
 
 export default async function PhotosManagementPage({
   params,

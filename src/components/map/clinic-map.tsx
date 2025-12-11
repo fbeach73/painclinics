@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
-import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
 import { cn } from '@/lib/utils';
+import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
 import { ClinicMarker } from './clinic-marker';
 import { ClinicDialog } from './clinic-popup';
 

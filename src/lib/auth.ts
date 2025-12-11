@@ -2,8 +2,8 @@ import { betterAuth, type BetterAuthPlugin } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { eq } from "drizzle-orm"
 import { db } from "./db"
-import * as schema from "./schema"
 import { generateUnsubscribeToken, sendWelcomeEmail } from "./email"
+import * as schema from "./schema"
 
 // Initialize Polar plugin lazily to avoid import errors when Polar env vars are missing
 let polarPlugin: BetterAuthPlugin | null = null
@@ -14,11 +14,11 @@ if (process.env.POLAR_ACCESS_TOKEN) {
   // Polar will be initialized, but we need sync access for betterAuth config
   // Use a simpler approach: only import Polar modules if env var is set
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const { polar, checkout, portal, webhooks } = require("@polar-sh/better-auth")
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const { Polar } = require("@polar-sh/sdk")
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const polarWebhooks = require("./polar-webhooks")
 
     polarPlugin = polar({

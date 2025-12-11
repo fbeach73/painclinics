@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm"
 import { db } from "./db"
-import * as schema from "./schema"
 import { sendFeaturedConfirmedEmail, sendPaymentFailedEmail, sendSubscriptionCanceledEmail, sendFeaturedRenewalEmail } from "./email"
+import * as schema from "./schema"
 
 // Webhook payload types - using 'unknown' to avoid type compatibility issues
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 type WebhookPayload = any
 
 function determineTier(productId: string): "basic" | "premium" {

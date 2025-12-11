@@ -2,14 +2,14 @@
 
 import { Star } from 'lucide-react';
 import {
-  FeaturedClinicsCarousel,
-  FeaturedClinicsCarouselSkeleton,
-} from './featured-clinics-carousel';
-import {
   useFeaturedClinics,
   featuredToClinicWithDistance,
 } from '@/hooks/use-featured-clinics';
 import { cn } from '@/lib/utils';
+import {
+  FeaturedClinicsCarousel,
+  FeaturedClinicsCarouselSkeleton,
+} from './featured-clinics-carousel';
 
 interface SearchFeaturedSectionProps {
   stateAbbrev?: string;

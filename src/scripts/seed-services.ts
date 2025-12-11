@@ -3,11 +3,11 @@
  * Run with: pnpm tsx src/scripts/seed-services.ts
  */
 
+import { createId } from "@paralleldrive/cuid2";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { services } from "../lib/schema";
 import { servicesSeedData } from "../data/services-seed";
-import { createId } from "@paralleldrive/cuid2";
+import { services } from "../lib/schema";
 import "dotenv/config";
 
 async function main() {

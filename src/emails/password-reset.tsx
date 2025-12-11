@@ -1,8 +1,8 @@
-import { Text, Section } from "@react-email/components";
 import * as React from "react";
-import { EmailLayout } from "./components/email-layout";
+import { Text, Section } from "@react-email/components";
 import { EmailButton } from "./components/email-button";
 import { EmailCard, EmailCardTitle, EmailCardText } from "./components/email-card";
+import { EmailLayout } from "./components/email-layout";
 
 interface PasswordResetProps {
   resetUrl: string;

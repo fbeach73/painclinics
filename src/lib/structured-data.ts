@@ -1,6 +1,6 @@
 import { stripHtmlTags } from "./html-utils";
-import type { clinics } from "./schema";
 import { parseTimeRange } from "./time-utils";
+import type { clinics } from "./schema";
 
 type DbClinic = typeof clinics.$inferSelect;
 

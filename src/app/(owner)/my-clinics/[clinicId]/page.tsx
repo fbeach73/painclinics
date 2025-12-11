@@ -17,12 +17,12 @@ import {
   Youtube,
   Linkedin,
 } from "lucide-react";
-import { requireClinicOwnership } from "@/lib/session";
-import { getClinicWithSubscription } from "@/lib/owner-queries";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { getClinicWithSubscription } from "@/lib/owner-queries";
+import { requireClinicOwnership } from "@/lib/session";
 
 export default async function ClinicOverviewPage({
   params,

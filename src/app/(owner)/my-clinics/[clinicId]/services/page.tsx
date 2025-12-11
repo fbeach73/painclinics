@@ -1,9 +1,9 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireClinicOwnership } from "@/lib/session";
-import { getClinicServices, getAvailableServicesForClinic } from "@/lib/clinic-services-queries";
 import { ServicesManager } from "@/components/owner/services-manager";
+import { getClinicServices, getAvailableServicesForClinic } from "@/lib/clinic-services-queries";
+import { requireClinicOwnership } from "@/lib/session";
 
 export default async function ServicesManagementPage({
   params,

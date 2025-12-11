@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useGeolocation } from './use-geolocation';
 import type { ClinicWithDistance } from '@/types/clinic';
+import { useGeolocation } from './use-geolocation';
 
 export interface FeaturedClinic {
   id: string;

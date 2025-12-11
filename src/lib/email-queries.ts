@@ -1,6 +1,6 @@
+import { desc, eq, sql, and, gte, lte, count } from "drizzle-orm";
 import { db } from "./db";
 import { emailLogs, emailStatusEnum } from "./schema";
-import { desc, eq, sql, and, gte, lte, count } from "drizzle-orm";
 
 export interface EmailStats {
   total: number;

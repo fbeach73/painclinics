@@ -281,14 +281,16 @@ const markdownComponents = useMemo(() => ({
 
 ---
 
-## Phase 6: Security Hardening
+## Phase 6: Security Hardening ✅ COMPLETED
+
+**Status:** Completed on 2025-12-11
 
 Add missing validations and use shared utilities consistently.
 
 ### Tasks
 
-- [ ] Add file size limit to CSV upload route
-- [ ] Update admin check route to use `checkAdminApi()` utility
+- [x] Add file size limit to CSV upload route
+- [x] Update admin check route to use `checkAdminApi()` utility
 
 ### Technical Details
 

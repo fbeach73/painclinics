@@ -233,10 +233,59 @@
   animation: badge-pulse 2s ease-in-out infinite;
 }
 
+/* Premium badge shimmer animation */
+@keyframes premium-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.premium-badge-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    #10b981 0%,
+    #10b981 40%,
+    #6ee7b7 50%,
+    #10b981 60%,
+    #10b981 100%
+  );
+  background-size: 200% 100%;
+  animation: premium-shimmer 3s ease-in-out infinite;
+}
+
+/* Premium badge glow effect */
+.premium-badge-glow {
+  box-shadow:
+    0 0 12px rgba(16, 185, 129, 0.4),
+    0 0 24px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Navigation arrow hover glow */
+.nav-arrow-glow {
+  transition: all 0.2s ease;
+}
+
+.nav-arrow-glow:hover {
+  box-shadow:
+    0 0 16px rgba(16, 185, 129, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .badge-animate {
+  .badge-animate,
+  .premium-badge-shimmer {
     animation: none;
+  }
+
+  .premium-badge-shimmer {
+    background: #10b981;
   }
 
   /* Disable carousel slide transitions for reduced motion */

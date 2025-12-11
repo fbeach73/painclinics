@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { ClinicMap } from '@/components/map/clinic-map';
 import { GeolocationPrompt } from '@/components/map/geolocation-prompt';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { useNearbyClinics } from '@/hooks/use-nearby-clinics';
-import { Loader2 } from 'lucide-react';
 
 export function NearbyClinicsMap() {
   const { location, isLoading: isLoadingLocation, error, permissionState, requestLocation, searchLocation } =

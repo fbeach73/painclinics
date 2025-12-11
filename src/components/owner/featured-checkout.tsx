@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Loader2, ExternalLink, CreditCard, ArrowUpRight } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { checkout, customer } from "@/lib/auth-client";
-import { toast } from "sonner";
 
 interface FeaturedCheckoutProps {
   clinicId: string;

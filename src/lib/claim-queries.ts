@@ -1,7 +1,7 @@
 import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "./db";
-import { clinicClaims, clinics, user } from "./schema";
 import { sendClaimApprovedEmail, sendClaimRejectedEmail } from "./email";
+import { clinicClaims, clinics, user } from "./schema";
 
 // ============================================
 // Types

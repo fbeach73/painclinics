@@ -1,14 +1,14 @@
 'use client';
 
-import { Star } from 'lucide-react';
-import {
-  FeaturedClinicsCarousel,
-  FeaturedClinicsCarouselSkeleton,
-} from './featured-clinics-carousel';
+import { Sparkles } from 'lucide-react';
 import {
   useFeaturedClinics,
   featuredToClinicWithDistance,
 } from '@/hooks/use-featured-clinics';
+import {
+  FeaturedClinicsCarousel,
+  FeaturedClinicsCarouselSkeleton,
+} from './featured-clinics-carousel';
 
 interface HomepageFeaturedSectionProps {
   className?: string;
@@ -38,13 +38,28 @@ export function HomepageFeaturedSection({ className }: HomepageFeaturedSectionPr
 
   return (
     <section className={className}>
-      <div className="py-8 bg-gradient-to-b from-yellow-50/50 to-transparent dark:from-yellow-950/10 dark:to-transparent">
+      <div className="py-12 bg-gradient-to-b from-emerald-50/80 via-teal-50/40 to-transparent dark:from-emerald-950/20 dark:via-teal-950/10 dark:to-transparent">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 mb-6">
-            <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-            <h2 className="text-2xl font-bold">
-              {hasLocation ? 'Featured Clinics Near You' : 'Featured Clinics'}
-            </h2>
+          {/* Section header with improved contrast */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/25">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                {hasLocation ? 'Featured Clinics Near You' : 'Featured Clinics'}
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                Top-rated pain management specialists ready to help
+              </p>
+            </div>
+          </div>
+
+          {/* Decorative accent line */}
+          <div className="flex items-center gap-2 mb-8 ml-[52px]">
+            <div className="h-0.5 w-12 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" />
+            <div className="h-0.5 w-6 bg-gradient-to-r from-teal-400 to-emerald-300 rounded-full" />
+            <div className="h-0.5 w-2 bg-emerald-300 rounded-full" />
           </div>
 
           {isLoading ? (

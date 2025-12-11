@@ -27,7 +27,14 @@ export function ClinicHours({ hours, className }: ClinicHoursProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Hours of Operation</CardTitle>
-          <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-full",
+              isOpen
+                ? "bg-green-100 dark:bg-green-950/50"
+                : "bg-red-100 dark:bg-red-950/50"
+            )}
+          >
             <span
               className={cn(
                 "h-2.5 w-2.5 rounded-full flex-shrink-0",

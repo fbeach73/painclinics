@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import * as schema from "@/lib/schema";
-import { eq } from "drizzle-orm";
 import {
   getClinicForOwner,
   getClinicById,
@@ -11,6 +10,7 @@ import {
   updateClinicByAdmin,
   type ClinicUpdateData,
 } from "@/lib/owner-queries";
+import * as schema from "@/lib/schema";
 
 /**
  * GET /api/owner/clinics/[clinicId] - Get a specific clinic owned by the current user

@@ -9,9 +9,9 @@ import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import { formatTime } from '@/lib/time-utils';
 import { cn } from '@/lib/utils';
 import type { Clinic } from '@/types/clinic';
+import { ClaimListingButton } from './claim-listing-button';
 import { FeaturedBadge, type FeaturedTier } from './featured-badge';
 import { StarRating } from './star-rating';
-import { ClaimListingButton } from './claim-listing-button';
 
 interface ClinicHeaderProps {
   clinic: Clinic;

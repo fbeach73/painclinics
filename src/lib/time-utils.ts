@@ -21,15 +21,19 @@ export interface TimeRange {
 
 /**
  * Convert a 12-hour time string to 24-hour format.
- * Handles formats: "8:00 AM", "8AM", "8:00AM", "5:00 PM", "5PM", "17:00"
+ * Handles formats: "8:00 AM", "8AM", "8:00AM", "5:00 PM", "5PM", "17:00",
+ * "8 a.m.", "5 p.m.", "8:00 a.m.", "5:00 p.m."
  *
  * @param time - Time string in various formats
  * @returns Time string in HH:MM format (24-hour)
  */
 function convertTo24Hour(time: string): string {
+  // Normalize a.m./p.m. to AM/PM for consistent parsing
+  const normalized = time.replace(/a\.m\./gi, "AM").replace(/p\.m\./gi, "PM");
+
   // If already in 24-hour format (no AM/PM), return as-is with padding
-  if (!/[aApP][mM]/.test(time)) {
-    const match = time.match(/(\d{1,2}):?(\d{2})?/);
+  if (!/[aApP][mM]/i.test(normalized)) {
+    const match = normalized.match(/(\d{1,2}):?(\d{2})?/);
     if (!match) return "00:00";
     const hours = parseInt(match[1] ?? "0", 10);
     const minutes = parseInt(match[2] ?? "0", 10);
@@ -37,7 +41,7 @@ function convertTo24Hour(time: string): string {
   }
 
   // Parse 12-hour format with AM/PM
-  const match = time.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM)/i);
+  const match = normalized.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM)/i);
   if (!match) return "00:00";
 
   let hours = parseInt(match[1] ?? "0", 10);
@@ -56,7 +60,8 @@ function convertTo24Hour(time: string): string {
 
 /**
  * Parse a time range string like "8:00 AM - 5:00 PM" into open/close times.
- * Handles various formats: "8:00 AM - 5:00 PM", "8AM-5PM", "8:00AM-5:00PM"
+ * Handles various formats: "8:00 AM - 5:00 PM", "8AM-5PM", "8:00AM-5:00PM",
+ * "8 a.m.-5 p.m.", "8:00 a.m.-5:00 p.m."
  * Converts all times to 24-hour format (HH:MM).
  *
  * @param timeStr - Time range string

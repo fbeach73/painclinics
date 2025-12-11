@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { ShieldCheck, Edit, BarChart3, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
+import { cn } from '@/lib/utils';
 import { ClaimFormModal } from './claim-form-modal';
 
 interface ClaimBenefitsBannerProps {

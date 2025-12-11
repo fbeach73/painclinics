@@ -1,5 +1,5 @@
-import { Section, Text, Row, Column } from "@react-email/components";
 import * as React from "react";
+import { Section, Text, Row, Column } from "@react-email/components";
 
 interface EmailCardProps {
   children: React.ReactNode;

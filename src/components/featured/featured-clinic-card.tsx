@@ -1,13 +1,13 @@
-import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Phone, ImageIcon, BadgeCheck } from 'lucide-react';
+import Link from 'next/link';
+import { MapPin, Phone, Building2, Star, BadgeCheck } from 'lucide-react';
+import type { FeaturedTier } from '@/components/clinic/featured-badge';
+import { StarRating } from '@/components/clinic/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance } from '@/types/clinic';
-import { FeaturedBadge, type FeaturedTier } from '@/components/clinic/featured-badge';
-import { StarRating } from '@/components/clinic/star-rating';
 
 interface FeaturedClinicCardProps {
   clinic: ClinicWithDistance;
@@ -22,85 +22,116 @@ export function FeaturedClinicCard({ clinic, className }: FeaturedClinicCardProp
   return (
     <Card
       className={cn(
-        'flex flex-col h-full overflow-hidden',
+        'group flex flex-col h-full overflow-hidden transition-all duration-300',
         'min-w-[320px] max-w-[400px]',
-        'border-2 border-yellow-400 dark:border-yellow-500',
-        isPremium
-          ? 'bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-950/20 dark:to-background shadow-lg shadow-amber-500/10'
-          : 'bg-yellow-50/30 dark:bg-yellow-950/10',
+        // Glass morphism effect
+        'bg-white/70 dark:bg-slate-900/70',
+        'backdrop-blur-md',
+        'border border-white/50 dark:border-slate-700/50',
+        'shadow-lg shadow-black/5 dark:shadow-black/20',
+        // Hover effects
+        'hover:bg-white/80 dark:hover:bg-slate-900/80',
+        'hover:border-emerald-200/50 dark:hover:border-emerald-700/50',
+        'hover:shadow-xl hover:shadow-emerald-500/10',
+        'hover:-translate-y-1',
         className
       )}
     >
-      {/* Image section */}
-      <div className="relative h-48 bg-muted">
+      {/* Image section with gradient overlay */}
+      <div className="relative h-52 bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/30 overflow-hidden">
         {hasPhoto && clinic.photos[0] ? (
           <Image
             src={clinic.photos[0]}
             alt={clinic.name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
           />
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <Building2 className="h-16 w-16 text-emerald-300 dark:text-emerald-800" />
+            <span className="text-sm text-emerald-600/60 dark:text-emerald-400/40 font-medium">
+              Pain Management Clinic
+            </span>
           </div>
         )}
 
-        {/* Top-left badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
-          <FeaturedBadge tier={featuredTier} size="sm" animated />
-          {clinic.distanceFormatted && (
-            <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
-              {clinic.distanceFormatted}
-            </Badge>
-          )}
-        </div>
+        {/* Gradient overlay for better badge readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 
-        {/* Top-right verified badge */}
-        {clinic.isVerified && (
-          <div className="absolute top-3 right-3">
-            <Badge variant="default" className="gap-1 bg-background/90 backdrop-blur-sm text-foreground">
+        {/* Top badges row */}
+        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+          <div className="flex gap-2">
+            {/* Premium/Featured badge */}
+            <Badge
+              className={cn(
+                'gap-1 font-semibold',
+                isPremium
+                  ? 'premium-badge-shimmer premium-badge-glow text-white border-0'
+                  : 'bg-white/90 text-emerald-700 border-emerald-200/50 dark:bg-slate-900/90 dark:text-emerald-400 dark:border-emerald-800/50 backdrop-blur-sm shadow-lg'
+              )}
+            >
+              <Star className={cn('h-3 w-3', isPremium && 'fill-current')} />
+              {isPremium ? 'Premium' : 'Featured'}
+            </Badge>
+
+            {/* Distance badge */}
+            {clinic.distanceFormatted && (
+              <Badge variant="secondary" className="bg-white/90 text-slate-700 dark:bg-slate-900/90 dark:text-slate-300 shadow-lg backdrop-blur-sm border-white/50 dark:border-slate-700/50">
+                {clinic.distanceFormatted}
+              </Badge>
+            )}
+          </div>
+
+          {/* Verified badge */}
+          {clinic.isVerified && (
+            <Badge className="gap-1 bg-white/90 text-blue-700 border-blue-200/50 dark:bg-slate-900/90 dark:text-blue-400 dark:border-blue-800/50 shadow-lg backdrop-blur-sm">
               <BadgeCheck className="h-3 w-3" />
               Verified
             </Badge>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-3">
         <div className="space-y-2">
-          <h3 className="font-semibold text-xl leading-tight line-clamp-2">
+          <h3 className="font-semibold text-lg leading-tight line-clamp-2 text-slate-800 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
             {clinic.name}
           </h3>
           <StarRating rating={clinic.rating} reviewCount={clinic.reviewCount} variant="featured" />
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 space-y-3">
-        <div className="flex items-start gap-2 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
+      <CardContent className="flex-1 space-y-2.5 pt-0">
+        <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500" />
           <span className="line-clamp-2">{clinic.address.formatted}</span>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Phone className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <Phone className="h-4 w-4 shrink-0 text-emerald-500" />
           <span>{clinic.phone}</span>
         </div>
 
         {clinic.about && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
+          <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 pt-1">
             {clinic.about}
           </p>
         )}
       </CardContent>
 
-      <CardFooter className="gap-2">
-        <Button asChild className="flex-1">
+      <CardFooter className="gap-2 pt-3">
+        <Button asChild className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20">
           <Link href={`/pain-management/${clinic.slug}/`}>View Details</Link>
         </Button>
-        <Button variant="outline" asChild>
-          <a href={`tel:${clinic.phone}`}>Call</a>
+        <Button
+          size="icon"
+          asChild
+          className="bg-slate-800 hover:bg-slate-900 text-white dark:bg-slate-700 dark:hover:bg-slate-600"
+        >
+          <a href={`tel:${clinic.phone}`} aria-label={`Call ${clinic.name}`}>
+            <Phone className="h-4 w-4" />
+          </a>
         </Button>
       </CardFooter>
     </Card>

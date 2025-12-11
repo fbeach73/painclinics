@@ -3,8 +3,8 @@
  * Bypasses interactive drizzle-kit prompts by using SQL directly
  */
 
-import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import "dotenv/config";
 

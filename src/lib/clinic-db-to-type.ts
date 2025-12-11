@@ -6,11 +6,10 @@ import type {
   InsuranceType,
 } from "@/types/clinic";
 import type { ClinicService } from "@/types/service";
-
-import type { ClinicRecord } from "./clinic-queries";
 import { extractPermalinkSlug, type ClinicHour } from "./clinic-transformer";
 import { stripHtmlTags } from "./html-utils";
 import { parseTimeRange } from "./time-utils";
+import type { ClinicRecord } from "./clinic-queries";
 
 /**
  * Extended clinic record with junction table services.

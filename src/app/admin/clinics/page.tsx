@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import { ClinicsTable } from "@/components/admin/clinics-table";
+import { Badge } from "@/components/ui/badge";
 import {
   getClinicsForAdmin,
   getClinicCount,

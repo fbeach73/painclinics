@@ -1,12 +1,12 @@
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { MapPin, ImageIcon, BadgeCheck } from 'lucide-react';
+import { FeaturedBadge, type FeaturedTier } from '@/components/clinic/featured-badge';
+import { StarRating } from '@/components/clinic/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance } from '@/types/clinic';
-import { FeaturedBadge, type FeaturedTier } from '@/components/clinic/featured-badge';
-import { StarRating } from '@/components/clinic/star-rating';
 
 interface FeaturedSidebarCardProps {
   clinic: ClinicWithDistance;

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { ClinicServiceSelector } from "@/components/admin/services/clinic-service-selector";
 import type { Service, ClinicService, SetServiceInput } from "@/types/service";
 

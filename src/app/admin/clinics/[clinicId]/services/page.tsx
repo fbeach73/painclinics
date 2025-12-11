@@ -1,9 +1,9 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
 import { getClinicById } from "@/lib/clinic-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
 import { getAllServices } from "@/lib/services-queries";

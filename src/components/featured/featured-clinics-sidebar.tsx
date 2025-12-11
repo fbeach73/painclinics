@@ -3,12 +3,12 @@
 import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { FeaturedSidebarCard } from './featured-sidebar-card';
 import {
   useFeaturedClinics,
   featuredToClinicWithDistance,
 } from '@/hooks/use-featured-clinics';
+import { cn } from '@/lib/utils';
+import { FeaturedSidebarCard } from './featured-sidebar-card';
 
 interface FeaturedClinicsSidebarProps {
   currentClinicId: string;

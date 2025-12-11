@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { FileCheck, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { requireOwner } from "@/lib/session";
-import { getUserClaimStatuses } from "@/lib/owner-queries";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { getUserClaimStatuses } from "@/lib/owner-queries";
+import { requireOwner } from "@/lib/session";
 
 const statusConfig = {
   pending: {

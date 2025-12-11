@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from '@/lib/auth-client';
 
 interface CurrentUser {
@@ -19,40 +19,66 @@ interface UseCurrentUserResult {
  */
 export function useCurrentUser(): UseCurrentUserResult {
   const { data: session, isPending: sessionLoading } = useSession();
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [isLoadingRole, setIsLoadingRole] = useState(false);
+  const [state, setState] = useState<{
+    user: CurrentUser | null;
+    isLoadingRole: boolean;
+  }>({ user: null, isLoadingRole: false });
+  const prevUserIdRef = useRef<string | undefined>(undefined);
+
+  const fetchUserRole = useCallback(async (userId: string) => {
+    try {
+      const res = await fetch('/api/user/me');
+      const data = await res.json();
+      if (data.user) {
+        return data.user as CurrentUser;
+      }
+      return { id: userId, role: null };
+    } catch (err) {
+      console.error('Error fetching user role:', err);
+      return { id: userId, role: null };
+    }
+  }, []);
 
   useEffect(() => {
-    // If no session or still loading session, reset user
+    // If still loading session, wait
     if (sessionLoading) return;
 
-    if (!session?.user?.id) {
-      setUser(null);
-      return;
+    const userId = session?.user?.id;
+
+    // Skip if userId hasn't changed
+    if (prevUserIdRef.current === userId) return;
+    prevUserIdRef.current = userId;
+
+    let cancelled = false;
+
+    // No session - reset user (async to avoid sync setState in effect)
+    if (!userId) {
+      queueMicrotask(() => {
+        if (!cancelled) setState({ user: null, isLoadingRole: false });
+      });
+      return () => {
+        cancelled = true;
+      };
     }
 
-    // Fetch user role from API
-    setIsLoadingRole(true);
-    fetch('/api/user/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setUser(data.user);
-        } else {
-          setUser({ id: session.user.id, role: null });
-        }
-      })
-      .catch((err) => {
-        console.error('Error fetching user role:', err);
-        setUser({ id: session.user.id, role: null });
-      })
-      .finally(() => {
-        setIsLoadingRole(false);
-      });
-  }, [session?.user?.id, sessionLoading]);
+    // Fetch user role from API (async setState happens in promise chain)
+    queueMicrotask(() => {
+      if (!cancelled) setState((prev) => ({ ...prev, isLoadingRole: true }));
+    });
+
+    fetchUserRole(userId).then((user) => {
+      if (!cancelled) {
+        setState({ user, isLoadingRole: false });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id, sessionLoading, fetchUserRole]);
 
   return {
-    user,
-    isLoading: sessionLoading || isLoadingRole,
+    user: state.user,
+    isLoading: sessionLoading || state.isLoadingRole,
   };
 }

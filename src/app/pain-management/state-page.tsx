@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2 } from "lucide-react";
+import { SearchFeaturedSection } from "@/components/featured";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { transformClinicHours } from "@/lib/clinic-db-to-type";
 import type { ClinicHour } from "@/lib/clinic-transformer";
 import { isCurrentlyOpen } from "@/lib/time-utils";
 import { cn } from "@/lib/utils";
-import { SearchFeaturedSection } from "@/components/featured";
 
 interface ClinicSummary {
   id: string;
@@ -35,7 +35,14 @@ function OpenClosedStatus({ clinicHours }: { clinicHours: unknown }) {
   }, [clinicHours]);
 
   return (
-    <div className="flex items-center gap-1.5 mb-2">
+    <div
+      className={cn(
+        "inline-flex items-center gap-1.5 mb-2 px-2 py-0.5 rounded-full",
+        status.isOpen
+          ? "bg-green-100 dark:bg-green-950/50"
+          : "bg-red-100 dark:bg-red-950/50"
+      )}
+    >
       <span
         className={cn(
           "h-2 w-2 rounded-full flex-shrink-0",
@@ -44,8 +51,8 @@ function OpenClosedStatus({ clinicHours }: { clinicHours: unknown }) {
       />
       <span
         className={cn(
-          "text-xs",
-          status.isOpen ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+          "text-xs font-medium",
+          status.isOpen ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
         )}
       >
         {status.isOpen ? "Open" : "Closed"}

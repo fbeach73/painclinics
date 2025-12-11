@@ -1,7 +1,6 @@
+import { createId } from "@paralleldrive/cuid2";
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
-import { createId } from "@paralleldrive/cuid2";
-import { createEmailLog, updateEmailLog } from "./email-logger";
 import {
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
@@ -24,6 +23,7 @@ import {
   type PasswordResetProps,
   type EmailTemplateName,
 } from "@/emails";
+import { createEmailLog, updateEmailLog } from "./email-logger";
 
 const mailgun = new Mailgun(FormData);
 

@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
 import { ExternalLink, Phone } from "lucide-react";
-import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
+import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClinicEditButton } from "@/components/clinic/clinic-edit-button";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
-import { EmbeddedMap } from "@/components/map/embedded-map";
 import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
+import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
@@ -20,13 +20,13 @@ import {
 } from "@/lib/clinic-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
 import { stripHtmlTags } from "@/lib/html-utils";
-import { formatDisplayUrl, stripUrlQueryParams } from "@/lib/utils";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
   generateCityPageSchema,
 } from "@/lib/structured-data";
 import { US_STATES_REVERSE, getStateName } from "@/lib/us-states";
+import { formatDisplayUrl, stripUrlQueryParams } from "@/lib/utils";
 import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";

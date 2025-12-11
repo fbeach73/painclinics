@@ -1,16 +1,16 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown } from "lucide-react";
+import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
+import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
-import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
+import { getClinicFeaturedInfo } from "@/lib/admin-clinic-queries";
 import { getClinicById } from "@/lib/clinic-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
 import { getAllServices } from "@/lib/services-queries";
-import { getClinicFeaturedInfo } from "@/lib/admin-clinic-queries";
 
 interface PageProps {
   params: Promise<{ clinicId: string }>;

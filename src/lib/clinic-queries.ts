@@ -477,6 +477,7 @@ export async function getFeaturedClinics(options: GetFeaturedClinicsOptions = {}
       featuredUntil: clinics.featuredUntil,
       imageFeatured: clinics.imageFeatured,
       imageUrl: clinics.imageUrl,
+      clinicImageUrls: clinics.clinicImageUrls,
       isVerified: clinics.isVerified,
       distance: distanceSql,
     })

@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { Search, MapPin, Star, Phone, ChevronLeft } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { SearchFeaturedSection } from "@/components/featured";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { searchClinics } from "@/lib/clinic-queries";
-import { SearchFeaturedSection } from "@/components/featured";
 
 interface ClinicsPageProps {
   searchParams: Promise<{ q?: string }>;

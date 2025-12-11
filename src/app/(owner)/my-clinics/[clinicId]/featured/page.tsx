@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   Star,
   Check,
@@ -8,13 +8,13 @@ import {
   MapPin,
   ArrowLeft,
 } from "lucide-react";
-import { requireClinicOwnership } from "@/lib/session";
-import { getClinicWithSubscription } from "@/lib/owner-queries";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import FeaturedCheckout from "@/components/owner/featured-checkout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { getClinicWithSubscription } from "@/lib/owner-queries";
+import { requireClinicOwnership } from "@/lib/session";
 
 const PRICING = {
   basic: {
