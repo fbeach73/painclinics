@@ -1,4 +1,4 @@
-import { sql, asc, desc, eq } from "drizzle-orm";
+import { sql, asc, desc, eq, or, ilike } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
 
@@ -309,3 +309,183 @@ export async function getNearbyClinicsByCoordinates(
 // Type export for the clinic record
 export type ClinicRecord = typeof clinics.$inferSelect;
 export type NearbyClinic = Awaited<ReturnType<typeof getNearbyClinicsByCoordinates>>[number];
+
+/**
+ * Search clinics by name, city, or state abbreviation.
+ * Returns clinics matching the search query.
+ *
+ * @param query - Search string (minimum 2 characters)
+ * @param limit - Maximum number of results (default: 50)
+ * @returns Array of clinic records matching the search
+ */
+export async function searchClinics(query: string, limit = 50) {
+  if (!query || query.length < 2) {
+    return [];
+  }
+
+  const searchPattern = `%${query}%`;
+
+  return db
+    .select({
+      id: clinics.id,
+      title: clinics.title,
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      permalink: clinics.permalink,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      isFeatured: clinics.isFeatured,
+    })
+    .from(clinics)
+    .where(
+      or(
+        ilike(clinics.title, searchPattern),
+        ilike(clinics.city, searchPattern),
+        ilike(clinics.stateAbbreviation, searchPattern)
+      )
+    )
+    .orderBy(desc(featuredOrderSql), desc(clinics.rating))
+    .limit(limit);
+}
+
+/**
+ * Featured clinic filter SQL: only currently active featured clinics.
+ * A clinic is considered featured if:
+ * - isFeatured = true
+ * - featuredUntil is null (permanent) OR featuredUntil > now (not expired)
+ */
+const isFeaturedActiveSql = sql`
+  ${clinics.isFeatured} = true AND (
+    ${clinics.featuredUntil} IS NULL OR ${clinics.featuredUntil} > NOW()
+  )
+`;
+
+export interface GetFeaturedClinicsOptions {
+  lat?: number;
+  lng?: number;
+  radiusMiles?: number;
+  stateAbbrev?: string;
+  city?: string;
+  limit?: number;
+  excludeClinicId?: string;
+  randomize?: boolean;
+}
+
+/**
+ * Get featured clinics with geo-awareness and random fallback.
+ *
+ * Logic:
+ * 1. Filter: isFeatured = true AND (featuredUntil IS NULL OR featuredUntil > NOW())
+ * 2. If lat/lng provided: Calculate distance, sort by featuredTier DESC, distance ASC
+ * 3. If stateAbbrev provided: Filter to that state
+ * 4. If city provided: Filter to that city
+ * 5. If randomize=true (no location): Use ORDER BY RANDOM()
+ * 6. Exclude excludeClinicId if provided (for sidebar widget)
+ *
+ * @param options - Query options for filtering and sorting
+ * @returns Array of featured clinics with optional distance
+ */
+export async function getFeaturedClinics(options: GetFeaturedClinicsOptions = {}) {
+  const {
+    lat,
+    lng,
+    radiusMiles = 50,
+    stateAbbrev,
+    city,
+    limit = 10,
+    excludeClinicId,
+    randomize = false,
+  } = options;
+
+  const hasLocation = typeof lat === "number" && typeof lng === "number";
+
+  // Distance calculation SQL (only used when location provided)
+  const distanceSql = hasLocation
+    ? sql<number>`
+        (3959 * acos(
+          cos(radians(${lat})) *
+          cos(radians(${clinics.mapLatitude})) *
+          cos(radians(${clinics.mapLongitude}) - radians(${lng})) +
+          sin(radians(${lat})) *
+          sin(radians(${clinics.mapLatitude}))
+        ))
+      `
+    : sql<number>`0`;
+
+  // Build WHERE conditions
+  const whereConditions: ReturnType<typeof sql>[] = [isFeaturedActiveSql];
+
+  // Exclude a specific clinic (for sidebar widget)
+  if (excludeClinicId) {
+    whereConditions.push(sql`${clinics.id} != ${excludeClinicId}`);
+  }
+
+  // State filter
+  if (stateAbbrev) {
+    whereConditions.push(
+      sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`
+    );
+  }
+
+  // City filter
+  if (city) {
+    whereConditions.push(sql`LOWER(${clinics.city}) = LOWER(${city})`);
+  }
+
+  // Location-based radius filter
+  if (hasLocation) {
+    whereConditions.push(
+      sql`${clinics.mapLatitude} IS NOT NULL AND ${clinics.mapLongitude} IS NOT NULL AND ${distanceSql} <= ${radiusMiles}`
+    );
+  }
+
+  // Combine all conditions with AND
+  const combinedWhere = sql.join(whereConditions, sql` AND `);
+
+  // Determine order by clause
+  let orderByClause;
+  if (randomize && !hasLocation) {
+    // Random order when no location and randomize is true
+    orderByClause = sql`RANDOM()`;
+  } else if (hasLocation) {
+    // Sort by featured tier (premium first), then by distance
+    orderByClause = sql`${featuredOrderSql} DESC, ${distanceSql} ASC`;
+  } else {
+    // Default: sort by featured tier, then rating
+    orderByClause = sql`${featuredOrderSql} DESC, ${clinics.rating} DESC NULLS LAST`;
+  }
+
+  const results = await db
+    .select({
+      id: clinics.id,
+      title: clinics.title,
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      permalink: clinics.permalink,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      mapLatitude: clinics.mapLatitude,
+      mapLongitude: clinics.mapLongitude,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+      featuredUntil: clinics.featuredUntil,
+      imageFeatured: clinics.imageFeatured,
+      imageUrl: clinics.imageUrl,
+      isVerified: clinics.isVerified,
+      distance: distanceSql,
+    })
+    .from(clinics)
+    .where(combinedWhere)
+    .orderBy(orderByClause)
+    .limit(limit);
+
+  return results;
+}
+
+export type FeaturedClinic = Awaited<ReturnType<typeof getFeaturedClinics>>[number];

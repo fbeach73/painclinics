@@ -3,6 +3,7 @@ import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
+import { HomepageFeaturedSection } from '@/components/featured';
 import {
   generateWebSiteSchema,
   generateOrganizationSchema,
@@ -59,8 +60,8 @@ export default async function Home() {
       />
       <main className="flex-1">
         {/* Hero Section with Title */}
-        <section className="bg-gradient-to-b from-primary/5 to-background py-8 md:py-12">
-          <div className="container">
+        <section className="bg-gradient-to-b from-primary/5 to-background py-12 md:py-16">
+          <div className="container mx-auto">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
                 Find Pain Management Clinics Near You
@@ -73,12 +74,15 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* Featured Clinics Section */}
+        <HomepageFeaturedSection />
+
         {/* Interactive Map Section */}
         <NearbyClinicsSection />
 
         {/* Trust Indicators */}
-        <section className="border-y bg-muted/30 py-8">
-          <div className="container">
+        <section className="border-y bg-muted/30 py-12">
+          <div className="container mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               <div className="space-y-2">
                 <div className="flex justify-center">
@@ -113,7 +117,7 @@ export default async function Home() {
         </section>
 
         {/* Browse by State Section */}
-        <section id="browse-states" className="container py-16">
+        <section id="browse-states" className="container mx-auto py-16 md:py-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
               Browse Clinics by State
@@ -150,8 +154,8 @@ export default async function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-primary text-primary-foreground py-16">
-          <div className="container text-center">
+        <section className="bg-primary text-primary-foreground py-16 md:py-20">
+          <div className="container mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">
               Need Help Finding the Right Clinic?
             </h2>

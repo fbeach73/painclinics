@@ -125,7 +125,7 @@ function formatAddress(clinic: ClinicRecord): string {
  * @param hours - Array of ClinicHour objects from database
  * @returns OperatingHours object with all days
  */
-function transformClinicHours(hours: ClinicHour[] | null): OperatingHours {
+export function transformClinicHours(hours: ClinicHour[] | null): OperatingHours {
   const defaultClosed: DayHours = { open: "", close: "", closed: true };
 
   const result: OperatingHours = {

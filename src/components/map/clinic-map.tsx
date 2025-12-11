@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
-import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox';
+import { useState, useCallback, useMemo } from 'react';
+import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
+import { cn } from '@/lib/utils';
 import { ClinicMarker } from './clinic-marker';
-import { ClinicPopup } from './clinic-popup';
+import { ClinicDialog } from './clinic-popup';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -22,7 +23,7 @@ export function ClinicMap({
   className = 'h-[60vh] min-h-[400px] w-full',
 }: ClinicMapProps) {
   const [selectedClinic, setSelectedClinic] = useState<ClinicWithDistance | null>(null);
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const initialViewState = useMemo(() => ({
     longitude: userLocation.coordinates.lng,
@@ -30,46 +31,17 @@ export function ClinicMap({
     zoom: 11,
   }), [userLocation.coordinates.lat, userLocation.coordinates.lng]);
 
-  const handleMarkerEnter = useCallback(
+  const handleMarkerClick = useCallback(
     (clinic: ClinicWithDistance) => {
-      // Clear any pending close timeout
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = null;
-      }
       setSelectedClinic(clinic);
+      setIsDialogOpen(true);
       onClinicSelect?.(clinic);
     },
     [onClinicSelect]
   );
 
-  const handleMarkerLeave = useCallback(() => {
-    // Delay closing to allow mouse to move to popup
-    closeTimeoutRef.current = setTimeout(() => {
-      setSelectedClinic(null);
-      onClinicSelect?.(null);
-    }, 150);
-  }, [onClinicSelect]);
-
-  const handlePopupEnter = useCallback(() => {
-    // Cancel close when entering popup
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-  }, []);
-
-  const handlePopupLeave = useCallback(() => {
-    // Close popup when leaving it
-    setSelectedClinic(null);
-    onClinicSelect?.(null);
-  }, [onClinicSelect]);
-
-  const handlePopupClose = useCallback(() => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
+  const handleDialogClose = useCallback(() => {
+    setIsDialogOpen(false);
     setSelectedClinic(null);
     onClinicSelect?.(null);
   }, [onClinicSelect]);
@@ -85,7 +57,7 @@ export function ClinicMap({
   }
 
   return (
-    <div className={className}>
+    <div className={cn(className, 'relative')}>
       <Map
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/mapbox/light-v11"
@@ -104,7 +76,7 @@ export function ClinicMap({
           <div className="h-4 w-4 rounded-full bg-blue-500 border-2 border-white shadow-md" />
         </Marker>
 
-        {/* Clinic markers */}
+        {/* Clinic markers - click to open dialog */}
         {clinics.map((clinic) => (
           <Marker
             key={clinic.id}
@@ -115,32 +87,18 @@ export function ClinicMap({
             <ClinicMarker
               isSelected={selectedClinic?.id === clinic.id}
               isFeatured={clinic.isFeatured}
-              onMouseEnter={() => handleMarkerEnter(clinic)}
-              onMouseLeave={handleMarkerLeave}
+              onClick={() => handleMarkerClick(clinic)}
             />
           </Marker>
         ))}
-
-        {/* Popup for selected clinic */}
-        {selectedClinic && (
-          <Popup
-            longitude={selectedClinic.coordinates.lng}
-            latitude={selectedClinic.coordinates.lat}
-            anchor="bottom"
-            offset={40}
-            closeButton={false}
-            closeOnClick={false}
-            onClose={handlePopupClose}
-          >
-            <div
-              onMouseEnter={handlePopupEnter}
-              onMouseLeave={handlePopupLeave}
-            >
-              <ClinicPopup clinic={selectedClinic} onClose={handlePopupClose} />
-            </div>
-          </Popup>
-        )}
       </Map>
+
+      {/* Dialog for selected clinic - renders outside map to avoid clipping */}
+      <ClinicDialog
+        clinic={selectedClinic}
+        isOpen={isDialogOpen}
+        onClose={handleDialogClose}
+      />
     </div>
   );
 }

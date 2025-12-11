@@ -1,9 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { transformClinicHours } from "@/lib/clinic-db-to-type";
+import type { ClinicHour } from "@/lib/clinic-transformer";
+import { isCurrentlyOpen } from "@/lib/time-utils";
+import { cn } from "@/lib/utils";
+import { SearchFeaturedSection } from "@/components/featured";
 
 interface ClinicSummary {
   id: string;
@@ -16,6 +22,36 @@ interface ClinicSummary {
   reviewCount: number | null;
   streetAddress: string | null;
   postalCode: string;
+  clinicHours: unknown; // JSONB from database
+}
+
+/**
+ * Component to display open/closed status with colored indicator dot.
+ */
+function OpenClosedStatus({ clinicHours }: { clinicHours: unknown }) {
+  const status = useMemo(() => {
+    const hours = transformClinicHours(clinicHours as ClinicHour[] | null);
+    return isCurrentlyOpen(hours);
+  }, [clinicHours]);
+
+  return (
+    <div className="flex items-center gap-1.5 mb-2">
+      <span
+        className={cn(
+          "h-2 w-2 rounded-full flex-shrink-0",
+          status.isOpen ? "bg-green-500" : "bg-red-500"
+        )}
+      />
+      <span
+        className={cn(
+          "text-xs",
+          status.isOpen ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+        )}
+      >
+        {status.isOpen ? "Open" : "Closed"}
+      </span>
+    </div>
+  );
 }
 
 interface CityPainManagementPageProps {
@@ -33,7 +69,7 @@ export function CityPainManagementPageContent({
 }: CityPainManagementPageProps) {
   return (
     <main className="flex-1">
-      <div className="container py-8">
+      <div className="container mx-auto py-8 md:py-12">
         {/* Semantic Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -132,6 +168,9 @@ export function CityPainManagementPageContent({
           </Card>
         </div>
 
+        {/* Featured Clinics Section */}
+        <SearchFeaturedSection stateAbbrev={stateAbbrev} city={cityName} />
+
         {/* Clinic List with Microdata */}
         <Card>
           <CardHeader>
@@ -159,6 +198,8 @@ export function CityPainManagementPageContent({
                   >
                     {clinic.title}
                   </h3>
+                  {/* Open/Closed Status */}
+                  <OpenClosedStatus clinicHours={clinic.clinicHours} />
                   {clinic.rating && clinic.rating > 0 && (
                     <div
                       className="flex items-center gap-1 mb-2"

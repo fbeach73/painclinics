@@ -169,3 +169,83 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Container padding for proper responsive gutters */
+.container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Mapbox popup z-index fix - ensure popups appear above ALL page sections */
+.mapboxgl-popup {
+  z-index: 9999 !important;
+  max-width: none !important;
+}
+
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0.75rem !important;
+  box-shadow: none !important;
+}
+
+/* Hide the default mapbox close button since we have our own */
+.mapboxgl-popup-close-button {
+  display: none !important;
+}
+
+/* Hide the popup tip/arrow */
+.mapboxgl-popup-tip {
+  display: none !important;
+}
+
+/* Ensure map canvas stays below popup */
+.mapboxgl-canvas-container {
+  position: relative;
+  z-index: 0;
+}
+
+/* Featured badge pulse animation */
+@keyframes badge-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(250, 204, 21, 0);
+  }
+}
+
+.badge-animate {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .badge-animate {
+    animation: none;
+  }
+
+  /* Disable carousel slide transitions for reduced motion */
+  .embla__container {
+    transition: none !important;
+  }
+
+  /* Disable image hover scale effects */
+  .group-hover\:scale-105 {
+    transform: none !important;
+  }
+}

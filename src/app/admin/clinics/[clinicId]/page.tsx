@@ -1,14 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
+import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
 import { getClinicById } from "@/lib/clinic-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
 import { getAllServices } from "@/lib/services-queries";
+import { getClinicFeaturedInfo } from "@/lib/admin-clinic-queries";
 
 interface PageProps {
   params: Promise<{ clinicId: string }>;
@@ -17,11 +19,12 @@ interface PageProps {
 export default async function ClinicDetailPage({ params }: PageProps) {
   const { clinicId } = await params;
 
-  // Fetch clinic and services data in parallel
-  const [clinic, clinicServices, allServices] = await Promise.all([
+  // Fetch clinic, services, and featured data in parallel
+  const [clinic, clinicServices, allServices, featuredInfo] = await Promise.all([
     getClinicById(clinicId),
     getClinicServices(clinicId),
     getAllServices(true), // only active services
+    getClinicFeaturedInfo(clinicId),
   ]);
 
   if (!clinic) {
@@ -59,7 +62,7 @@ export default async function ClinicDetailPage({ params }: PageProps) {
       </div>
 
       {/* Quick Info Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Location</CardDescription>
@@ -132,6 +135,35 @@ export default async function ClinicDetailPage({ params }: PageProps) {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Featured Status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              {featuredInfo?.isFeatured ? (
+                <>
+                  {featuredInfo.featuredTier === "premium" ? (
+                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Premium
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      <Star className="h-3 w-3 mr-1 fill-current" />
+                      Basic
+                    </Badge>
+                  )}
+                </>
+              ) : (
+                <Badge variant="outline" className="text-muted-foreground">
+                  Not Featured
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
@@ -139,6 +171,7 @@ export default async function ClinicDetailPage({ params }: PageProps) {
         <TabsList>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="featured">Featured</TabsTrigger>
         </TabsList>
 
         <TabsContent value="services" className="space-y-4">
@@ -223,6 +256,10 @@ export default async function ClinicDetailPage({ params }: PageProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="featured" className="space-y-4">
+          <ClinicFeaturedTab clinicId={clinic.id} initialData={featuredInfo} />
         </TabsContent>
       </Tabs>
     </div>

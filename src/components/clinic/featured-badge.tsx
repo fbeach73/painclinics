@@ -7,10 +7,11 @@ export type FeaturedTier = 'none' | 'basic' | 'premium';
 interface FeaturedBadgeProps {
   tier: FeaturedTier;
   size?: 'sm' | 'md' | 'lg';
+  animated?: boolean;
   className?: string;
 }
 
-export function FeaturedBadge({ tier, size = 'md', className }: FeaturedBadgeProps) {
+export function FeaturedBadge({ tier, size = 'md', animated = false, className }: FeaturedBadgeProps) {
   if (tier === 'none') {
     return null;
   }
@@ -38,6 +39,7 @@ export function FeaturedBadge({ tier, size = 'md', className }: FeaturedBadgePro
           ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 hover:from-amber-500 hover:to-yellow-600 dark:from-amber-500 dark:to-yellow-600 dark:text-amber-950'
           : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800',
         sizeClasses[size],
+        animated && 'badge-animate',
         className
       )}
     >

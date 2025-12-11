@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
-import { ExternalLink, Phone } from "lucide-react";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { ExternalLink, Phone, Edit } from "lucide-react";
+import { eq } from "drizzle-orm";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
@@ -8,16 +11,19 @@ import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { EmbeddedMap } from "@/components/map/embedded-map";
+import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// Dynamic import to avoid module-level errors
-// import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
+import { db } from "@/lib/db";
+import { user as userSchema } from "@/lib/schema";
 import {
   getClinicByPermalink,
   getClinicsByState,
   getClinicsByCity,
 } from "@/lib/clinic-queries";
+import { getClinicServices } from "@/lib/clinic-services-queries";
 import { stripHtmlTags } from "@/lib/html-utils";
 import {
   generateBreadcrumbStructuredData,
@@ -491,6 +497,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
         reviewCount: clinic.reviewCount,
         streetAddress: clinic.streetAddress,
         postalCode: clinic.postalCode,
+        clinicHours: clinic.clinicHours,
       }));
 
       return (
@@ -524,21 +531,55 @@ export default async function PainManagementClinicPage({ params }: Props) {
     notFound();
   }
 
-  // NOTE: Auth session check disabled due to 500 errors on Vercel production.
-  // The betterAuth library causes serverless function crashes even when wrapped
-  // in try-catch with dynamic imports. Ownership features will show as if user
-  // is not logged in. TODO: Investigate betterAuth + Vercel compatibility.
-  const currentUserId: string | null = null;
+  // Fetch services from junction table
+  const clinicServices = await getClinicServices(dbClinic.id);
 
-  const clinic = transformDbClinicToType(dbClinic);
-  const structuredData = generateClinicStructuredData(dbClinic);
-  const breadcrumbData = generateBreadcrumbStructuredData(dbClinic);
+  // Add services to the clinic record for transformation
+  const dbClinicWithServices = {
+    ...dbClinic,
+    clinicServices,
+  };
+
+  // Get the current user session and role
+  let currentUserId: string | null = null;
+  let currentUserRole: string | null = null;
+
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (session?.user?.id) {
+      currentUserId = session.user.id;
+      // Get user role from database
+      const userData = await db
+        .select({ role: userSchema.role })
+        .from(userSchema)
+        .where(eq(userSchema.id, session.user.id))
+        .limit(1);
+      currentUserRole = userData[0]?.role || null;
+    }
+  } catch (error) {
+    // Auth check failed - continue as unauthenticated
+    console.error("Auth check failed:", error);
+  }
+
+  const clinic = transformDbClinicToType(dbClinicWithServices);
+  const structuredData = generateClinicStructuredData(dbClinicWithServices);
+  const breadcrumbData = generateBreadcrumbStructuredData(dbClinicWithServices);
 
   // Determine if we should show the claim benefits banner
   // Only show if the clinic is not owned and the current user doesn't own it
   const isOwned = !!clinic.ownerUserId;
   const isOwnedByCurrentUser = !!(currentUserId && clinic.ownerUserId === currentUserId);
   const showClaimBanner = !isOwned && !isOwnedByCurrentUser;
+
+  // Determine if user can edit this listing (ADMIN or CLINIC OWNER only)
+  const isAdmin = currentUserRole === "admin";
+  const isClinicOwner = !!(currentUserId && clinic.ownerUserId === currentUserId);
+  const canEditListing = isAdmin || isClinicOwner;
+
+  // Determine the edit URL based on role
+  const editUrl = isAdmin
+    ? `/admin/clinics/${clinic.id}`
+    : `/my-clinics/${clinic.id}/edit`;
 
   return (
     <>
@@ -553,7 +594,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
       />
 
       <main className="flex-1">
-        <div className="container py-8">
+        <div className="container mx-auto py-8 md:py-12">
           {/* Claim Benefits Banner - shown for unclaimed clinics */}
           {showClaimBanner && (
             <ClaimBenefitsBanner
@@ -563,6 +604,18 @@ export default async function PainManagementClinicPage({ params }: Props) {
             />
           )}
 
+          {/* Edit Listing Button - ONLY shown to ADMIN or CLINIC OWNER */}
+          {canEditListing && (
+            <div className="mb-6 flex justify-end">
+              <Button asChild variant="outline" size="sm">
+                <Link href={editUrl}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Listing
+                </Link>
+              </Button>
+            </div>
+          )}
+
           {/* Clinic Header */}
           <ClinicHeader clinic={clinic} currentUserId={currentUserId} className="mb-8" />
 
@@ -570,13 +623,13 @@ export default async function PainManagementClinicPage({ params }: Props) {
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* About Section */}
-              {clinic.about && <ClinicAbout about={clinic.about} />}
-
-              {/* Services Section */}
+              {/* Services Offered Section - Above About */}
               {clinic.services.length > 0 && (
                 <ClinicServicesLegacy services={clinic.services} />
               )}
+
+              {/* About Section */}
+              {clinic.about && <ClinicAbout about={clinic.about} />}
 
               {/* Insurance Section */}
               {clinic.insuranceAccepted.length > 0 && (
@@ -587,6 +640,12 @@ export default async function PainManagementClinicPage({ params }: Props) {
               {clinic.photos.length > 0 && (
                 <ClinicGallery photos={clinic.photos} clinicName={clinic.name} />
               )}
+
+              {/* Featured Clinics Section - Horizontal carousel below gallery */}
+              <SearchFeaturedSection
+                stateAbbrev={clinic.address.state}
+                city={clinic.address.city}
+              />
             </div>
 
             {/* Right Column - Sidebar */}

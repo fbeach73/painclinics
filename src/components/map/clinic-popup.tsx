@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import {
-  X,
   Star,
   MapPin,
   Phone,
@@ -21,10 +20,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { getServiceByType } from '@/data/services';
 import type { ClinicWithDistance } from '@/types/clinic';
 
@@ -41,84 +41,107 @@ const iconMap: Record<string, LucideIcon> = {
   Brain,
 };
 
-interface ClinicPopupProps {
-  clinic: ClinicWithDistance;
+interface ClinicDialogProps {
+  clinic: ClinicWithDistance | null;
+  isOpen: boolean;
   onClose: () => void;
 }
 
-export function ClinicPopup({ clinic, onClose }: ClinicPopupProps) {
-  const displayServices = clinic.services.slice(0, 3);
+/**
+ * Dialog-based clinic details popup.
+ * Renders as a centered modal to avoid clipping issues with map popups.
+ */
+export function ClinicDialog({ clinic, isOpen, onClose }: ClinicDialogProps) {
+  if (!clinic) return null;
+
+  const displayServices = clinic.services.slice(0, 4);
 
   return (
-    <Card className="w-72 shadow-lg">
-      <CardHeader className="p-4 pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-left pr-8">
             <Link
               href={`/pain-management/${clinic.slug}/`}
-              className="font-semibold text-sm hover:text-primary line-clamp-2"
+              className="hover:text-primary transition-colors"
             >
               {clinic.name}
             </Link>
-            <div className="flex items-center gap-1 mt-1">
-              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium">{clinic.rating}</span>
-              <span className="text-xs text-muted-foreground">
-                ({clinic.reviewCount})
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Rating */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{clinic.rating}</span>
+              <span className="text-sm text-muted-foreground">
+                ({clinic.reviewCount} reviews)
               </span>
             </div>
+            <Badge variant="secondary">{clinic.distanceFormatted}</Badge>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </Button>
-        </div>
-      </CardHeader>
 
-      <CardContent className="p-4 pt-0 space-y-3">
-        <div className="space-y-1.5 text-xs text-muted-foreground">
-          <div className="flex items-start gap-1.5">
-            <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-            <span className="line-clamp-2">{clinic.address.formatted}</span>
+          {/* Address and Phone */}
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{clinic.address.formatted}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 shrink-0" />
+              <a
+                href={`tel:${clinic.phone}`}
+                className="text-primary hover:underline"
+              >
+                {clinic.phone}
+              </a>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Phone className="h-3.5 w-3.5 shrink-0" />
-            <span>{clinic.phone}</span>
+
+          {/* Services */}
+          {displayServices.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {displayServices.map((serviceType) => {
+                const service = getServiceByType(serviceType);
+                if (!service) return null;
+                const IconComponent = iconMap[service.iconName];
+                return (
+                  <div
+                    key={serviceType}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted text-xs"
+                    title={service.name}
+                  >
+                    {IconComponent && (
+                      <IconComponent className="h-3 w-3 text-muted-foreground" />
+                    )}
+                    <span className="text-muted-foreground">{service.name}</span>
+                  </div>
+                );
+              })}
+              {clinic.services.length > 4 && (
+                <span className="text-xs text-muted-foreground self-center">
+                  +{clinic.services.length - 4} more
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-2">
+            <Button asChild className="flex-1">
+              <Link href={`/pain-management/${clinic.slug}/`}>View Details</Link>
+            </Button>
+            <Button asChild variant="outline" className="flex-1">
+              <a href={`tel:${clinic.phone}`}>
+                <Phone className="h-4 w-4 mr-2" />
+                Call
+              </a>
+            </Button>
           </div>
         </div>
-
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary" className="text-xs">
-            {clinic.distanceFormatted}
-          </Badge>
-          <div className="flex items-center gap-1">
-            {displayServices.map((serviceType) => {
-              const service = getServiceByType(serviceType);
-              if (!service) return null;
-              const IconComponent = iconMap[service.iconName];
-              if (!IconComponent) return null;
-              return (
-                <div
-                  key={serviceType}
-                  className="h-6 w-6 rounded-full bg-muted flex items-center justify-center"
-                  title={service.name}
-                >
-                  <IconComponent className="h-3 w-3 text-muted-foreground" />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <Button asChild className="w-full" size="sm">
-          <Link href={`/pain-management/${clinic.slug}/`}>View Details</Link>
-        </Button>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
