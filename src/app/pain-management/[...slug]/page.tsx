@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { ExternalLink, Phone, Edit } from "lucide-react";
-import { eq } from "drizzle-orm";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
@@ -14,10 +12,9 @@ import { EmbeddedMap } from "@/components/map/embedded-map";
 import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth } from "@/lib/auth";
+// NOTE: Auth disabled - causes 500 errors on Vercel production
+// import { auth } from "@/lib/auth";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
-import { db } from "@/lib/db";
-import { user as userSchema } from "@/lib/schema";
 import {
   getClinicByPermalink,
   getClinicsByState,
@@ -540,26 +537,12 @@ export default async function PainManagementClinicPage({ params }: Props) {
     clinicServices,
   };
 
-  // Get the current user session and role
-  let currentUserId: string | null = null;
-  let currentUserRole: string | null = null;
-
-  try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (session?.user?.id) {
-      currentUserId = session.user.id;
-      // Get user role from database
-      const userData = await db
-        .select({ role: userSchema.role })
-        .from(userSchema)
-        .where(eq(userSchema.id, session.user.id))
-        .limit(1);
-      currentUserRole = userData[0]?.role || null;
-    }
-  } catch (error) {
-    // Auth check failed - continue as unauthenticated
-    console.error("Auth check failed:", error);
-  }
+  // NOTE: Auth session check disabled due to 500 errors on Vercel production.
+  // The betterAuth library causes serverless function crashes even when wrapped
+  // in try-catch with dynamic imports. Ownership features will show as if user
+  // is not logged in. TODO: Investigate betterAuth + Vercel compatibility.
+  const currentUserId: string | null = null;
+  const currentUserRole: string | null = null;
 
   const clinic = transformDbClinicToType(dbClinicWithServices);
   const structuredData = generateClinicStructuredData(dbClinicWithServices);
