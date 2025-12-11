@@ -20,6 +20,7 @@ import {
 } from "@/lib/clinic-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
 import { stripHtmlTags } from "@/lib/html-utils";
+import { formatDisplayUrl, stripUrlQueryParams } from "@/lib/utils";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
@@ -649,18 +650,18 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
                   {/* Website */}
                   {clinic.website && (
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-muted-foreground mb-1">
                         Website
                       </p>
                       <a
-                        href={clinic.website}
+                        href={stripUrlQueryParams(clinic.website)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline flex items-center gap-1"
+                        className="text-sm text-primary hover:underline flex items-center gap-1 min-w-0"
                       >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        {clinic.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="truncate">{formatDisplayUrl(clinic.website)}</span>
                       </a>
                     </div>
                   )}

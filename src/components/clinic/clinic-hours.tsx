@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DAY_ORDER, DAY_LABELS, getCurrentDay } from '@/lib/day-constants';
-import { formatTime } from '@/lib/time-utils';
+import { formatTime, isCurrentlyOpen } from '@/lib/time-utils';
 import { cn } from '@/lib/utils';
 import type { OperatingHours, DayHours } from '@/types/clinic';
 
@@ -20,11 +20,31 @@ function formatHours(dayHours: DayHours): string {
 
 export function ClinicHours({ hours, className }: ClinicHoursProps) {
   const currentDay = getCurrentDay();
+  const { isOpen, statusText } = isCurrentlyOpen(hours);
 
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Hours of Operation</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Hours of Operation</CardTitle>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "h-2.5 w-2.5 rounded-full flex-shrink-0",
+                isOpen ? "bg-green-500" : "bg-red-500"
+              )}
+            />
+            <span
+              className={cn(
+                "text-sm font-medium",
+                isOpen ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+              )}
+            >
+              {isOpen ? "Open" : "Closed"}
+            </span>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">{statusText}</p>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2">

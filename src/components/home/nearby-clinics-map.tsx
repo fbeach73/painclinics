@@ -8,7 +8,7 @@ import { useNearbyClinics } from '@/hooks/use-nearby-clinics';
 import { Loader2 } from 'lucide-react';
 
 export function NearbyClinicsMap() {
-  const { location, isLoading: isLoadingLocation, error, permissionState, requestLocation } =
+  const { location, isLoading: isLoadingLocation, error, permissionState, requestLocation, searchLocation } =
     useGeolocation();
   const [promptDismissed, setPromptDismissed] = useState(false);
 
@@ -16,6 +16,12 @@ export function NearbyClinicsMap() {
 
   const showPrompt = !promptDismissed && (location.isDefault || permissionState === 'prompt');
   const isLoading = isLoadingLocation || isLoadingClinics;
+
+  const handleSearchLocation = (query: string) => {
+    searchLocation(query);
+    // Dismiss the prompt after successful search
+    setPromptDismissed(true);
+  };
 
   return (
     <section className="relative w-full h-[50vh] min-h-[350px]">
@@ -33,6 +39,7 @@ export function NearbyClinicsMap() {
       {showPrompt && (
         <GeolocationPrompt
           onEnableLocation={requestLocation}
+          onSearchLocation={handleSearchLocation}
           onClose={() => setPromptDismissed(true)}
           isLoading={isLoadingLocation}
           permissionState={permissionState}

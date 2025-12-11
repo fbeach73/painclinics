@@ -24,6 +24,7 @@ export interface UseGeolocationReturn {
   error: string | null;
   permissionState: PermissionState;
   requestLocation: () => void;
+  searchLocation: (query: string) => Promise<void>;
 }
 
 /**
@@ -114,11 +115,80 @@ export function useGeolocation(): UseGeolocationReturn {
     );
   }, []);
 
+  const searchLocation = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setError('Please enter a city or ZIP code');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use Mapbox Geocoding API
+      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+      if (!mapboxToken) {
+        throw new Error('Mapbox token not configured');
+      }
+
+      const encodedQuery = encodeURIComponent(query.trim());
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?country=US&types=place,postcode&limit=1&access_token=${mapboxToken}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Geocoding request failed');
+      }
+
+      const data = await response.json();
+
+      if (!data.features || data.features.length === 0) {
+        setError('Location not found. Try a different city or ZIP code.');
+        setIsLoading(false);
+        return;
+      }
+
+      const feature = data.features[0];
+      const [lng, lat] = feature.center;
+
+      // Extract city and state from context
+      let city = '';
+      let state = '';
+
+      if (feature.place_type.includes('postcode')) {
+        // For ZIP codes, extract from context
+        const placeContext = feature.context?.find((c: { id: string }) => c.id.startsWith('place'));
+        const regionContext = feature.context?.find((c: { id: string }) => c.id.startsWith('region'));
+        city = placeContext?.text || feature.text;
+        state = regionContext?.short_code?.replace('US-', '') || '';
+      } else {
+        // For places (cities)
+        city = feature.text;
+        const regionContext = feature.context?.find((c: { id: string }) => c.id.startsWith('region'));
+        state = regionContext?.short_code?.replace('US-', '') || '';
+      }
+
+      const newLocation: UserLocation = {
+        coordinates: { lat, lng },
+        city,
+        state,
+        isDefault: false,
+      };
+
+      setLocation(newLocation);
+      setIsLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to search location');
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     location,
     isLoading,
     error,
     permissionState,
     requestLocation,
+    searchLocation,
   };
 }
