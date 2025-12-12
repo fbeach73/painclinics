@@ -1,5 +1,6 @@
 'use client';
 
+import { Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DAY_ORDER, DAY_LABELS, getCurrentDay } from '@/lib/day-constants';
 import { formatTime, isCurrentlyOpen } from '@/lib/time-utils';
@@ -18,9 +19,42 @@ function formatHours(dayHours: DayHours): string {
   return `${formatTime(dayHours.open)} - ${formatTime(dayHours.close)}`;
 }
 
+/**
+ * Check if hours data is actually available (not all days closed with empty times).
+ * When no hours data exists in the database, all days default to closed with empty open/close times.
+ */
+function hasHoursData(hours: OperatingHours): boolean {
+  return DAY_ORDER.some((day) => {
+    const dayHours = hours[day];
+    // If any day has actual times or is explicitly open, we have data
+    return !dayHours.closed || (dayHours.open && dayHours.open !== '') || (dayHours.close && dayHours.close !== '');
+  });
+}
+
 export function ClinicHours({ hours, className }: ClinicHoursProps) {
   const currentDay = getCurrentDay();
+  const hasData = hasHoursData(hours);
   const { isOpen, statusText } = isCurrentlyOpen(hours);
+
+  // If no hours data available, show a simpler card
+  if (!hasData) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Hours of Operation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <Clock className="h-10 w-10 text-muted-foreground/50 mb-3" />
+            <p className="text-muted-foreground font-medium">Hours not available</p>
+            <p className="text-sm text-muted-foreground/80 mt-1">
+              Please call the clinic for current hours
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={className}>
