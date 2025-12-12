@@ -54,6 +54,33 @@ export interface OperatingHours {
   sunday: DayHours;
 }
 
+// FAQ question/answer pair
+export interface ClinicQuestion {
+  question: string;
+  answer: string;
+}
+
+// Featured review from patients (matches database schema)
+export interface FeaturedReview {
+  review: string;
+  rating: number;
+  username?: string;
+  date?: string;
+  profileUrl?: string;
+}
+
+// Review score breakdown item
+export interface ReviewScoreItem {
+  score: number;
+  count: number;
+}
+
+// Review keyword with count
+export interface ReviewKeywordItem {
+  keyword: string;
+  count: number;
+}
+
 export interface Clinic {
   id: string;
   name: string;
@@ -75,6 +102,21 @@ export interface Clinic {
   ownerUserId?: string | null;
   featuredTier?: 'none' | 'basic' | 'premium' | null;
   featuredUntil?: Date | null;
+
+  // FAQ & Questions
+  questions?: ClinicQuestion[] | undefined;
+
+  // Reviews
+  featuredReviews?: FeaturedReview[] | undefined;
+  reviewsPerScore?: ReviewScoreItem[] | undefined; // [{ score: 5, count: 42 }, ...]
+  reviewKeywords?: ReviewKeywordItem[] | undefined; // [{ keyword: "friendly staff", count: 5 }, ...]
+
+  // Services & Amenities
+  checkboxFeatures?: string[] | undefined; // Procedures/services from checkbox
+  amenities?: string[] | undefined;
+
+  // Enhanced content
+  enhancedAbout?: string | undefined; // AI-generated, stored in newPostContent
 }
 
 export interface ClinicWithDistance extends Clinic {

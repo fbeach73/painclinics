@@ -4,7 +4,7 @@ import { BadgeCheck, MapPin, Phone, Navigation, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/lib/auth-client';
-import { type DayName, WEEKDAY_INDEX_TO_NAME } from '@/lib/day-constants';
+import { type DayName, WEEKDAY_INDEX_TO_NAME, DAY_LABELS } from '@/lib/day-constants';
 import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import { formatTime } from '@/lib/time-utils';
 import { cn } from '@/lib/utils';
@@ -18,13 +18,37 @@ interface ClinicHeaderProps {
   className?: string;
 }
 
+function getNextOpenDay(clinic: Clinic, startDayIndex: number): { dayName: DayName; daysAway: number } | null {
+  // Check up to 7 days ahead
+  for (let i = 1; i <= 7; i++) {
+    const nextDayIndex = (startDayIndex + i) % 7;
+    const nextDayName = WEEKDAY_INDEX_TO_NAME[nextDayIndex] as DayName;
+    const nextDayHours = clinic.hours[nextDayName];
+
+    if (!nextDayHours.closed) {
+      return { dayName: nextDayName, daysAway: i };
+    }
+  }
+  return null;
+}
+
 function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string } {
   const now = new Date();
-  const currentDay = WEEKDAY_INDEX_TO_NAME[now.getDay()] as DayName;
+  const currentDayIndex = now.getDay();
+  const currentDay = WEEKDAY_INDEX_TO_NAME[currentDayIndex] as DayName;
   const dayHours = clinic.hours[currentDay];
 
   if (dayHours.closed) {
-    return { isOpen: false, statusText: 'Closed today' };
+    // Find next open day
+    const nextOpen = getNextOpenDay(clinic, currentDayIndex);
+    if (nextOpen) {
+      const nextDayHours = clinic.hours[nextOpen.dayName];
+      if (nextOpen.daysAway === 1) {
+        return { isOpen: false, statusText: `Re-opens tomorrow at ${formatTime(nextDayHours.open)}` };
+      }
+      return { isOpen: false, statusText: `Re-opens ${DAY_LABELS[nextOpen.dayName]} at ${formatTime(nextDayHours.open)}` };
+    }
+    return { isOpen: false, statusText: 'Closed' };
   }
 
   const currentTime = now.getHours() * 100 + now.getMinutes();
@@ -39,7 +63,17 @@ function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string 
     return { isOpen: false, statusText: `Opens at ${formatTime(dayHours.open)}` };
   }
 
-  return { isOpen: false, statusText: 'Closed' };
+  // Closed after hours - find next open day
+  const nextOpen = getNextOpenDay(clinic, currentDayIndex);
+  if (nextOpen) {
+    const nextDayHours = clinic.hours[nextOpen.dayName];
+    if (nextOpen.daysAway === 1) {
+      return { isOpen: false, statusText: `Re-opens tomorrow at ${formatTime(nextDayHours.open)}` };
+    }
+    return { isOpen: false, statusText: `Re-opens ${DAY_LABELS[nextOpen.dayName]} at ${formatTime(nextDayHours.open)}` };
+  }
+
+  return { isOpen: false, statusText: '' };
 }
 
 export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {

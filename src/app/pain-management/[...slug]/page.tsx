@@ -1,12 +1,16 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ExternalLink, Phone } from "lucide-react";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
+import { ClinicAmenities } from "@/components/clinic/clinic-amenities";
 import { ClinicEditButton } from "@/components/clinic/clinic-edit-button";
+import { ClinicFAQ } from "@/components/clinic/clinic-faq";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
+import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
 import { EmbeddedMap } from "@/components/map/embedded-map";
@@ -24,6 +28,7 @@ import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
   generateCityPageSchema,
+  generateFAQStructuredData,
 } from "@/lib/structured-data";
 import { US_STATES_REVERSE, getStateName } from "@/lib/us-states";
 import { formatDisplayUrl, stripUrlQueryParams } from "@/lib/utils";
@@ -540,6 +545,11 @@ export default async function PainManagementClinicPage({ params }: Props) {
   const structuredData = generateClinicStructuredData(dbClinicWithServices);
   const breadcrumbData = generateBreadcrumbStructuredData(dbClinicWithServices);
 
+  // Generate FAQ structured data if questions exist
+  const faqStructuredData = clinic.questions?.length
+    ? generateFAQStructuredData(clinic.questions)
+    : null;
+
   // Show claim banner only for unclaimed clinics
   // The ClaimBenefitsBanner handles user-specific logic client-side
   const showClaimBanner = !clinic.ownerUserId;
@@ -555,6 +565,12 @@ export default async function PainManagementClinicPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
       />
+      {faqStructuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+        />
+      )}
 
       <main className="flex-1">
         <div className="container mx-auto py-8 md:py-12">
@@ -573,20 +589,53 @@ export default async function PainManagementClinicPage({ params }: Props) {
             ownerUserId={clinic.ownerUserId ?? null}
           />
 
-          {/* Clinic Header */}
-          <ClinicHeader clinic={clinic} className="mb-8" />
+          {/* Hero Section: Header + Featured Image */}
+          <div className="grid gap-8 lg:grid-cols-2 mb-8">
+            <div className="space-y-6">
+              <ClinicHeader clinic={clinic} />
+              {clinic.services.length > 0 && (
+                <div>
+                  <ClinicServicesLegacy services={clinic.services} />
+                </div>
+              )}
+            </div>
+            {(dbClinic.imageFeatured || dbClinic.imageUrl) && (
+              <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+                <Image
+                  src={dbClinic.imageFeatured || dbClinic.imageUrl || ""}
+                  alt={clinic.name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            )}
+          </div>
 
           {/* Main Content Grid */}
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Services Offered Section - Above About */}
-              {clinic.services.length > 0 && (
-                <ClinicServicesLegacy services={clinic.services} />
+              {/* About Section - use enhanced if available */}
+              {(clinic.about || clinic.enhancedAbout) && (
+                <ClinicAbout
+                  about={clinic.about}
+                  enhancedAbout={clinic.enhancedAbout}
+                />
               )}
 
-              {/* About Section */}
-              {clinic.about && <ClinicAbout about={clinic.about} />}
+              {/* FAQ Section */}
+              {clinic.questions && clinic.questions.length > 0 && (
+                <ClinicFAQ questions={clinic.questions} />
+              )}
+
+              {/* Reviews Section */}
+              <ClinicReviews
+                featuredReviews={clinic.featuredReviews}
+                reviewsPerScore={clinic.reviewsPerScore}
+                reviewKeywords={clinic.reviewKeywords}
+                totalReviews={clinic.reviewCount}
+              />
 
               {/* Insurance Section */}
               {clinic.insuranceAccepted.length > 0 && (
@@ -619,6 +668,11 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
               {/* Hours of Operation */}
               <ClinicHours hours={clinic.hours} />
+
+              {/* Amenities */}
+              {clinic.amenities && clinic.amenities.length > 0 && (
+                <ClinicAmenities amenities={clinic.amenities} />
+              )}
 
               {/* Contact Information */}
               <Card>

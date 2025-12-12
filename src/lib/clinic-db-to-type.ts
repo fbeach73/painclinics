@@ -1,9 +1,13 @@
 import type {
   Clinic,
+  ClinicQuestion,
+  FeaturedReview,
   OperatingHours,
   DayHours,
   ServiceType,
   InsuranceType,
+  ReviewScoreItem,
+  ReviewKeywordItem,
 } from "@/types/clinic";
 import type { ClinicService } from "@/types/service";
 import { extractPermalinkSlug, type ClinicHour } from "./clinic-transformer";
@@ -64,6 +68,24 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
     ownerUserId: dbClinic.ownerUserId,
     featuredTier: dbClinic.featuredTier,
     featuredUntil: dbClinic.featuredUntil,
+
+    // FAQ & Questions
+    questions: (dbClinic.questions as ClinicQuestion[] | null) ?? undefined,
+
+    // Reviews
+    featuredReviews:
+      (dbClinic.featuredReviews as FeaturedReview[] | null) ?? undefined,
+    reviewsPerScore:
+      (dbClinic.reviewsPerScore as ReviewScoreItem[] | null) ?? undefined,
+    reviewKeywords:
+      (dbClinic.reviewKeywords as ReviewKeywordItem[] | null) ?? undefined,
+
+    // Services & Amenities
+    checkboxFeatures: dbClinic.checkboxFeatures ?? undefined,
+    amenities: dbClinic.amenities ?? undefined,
+
+    // Enhanced content
+    enhancedAbout: dbClinic.newPostContent ?? undefined,
   };
 }
 
