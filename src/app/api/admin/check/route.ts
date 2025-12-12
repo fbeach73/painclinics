@@ -13,6 +13,7 @@ export async function GET() {
 
   return NextResponse.json({
     authenticated: true,
+    isAdmin: true,
     user: {
       id: result.user.id,
       email: result.user.email,

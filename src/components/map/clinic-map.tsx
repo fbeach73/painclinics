@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
+import type { MapRef } from 'react-map-gl/mapbox';
+
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
+
 import { ClinicMarker } from './clinic-marker';
 import { ClinicDialog } from './clinic-popup';
 
@@ -22,6 +25,8 @@ export function ClinicMap({
   onClinicSelect,
   className = 'h-[60vh] min-h-[400px] w-full',
 }: ClinicMapProps) {
+  const mapRef = useRef<MapRef>(null);
+  const hasInitializedRef = useRef(false);
   const [selectedClinic, setSelectedClinic] = useState<ClinicWithDistance | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -30,6 +35,22 @@ export function ClinicMap({
     latitude: userLocation.coordinates.lat,
     zoom: 11,
   }), [userLocation.coordinates.lat, userLocation.coordinates.lng]);
+
+  // Fly to new location when userLocation changes (after initial load)
+  useEffect(() => {
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      return;
+    }
+
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [userLocation.coordinates.lng, userLocation.coordinates.lat],
+        zoom: 11,
+        duration: 1500,
+      });
+    }
+  }, [userLocation.coordinates.lat, userLocation.coordinates.lng]);
 
   const handleMarkerClick = useCallback(
     (clinic: ClinicWithDistance) => {
@@ -59,6 +80,7 @@ export function ClinicMap({
   return (
     <div className={cn(className, 'relative')}>
       <Map
+        ref={mapRef}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/mapbox/light-v11"
         mapboxAccessToken={MAPBOX_TOKEN}

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Database, Star, Edit, Search, Filter, Loader2, X } from 'lucide-react';
+import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -28,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { BulkEnhanceModal } from './bulk-enhance-modal';
 
 interface Clinic {
   id: string;
@@ -60,6 +62,49 @@ export function ClinicsTable({
   const [featuredFilter, setFeaturedFilter] = useState<string>('');
   const [offset, setOffset] = useState(0);
   const limit = 100;
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkModal, setShowBulkModal] = useState(false);
+
+  // Create a map of clinic IDs to names for the modal
+  const clinicNamesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    clinics.forEach((clinic) => map.set(clinic.id, clinic.title));
+    return map;
+  }, [clinics]);
+
+  // Check if all visible clinics are selected
+  const allSelected = clinics.length > 0 && clinics.every((c) => selectedIds.has(c.id));
+  const someSelected = clinics.some((c) => selectedIds.has(c.id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      // Deselect all visible clinics
+      const newSet = new Set(selectedIds);
+      clinics.forEach((c) => newSet.delete(c.id));
+      setSelectedIds(newSet);
+    } else {
+      // Select all visible clinics
+      const newSet = new Set(selectedIds);
+      clinics.forEach((c) => newSet.add(c.id));
+      setSelectedIds(newSet);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
 
   const fetchClinics = useCallback(async () => {
     setIsLoading(true);
@@ -169,6 +214,24 @@ export function ClinicsTable({
           )}
         </div>
 
+        {/* Bulk Action Toolbar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
+            <span className="text-sm font-medium">
+              {selectedIds.size} clinic{selectedIds.size !== 1 ? 's' : ''} selected
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={clearSelection}>
+                Clear Selection
+              </Button>
+              <Button size="sm" onClick={() => setShowBulkModal(true)}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Bulk Enhance
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Results Count */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -200,6 +263,14 @@ export function ClinicsTable({
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[50px]">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Select all clinics"
+                      className={someSelected && !allSelected ? 'opacity-50' : ''}
+                    />
+                  </TableHead>
                   <TableHead>Clinic Name</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead className="text-center">Rating</TableHead>
@@ -210,7 +281,14 @@ export function ClinicsTable({
               </TableHeader>
               <TableBody>
                 {clinics.map((clinic) => (
-                  <TableRow key={clinic.id}>
+                  <TableRow key={clinic.id} className={selectedIds.has(clinic.id) ? 'bg-primary/5' : ''}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(clinic.id)}
+                        onCheckedChange={() => toggleSelect(clinic.id)}
+                        aria-label={`Select ${clinic.title}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Link
                         href={`/admin/clinics/${clinic.id}`}
@@ -286,6 +364,18 @@ export function ClinicsTable({
           </div>
         )}
       </CardContent>
+
+      {/* Bulk Enhance Modal */}
+      <BulkEnhanceModal
+        clinicIds={Array.from(selectedIds)}
+        clinicNames={clinicNamesMap}
+        open={showBulkModal}
+        onOpenChange={setShowBulkModal}
+        onComplete={() => {
+          clearSelection();
+          fetchClinics();
+        }}
+      />
     </Card>
   );
 }

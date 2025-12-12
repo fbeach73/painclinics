@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ClinicMap } from '@/components/map/clinic-map';
 import { GeolocationPrompt } from '@/components/map/geolocation-prompt';
@@ -8,6 +8,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { useNearbyClinics } from '@/hooks/use-nearby-clinics';
 
 export function NearbyClinicsMap() {
+  const sectionRef = useRef<HTMLElement>(null);
   const { location, isLoading: isLoadingLocation, error, permissionState, requestLocation, searchLocation } =
     useGeolocation();
   const [promptDismissed, setPromptDismissed] = useState(false);
@@ -17,14 +18,29 @@ export function NearbyClinicsMap() {
   const showPrompt = !promptDismissed && (location.isDefault || permissionState === 'prompt');
   const isLoading = isLoadingLocation || isLoadingClinics;
 
-  const handleSearchLocation = (query: string) => {
+  const scrollToMap = useCallback(() => {
+    // Small delay to allow the map to start updating before scrolling
+    setTimeout(() => {
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }, []);
+
+  const handleSearchLocation = useCallback((query: string) => {
     searchLocation(query);
     // Dismiss the prompt after successful search
     setPromptDismissed(true);
-  };
+    // Scroll to map section
+    scrollToMap();
+  }, [searchLocation, scrollToMap]);
+
+  const handleEnableLocation = useCallback(() => {
+    requestLocation();
+    // Scroll to map section after requesting location
+    scrollToMap();
+  }, [requestLocation, scrollToMap]);
 
   return (
-    <section className="relative w-full h-[50vh] min-h-[350px]">
+    <section ref={sectionRef} className="relative w-full h-[50vh] min-h-[350px]">
       {isLoading && clinics.length === 0 ? (
         <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -38,7 +54,7 @@ export function NearbyClinicsMap() {
       )}
       {showPrompt && (
         <GeolocationPrompt
-          onEnableLocation={requestLocation}
+          onEnableLocation={handleEnableLocation}
           onSearchLocation={handleSearchLocation}
           onClose={() => setPromptDismissed(true)}
           isLoading={isLoadingLocation}
