@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MapPin, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { UserProfile } from '@/components/auth/user-profile';
 import { SearchBar } from './search/search-bar';
 import { Button } from './ui/button';
@@ -48,16 +49,18 @@ export function SiteHeader() {
             <Link
               href="/"
               className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-              aria-label="Pain Clinic Directory - Go to homepage"
+              aria-label="Pain Clinics - Go to homepage"
             >
-              <div
-                className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10"
-                aria-hidden="true"
-              >
-                <MapPin className="h-5 w-5" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Pain Clinics"
+                width={36}
+                height={36}
+                className="rounded-lg"
+                priority
+              />
               <span className="hidden sm:inline bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Pain Clinic Directory
+                Pain Clinics
               </span>
             </Link>
           </h1>
