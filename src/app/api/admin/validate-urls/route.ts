@@ -74,15 +74,16 @@ export async function GET() {
 
     // Valid URL characters pattern (alphanumeric, hyphens, forward slashes)
     const validUrlPattern = /^[a-z0-9/-]+$/i;
-    // Expected format: pain-management/slug-stateabbrev-zipcode (5 digits)
-    const expectedPattern = /^pain-management\/[\w-]+-[a-z]{2}-\d{5}$/i;
-    // 4-digit zip pattern (missing leading zero)
+    // Expected format: pain-management/slug-[optional-state]-zipcode (5 digits)
+    // Accepts both: pain-management/slug-XX-12345 and pain-management/slug-12345
+    const expectedPattern = /^pain-management\/[\w-]+(-[a-z]{2})?-\d{5}$/i;
+    // 4-digit zip pattern (missing leading zero) - with state code only
     const fourDigitZipPattern = /-[a-z]{2}-\d{4}$/i;
-    // ZIP+4 pattern (9 digits)
+    // ZIP+4 pattern (9 digits) - with state code only
     const zipPlusFourPattern = /-[a-z]{2}-\d{9}$/i;
     // Broken URL patterns (WordPress URLs, query strings)
     const brokenUrlPattern = /(\?|painclinics\.com)/i;
-    // Duplicate suffix pattern (-2, -3, etc.)
+    // Duplicate suffix pattern (-2, -3, etc. after a 5-digit zip)
     const duplicateSuffixPattern = /-\d{5}-\d+$/;
 
     for (const clinic of allClinics) {
