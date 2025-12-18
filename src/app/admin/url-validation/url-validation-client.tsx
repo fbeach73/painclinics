@@ -61,7 +61,6 @@ interface ValidationResult {
     fourDigitZip: number;
     zipPlusFour: number;
     brokenUrl: number;
-    duplicateSuffix: number;
   };
   issues: UrlIssue[];
   samplePermalinks: string[];
@@ -131,9 +130,6 @@ export function UrlValidationClient() {
     }
     if (issue.includes("Duplicate permalink")) {
       return <Badge variant="destructive">Duplicate</Badge>;
-    }
-    if (issue.includes("Duplicate suffix")) {
-      return <Badge className="bg-purple-500 hover:bg-purple-600">Dup Suffix</Badge>;
     }
     if (issue.includes("prefix")) {
       return <Badge className="bg-orange-500 hover:bg-orange-600">Missing Prefix</Badge>;
@@ -591,21 +587,6 @@ export function UrlValidationClient() {
                 </AlertDialog>
               </div>
 
-              {/* Duplicate Suffix */}
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">Duplicate Suffix</span>
-                  <Badge className={data.categories.duplicateSuffix > 0 ? "bg-purple-500" : ""} variant={data.categories.duplicateSuffix > 0 ? "default" : "secondary"}>
-                    {data.categories.duplicateSuffix}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  URLs with -2, -3 suffix (potential duplicates)
-                </p>
-                <Button size="sm" variant="outline" disabled>
-                  Manual Review
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
