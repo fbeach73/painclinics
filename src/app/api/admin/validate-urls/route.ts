@@ -360,7 +360,7 @@ export async function POST(request: Request) {
 
       await db.execute(
         sql`UPDATE clinics
-            SET permalink = regexp_replace(permalink, '-([a-zA-Z]{2})-([0-9]{4})$', '-\1-0\2')
+            SET permalink = regexp_replace(permalink, '-([a-zA-Z]{2})-([0-9]{4})$', '-\\1-0\\2')
             WHERE permalink ~ '-[a-zA-Z]{2}-[0-9]{4}$'`
       );
 
@@ -383,7 +383,7 @@ export async function POST(request: Request) {
 
       await db.execute(
         sql`UPDATE clinics
-            SET permalink = regexp_replace(permalink, '-([a-zA-Z]{2})-([0-9]{5})[0-9]{4}$', '-\1-\2')
+            SET permalink = regexp_replace(permalink, '-([a-zA-Z]{2})-([0-9]{5})[0-9]{4}$', '-\\1-\\2')
             WHERE permalink ~ '-[a-zA-Z]{2}-[0-9]{9}$'`
       );
 
