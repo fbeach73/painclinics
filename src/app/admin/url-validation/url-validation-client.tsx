@@ -58,6 +58,10 @@ interface ValidationResult {
     emptyPermalinks: number;
     trailingSlash: number;
     invalidCharacters: number;
+    fourDigitZip: number;
+    zipPlusFour: number;
+    brokenUrl: number;
+    duplicateSuffix: number;
   };
   issues: UrlIssue[];
   samplePermalinks: string[];
@@ -125,8 +129,11 @@ export function UrlValidationClient() {
     if (issue.includes("Empty")) {
       return <Badge variant="destructive">Empty</Badge>;
     }
-    if (issue.includes("Duplicate")) {
+    if (issue.includes("Duplicate permalink")) {
       return <Badge variant="destructive">Duplicate</Badge>;
+    }
+    if (issue.includes("Duplicate suffix")) {
+      return <Badge className="bg-purple-500 hover:bg-purple-600">Dup Suffix</Badge>;
     }
     if (issue.includes("prefix")) {
       return <Badge className="bg-orange-500 hover:bg-orange-600">Missing Prefix</Badge>;
@@ -137,7 +144,16 @@ export function UrlValidationClient() {
     if (issue.includes("invalid")) {
       return <Badge variant="destructive">Invalid Chars</Badge>;
     }
-    if (issue.includes("format")) {
+    if (issue.includes("4-digit ZIP")) {
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black">4-Digit ZIP</Badge>;
+    }
+    if (issue.includes("ZIP+4")) {
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black">ZIP+4</Badge>;
+    }
+    if (issue.includes("Broken URL")) {
+      return <Badge variant="destructive">Broken URL</Badge>;
+    }
+    if (issue.includes("Format mismatch")) {
       return <Badge variant="outline">Format Issue</Badge>;
     }
     return <Badge variant="secondary">{issue}</Badge>;
@@ -441,6 +457,154 @@ export function UrlValidationClient() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+              </div>
+
+              {/* 4-Digit ZIP */}
+              <div className="border rounded-lg p-4 border-yellow-500/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">4-Digit ZIP</span>
+                  <Badge className={data.categories.fourDigitZip > 0 ? "bg-yellow-500 text-black" : ""} variant={data.categories.fourDigitZip > 0 ? "default" : "secondary"}>
+                    {data.categories.fourDigitZip}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  ZIP codes missing leading zero (e.g., 3249 → 03249)
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={data.categories.fourDigitZip === 0 || fixingAction !== null}
+                    >
+                      {fixingAction === "fix-4digit-zip" ? (
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Wrench className="mr-2 h-4 w-4" />
+                      )}
+                      Fix All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Add Leading Zeros?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will add a leading zero to {data.categories.fourDigitZip} permalinks with 4-digit ZIP codes.
+                        Example: -nh-3249 → -nh-03249
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => runFix("fix-4digit-zip")}>
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              {/* ZIP+4 Codes */}
+              <div className="border rounded-lg p-4 border-yellow-500/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">ZIP+4 Codes</span>
+                  <Badge className={data.categories.zipPlusFour > 0 ? "bg-yellow-500 text-black" : ""} variant={data.categories.zipPlusFour > 0 ? "default" : "secondary"}>
+                    {data.categories.zipPlusFour}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  9-digit ZIP codes (e.g., 358016012 → 35801)
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={data.categories.zipPlusFour === 0 || fixingAction !== null}
+                    >
+                      {fixingAction === "fix-zip4" ? (
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Wrench className="mr-2 h-4 w-4" />
+                      )}
+                      Fix All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Truncate ZIP+4 Codes?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will truncate {data.categories.zipPlusFour} permalinks from 9-digit to 5-digit ZIP codes.
+                        Example: -al-358016012 → -al-35801
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => runFix("fix-zip4")}>
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              {/* Broken URLs */}
+              <div className="border rounded-lg p-4 border-red-500/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Broken URLs</span>
+                  <Badge variant={data.categories.brokenUrl > 0 ? "destructive" : "secondary"}>
+                    {data.categories.brokenUrl}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  WordPress URLs or query strings embedded in permalink
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={data.categories.brokenUrl === 0 || fixingAction !== null}
+                    >
+                      {fixingAction === "regenerate-broken" ? (
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Wrench className="mr-2 h-4 w-4" />
+                      )}
+                      Regenerate
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Regenerate Broken Permalinks?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will regenerate {data.categories.brokenUrl} broken permalinks from clinic title, state, and ZIP code.
+                        This action modifies the database directly.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => runFix("regenerate-broken")}>
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              {/* Duplicate Suffix */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Duplicate Suffix</span>
+                  <Badge className={data.categories.duplicateSuffix > 0 ? "bg-purple-500" : ""} variant={data.categories.duplicateSuffix > 0 ? "default" : "secondary"}>
+                    {data.categories.duplicateSuffix}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  URLs with -2, -3 suffix (potential duplicates)
+                </p>
+                <Button size="sm" variant="outline" disabled>
+                  Manual Review
+                </Button>
               </div>
             </div>
           </CardContent>

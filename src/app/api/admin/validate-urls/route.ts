@@ -23,6 +23,10 @@ interface ValidationResult {
     emptyPermalinks: number;
     trailingSlash: number;
     invalidCharacters: number;
+    fourDigitZip: number;
+    zipPlusFour: number;
+    brokenUrl: number;
+    duplicateSuffix: number;
   };
   issues: UrlIssue[];
   samplePermalinks: string[];
@@ -63,11 +67,23 @@ export async function GET() {
     let emptyPermalinks = 0;
     let trailingSlash = 0;
     let invalidCharacters = 0;
+    let fourDigitZip = 0;
+    let zipPlusFour = 0;
+    let brokenUrl = 0;
+    let duplicateSuffix = 0;
 
     // Valid URL characters pattern (alphanumeric, hyphens, forward slashes)
     const validUrlPattern = /^[a-z0-9/-]+$/i;
-    // Expected format: pain-management/slug-stateabbrev-zipcode
+    // Expected format: pain-management/slug-stateabbrev-zipcode (5 digits)
     const expectedPattern = /^pain-management\/[\w-]+-[a-z]{2}-\d{5}$/i;
+    // 4-digit zip pattern (missing leading zero)
+    const fourDigitZipPattern = /-[a-z]{2}-\d{4}$/i;
+    // ZIP+4 pattern (9 digits)
+    const zipPlusFourPattern = /-[a-z]{2}-\d{9}$/i;
+    // Broken URL patterns (WordPress URLs, query strings)
+    const brokenUrlPattern = /(\?|painclinics\.com)/i;
+    // Duplicate suffix pattern (-2, -3, etc.)
+    const duplicateSuffixPattern = /-\d{5}-\d+$/;
 
     for (const clinic of allClinics) {
       const permalink = clinic.permalink || "";
@@ -122,19 +138,65 @@ export async function GET() {
         });
       }
 
-      // Check format pattern (only if prefix is correct)
-      if (
-        permalink.startsWith("pain-management/") &&
-        !expectedPattern.test(permalink)
-      ) {
-        formatMismatch++;
-        issues.push({
-          clinicId: clinic.id,
-          title: clinic.title,
-          issue: "Permalink format does not match expected pattern",
-          actual: permalink,
-          expected: `pain-management/slug-${clinic.stateAbbreviation?.toLowerCase() || "xx"}-${clinic.postalCode || "00000"}`,
-        });
+      // Check for specific format issues (only if prefix is correct)
+      if (permalink.startsWith("pain-management/")) {
+        // Check for broken URLs (WordPress URLs, query strings)
+        if (brokenUrlPattern.test(permalink)) {
+          brokenUrl++;
+          issues.push({
+            clinicId: clinic.id,
+            title: clinic.title,
+            issue: "Broken URL (contains WordPress URL or query string)",
+            actual: permalink,
+            expected: `Regenerate from: ${clinic.title} + ${clinic.stateAbbreviation} + ${clinic.postalCode}`,
+          });
+        }
+        // Check for 4-digit zip (missing leading zero)
+        else if (fourDigitZipPattern.test(permalink)) {
+          fourDigitZip++;
+          const fixed = permalink.replace(/-([a-z]{2})-(\d{4})$/i, "-$1-0$2");
+          issues.push({
+            clinicId: clinic.id,
+            title: clinic.title,
+            issue: "4-digit ZIP (missing leading zero)",
+            actual: permalink,
+            expected: fixed,
+          });
+        }
+        // Check for ZIP+4 codes (9 digits)
+        else if (zipPlusFourPattern.test(permalink)) {
+          zipPlusFour++;
+          const fixed = permalink.replace(/-([a-z]{2})-(\d{5})\d{4}$/i, "-$1-$2");
+          issues.push({
+            clinicId: clinic.id,
+            title: clinic.title,
+            issue: "ZIP+4 code (should be 5 digits)",
+            actual: permalink,
+            expected: fixed,
+          });
+        }
+        // Check for duplicate suffix (-2, -3, etc.)
+        else if (duplicateSuffixPattern.test(permalink)) {
+          duplicateSuffix++;
+          issues.push({
+            clinicId: clinic.id,
+            title: clinic.title,
+            issue: "Duplicate suffix (manual review needed)",
+            actual: permalink,
+            expected: "Review for duplicate clinics",
+          });
+        }
+        // General format mismatch (doesn't match expected pattern)
+        else if (!expectedPattern.test(permalink)) {
+          formatMismatch++;
+          issues.push({
+            clinicId: clinic.id,
+            title: clinic.title,
+            issue: "Format mismatch (missing state or other issue)",
+            actual: permalink,
+            expected: `pain-management/slug-${clinic.stateAbbreviation?.toLowerCase() || "xx"}-${String(clinic.postalCode || "00000").substring(0, 5).padStart(5, "0")}`,
+          });
+        }
       }
 
       // Track duplicates (case-insensitive)
@@ -177,6 +239,10 @@ export async function GET() {
         emptyPermalinks,
         trailingSlash,
         invalidCharacters,
+        fourDigitZip,
+        zipPlusFour,
+        brokenUrl,
+        duplicateSuffix,
       },
       // Limit issues to first 100 for response size
       issues: issues.slice(0, 100),
@@ -283,10 +349,106 @@ export async function POST(request: Request) {
       });
     }
 
+    if (action === "fix-4digit-zip") {
+      // Fix permalinks ending with 4-digit zip (missing leading zero)
+      // Pattern: pain-management/slug-XX-1234 -> pain-management/slug-XX-01234
+      const countBefore = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.clinics)
+        .where(sql`permalink ~ '-[a-zA-Z]{2}-[0-9]{4}$'`);
+      const rowsToFix = countBefore[0]?.count || 0;
+
+      await db.execute(
+        sql`UPDATE clinics
+            SET permalink = regexp_replace(permalink, '-([a-zA-Z]{2})-([0-9]{4})$', '-\1-0\2')
+            WHERE permalink ~ '-[a-zA-Z]{2}-[0-9]{4}$'`
+      );
+
+      return NextResponse.json({
+        success: true,
+        action: "fix-4digit-zip",
+        message: "Added leading zero to 4-digit ZIP codes in permalinks",
+        rowsAffected: rowsToFix,
+      });
+    }
+
+    if (action === "fix-zip4") {
+      // Fix permalinks with ZIP+4 codes (9 digits) - truncate to 5 digits
+      // Pattern: pain-management/slug-XX-123456789 -> pain-management/slug-XX-12345
+      const countBefore = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.clinics)
+        .where(sql`permalink ~ '-[a-zA-Z]{2}-[0-9]{9}$'`);
+      const rowsToFix = countBefore[0]?.count || 0;
+
+      await db.execute(
+        sql`UPDATE clinics
+            SET permalink = regexp_replace(permalink, '-([a-zA-Z]{2})-([0-9]{5})[0-9]{4}$', '-\1-\2')
+            WHERE permalink ~ '-[a-zA-Z]{2}-[0-9]{9}$'`
+      );
+
+      return NextResponse.json({
+        success: true,
+        action: "fix-zip4",
+        message: "Truncated ZIP+4 codes to 5-digit ZIP in permalinks",
+        rowsAffected: rowsToFix,
+      });
+    }
+
+    if (action === "regenerate-broken") {
+      // Regenerate permalinks that have WordPress URLs or missing state codes
+      // This generates new slugs from title + state + postal_code
+      const brokenClinics = await db
+        .select({
+          id: schema.clinics.id,
+          title: schema.clinics.title,
+          stateAbbreviation: schema.clinics.stateAbbreviation,
+          postalCode: schema.clinics.postalCode,
+        })
+        .from(schema.clinics)
+        .where(
+          sql`permalink LIKE '%?%' OR permalink LIKE '%painclinics.com%' OR permalink !~ '-[a-zA-Z]{2}-[0-9]'`
+        );
+
+      let fixedCount = 0;
+      for (const clinic of brokenClinics) {
+        if (!clinic.title || !clinic.stateAbbreviation || !clinic.postalCode) {
+          continue;
+        }
+
+        // Generate slug from title
+        const slug = clinic.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .substring(0, 50);
+
+        // Ensure postal code is 5 digits (pad with leading zeros if needed)
+        const zip = clinic.postalCode.toString().substring(0, 5).padStart(5, "0");
+        const state = clinic.stateAbbreviation.toLowerCase();
+
+        const newPermalink = `pain-management/${slug}-${state}-${zip}`;
+
+        await db
+          .update(schema.clinics)
+          .set({ permalink: newPermalink })
+          .where(sql`id = ${clinic.id}`);
+
+        fixedCount++;
+      }
+
+      return NextResponse.json({
+        success: true,
+        action: "regenerate-broken",
+        message: "Regenerated broken permalinks from clinic data",
+        rowsAffected: fixedCount,
+      });
+    }
+
     return NextResponse.json(
       {
         error:
-          "Invalid action. Supported actions: fix-prefix, remove-trailing-slash, lowercase",
+          "Invalid action. Supported actions: fix-prefix, remove-trailing-slash, lowercase, fix-4digit-zip, fix-zip4, regenerate-broken",
       },
       { status: 400 }
     );
