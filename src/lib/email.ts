@@ -5,6 +5,7 @@ import {
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
   renderClaimRejectedEmail,
+  renderContactClinicInquiryEmail,
   renderFeaturedWelcomeEmail,
   renderFeaturedRenewalEmail,
   renderPaymentFailedEmail,
@@ -15,6 +16,7 @@ import {
   type ClaimVerificationProps,
   type ClaimApprovedProps,
   type ClaimRejectedProps,
+  type ContactClinicInquiryProps,
   type FeaturedWelcomeProps,
   type FeaturedRenewalProps,
   type PaymentFailedProps,
@@ -61,6 +63,7 @@ interface SendEmailOptions {
   templateName: EmailTemplateName | string;
   userId?: string | undefined;
   metadata?: Record<string, string> | undefined;
+  bcc?: string | undefined;
 }
 
 export interface SendEmailResult {
@@ -71,7 +74,7 @@ export interface SendEmailResult {
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
-  const { to, subject, html, templateName, userId, metadata } = options;
+  const { to, subject, html, templateName, userId, metadata, bcc } = options;
 
   // Create log entry
   const logId = await createEmailLog({
@@ -97,6 +100,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
       to,
       subject,
       html,
+      ...(bcc && { bcc }),
     });
 
     await updateEmailLog(logId, {
@@ -429,4 +433,38 @@ export async function sendPasswordResetEmail(
     templateName: EMAIL_TEMPLATES.PASSWORD_RESET,
     userId: options?.userId,
   });
+}
+
+const ADMIN_EMAIL = "pc@freddybeach.com";
+
+export async function sendContactClinicInquiryEmail(
+  clinicEmail: string | null,
+  props: ContactClinicInquiryProps
+): Promise<{ success: boolean; error?: string }> {
+  const hasClinicEmail = clinicEmail && clinicEmail.trim() !== "";
+
+  const to = hasClinicEmail ? clinicEmail : ADMIN_EMAIL;
+  const subjectPrefix = hasClinicEmail ? "" : "[No Clinic Email] ";
+  const subject = `${subjectPrefix}New Patient Inquiry - ${props.clinicName}`;
+
+  const html = await renderContactClinicInquiryEmail(props);
+
+  const result = await sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.CONTACT_CLINIC_INQUIRY,
+    metadata: {
+      clinicName: props.clinicName,
+      patientEmail: props.patientEmail,
+    },
+    ...(hasClinicEmail && { bcc: ADMIN_EMAIL }),
+  });
+
+  const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
+
+  if (errorMessage) {
+    return { success: result.success, error: errorMessage };
+  }
+  return { success: result.success };
 }

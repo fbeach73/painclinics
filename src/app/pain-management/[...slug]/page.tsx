@@ -12,6 +12,7 @@ import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
+import { ContactClinicButton } from "@/components/clinic/contact-clinic-button";
 import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
 import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
@@ -749,6 +750,14 @@ export default async function PainManagementClinicPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Contact Clinic CTA - sticky floating button */}
+        <ContactClinicButton
+          clinicId={clinic.id}
+          clinicName={clinic.name}
+          clinicCity={clinic.address.city}
+          clinicState={clinic.address.state}
+        />
       </main>
     </>
   );

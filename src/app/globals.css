@@ -278,10 +278,29 @@
     0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Contact CTA pulse animation */
+@keyframes contact-pulse {
+  0%, 100% {
+    box-shadow:
+      0 10px 15px -3px rgba(20, 184, 166, 0.3),
+      0 0 0 0 rgba(20, 184, 166, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 10px 15px -3px rgba(20, 184, 166, 0.3),
+      0 0 0 12px rgba(20, 184, 166, 0);
+  }
+}
+
+.contact-cta-pulse {
+  animation: contact-pulse 2s ease-in-out infinite;
+}
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .badge-animate,
-  .premium-badge-shimmer {
+  .premium-badge-shimmer,
+  .contact-cta-pulse {
     animation: none;
   }
 

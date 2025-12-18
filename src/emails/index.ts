@@ -2,6 +2,7 @@ import { render } from "@react-email/components";
 import { ClaimApproved } from "./claim-approved";
 import { ClaimRejected } from "./claim-rejected";
 import { ClaimVerification } from "./claim-verification";
+import { ContactClinicInquiry } from "./contact-clinic-inquiry";
 import { FeaturedRenewal } from "./featured-renewal";
 import { FeaturedWelcome } from "./featured-welcome";
 import { PasswordReset } from "./password-reset";
@@ -14,6 +15,7 @@ export {
   ClaimVerification,
   ClaimApproved,
   ClaimRejected,
+  ContactClinicInquiry,
   FeaturedWelcome,
   FeaturedRenewal,
   PaymentFailed,
@@ -82,6 +84,22 @@ export interface PasswordResetProps {
   expiresIn?: string | undefined;
 }
 
+export interface ContactClinicInquiryProps {
+  clinicName: string;
+  clinicCity: string;
+  clinicState: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone: string;
+  preferredContactTime: string;
+  additionalInfo?: string;
+  painType: string;
+  painDuration: string;
+  previousTreatment: string;
+  insuranceStatus: string;
+  submittedAt: string;
+}
+
 // Render functions that return HTML strings
 export async function renderClaimVerificationEmail(props: ClaimVerificationProps): Promise<string> {
   return render(ClaimVerification(props));
@@ -119,11 +137,16 @@ export async function renderPasswordResetEmail(props: PasswordResetProps): Promi
   return render(PasswordReset(props));
 }
 
+export async function renderContactClinicInquiryEmail(props: ContactClinicInquiryProps): Promise<string> {
+  return render(ContactClinicInquiry(props));
+}
+
 // Template name constants for logging
 export const EMAIL_TEMPLATES = {
   CLAIM_VERIFICATION: "claim-verification",
   CLAIM_APPROVED: "claim-approved",
   CLAIM_REJECTED: "claim-rejected",
+  CONTACT_CLINIC_INQUIRY: "contact-clinic-inquiry",
   FEATURED_WELCOME: "featured-welcome",
   FEATURED_RENEWAL: "featured-renewal",
   PAYMENT_FAILED: "payment-failed",
