@@ -2,14 +2,12 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
-import type { MapRef } from 'react-map-gl/mapbox';
-import type { StyleSpecification } from 'mapbox-gl';
-
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
-
 import { ClinicMarker } from './clinic-marker';
 import { ClinicDialog } from './clinic-popup';
+import type { StyleSpecification } from 'mapbox-gl';
+import type { MapRef } from 'react-map-gl/mapbox';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -30,21 +28,12 @@ const CUSTOM_MAP_STYLE: StyleSpecification = {
   glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
   layers: [
     // Background - soft off-white with slight purple tint
+    // This serves as the "land" color since mapbox-streets-v8 doesn't have a land layer
     {
       id: 'background',
       type: 'background',
       paint: {
         'background-color': '#f8f7fc', // Subtle purple-tinted background
-      },
-    },
-    // Land areas
-    {
-      id: 'land',
-      type: 'fill',
-      source: 'mapbox-streets',
-      'source-layer': 'land',
-      paint: {
-        'fill-color': '#f8f7fc',
       },
     },
     // Water - soft blue with purple undertone

@@ -82,7 +82,14 @@
       "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT COUNT(*) as total FROM clinics;\")",
       "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT COUNT(*) as total, COUNT(clinic_hours) as with_hours FROM clinics;\")",
       "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"SELECT clinic_hours FROM clinics WHERE clinic_hours IS NOT NULL LIMIT 3;\")",
-      "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql:*)"
+      "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql:*)",
+      "mcp__playwright__browser_select_option",
+      "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && head -30 {}')",
+      "Bash(for i in {1..20})",
+      "Bash(do echo \"\")",
+      "Bash(pnpm db:migrate:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

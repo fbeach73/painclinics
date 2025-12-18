@@ -48,6 +48,12 @@ export const emailStatusEnum = pgEnum("email_status", [
   "clicked",
 ]);
 
+export const blogPostStatusEnum = pgEnum("blog_post_status", [
+  "draft",
+  "published",
+  "archived",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -455,6 +461,158 @@ export const emailLogs = pgTable(
 );
 
 // ============================================
+// Blog Tables
+// ============================================
+
+export const blogPosts = pgTable(
+  "blog_posts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    wpId: integer("wp_id").unique(), // WordPress ID for deduplication
+    title: text("title").notNull(),
+    slug: text("slug").notNull().unique(), // Must match WordPress exactly
+    content: text("content").notNull(), // Processed HTML with Blob URLs
+    excerpt: text("excerpt"),
+    metaTitle: text("meta_title"),
+    metaDescription: text("meta_description"),
+    featuredImageUrl: text("featured_image_url"), // Vercel Blob URL
+    featuredImageAlt: text("featured_image_alt"),
+    wpFeaturedImageUrl: text("wp_featured_image_url"), // Original WP URL
+    authorName: text("author_name"),
+    authorSlug: text("author_slug"),
+    status: blogPostStatusEnum("status").default("published").notNull(),
+    publishedAt: timestamp("published_at"),
+    wpCreatedAt: timestamp("wp_created_at"),
+    wpModifiedAt: timestamp("wp_modified_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    importBatchId: text("import_batch_id"),
+    migrationMetadata: jsonb("migration_metadata"), // { wpUrl, imageMapping, errors }
+  },
+  (table) => [
+    index("blog_posts_slug_idx").on(table.slug),
+    index("blog_posts_wp_id_idx").on(table.wpId),
+    index("blog_posts_status_idx").on(table.status),
+    index("blog_posts_published_at_idx").on(table.publishedAt),
+    index("blog_posts_import_batch_idx").on(table.importBatchId),
+  ]
+);
+
+export const blogCategories = pgTable(
+  "blog_categories",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    wpId: integer("wp_id").unique(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    description: text("description"),
+    parentId: text("parent_id"), // Self-reference for hierarchy
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("blog_categories_slug_idx").on(table.slug),
+    index("blog_categories_wp_id_idx").on(table.wpId),
+    index("blog_categories_parent_idx").on(table.parentId),
+  ]
+);
+
+export const blogTags = pgTable(
+  "blog_tags",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    wpId: integer("wp_id").unique(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("blog_tags_slug_idx").on(table.slug),
+    index("blog_tags_wp_id_idx").on(table.wpId),
+  ]
+);
+
+export const blogPostCategories = pgTable(
+  "blog_post_categories",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    postId: text("post_id")
+      .notNull()
+      .references(() => blogPosts.id, { onDelete: "cascade" }),
+    categoryId: text("category_id")
+      .notNull()
+      .references(() => blogCategories.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("blog_post_categories_post_idx").on(table.postId),
+    index("blog_post_categories_category_idx").on(table.categoryId),
+  ]
+);
+
+export const blogPostTags = pgTable(
+  "blog_post_tags",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    postId: text("post_id")
+      .notNull()
+      .references(() => blogPosts.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => blogTags.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("blog_post_tags_post_idx").on(table.postId),
+    index("blog_post_tags_tag_idx").on(table.tagId),
+  ]
+);
+
+export const blogImportBatches = pgTable("blog_import_batches", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  status: text("status").default("pending"), // pending, fetching, migrating_images, processing, completed, failed
+  sourceUrl: text("source_url"),
+  totalPostsFound: integer("total_posts_found").default(0),
+  postsProcessed: integer("posts_processed").default(0),
+  postsSuccess: integer("posts_success").default(0),
+  postsError: integer("posts_error").default(0),
+  postsSkipped: integer("posts_skipped").default(0),
+  imagesProcessed: integer("images_processed").default(0),
+  imagesSuccess: integer("images_success").default(0),
+  imagesError: integer("images_error").default(0),
+  categoriesCreated: integer("categories_created").default(0),
+  tagsCreated: integer("tags_created").default(0),
+  errors: jsonb("errors"),
+  imageMapping: jsonb("image_mapping"), // { wpUrl: blobUrl }
+  redirects: jsonb("redirects"), // Array of { source, destination }
+  importedBy: text("imported_by").references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// ============================================
 // Relations
 // ============================================
 
@@ -523,5 +681,56 @@ export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
   user: one(user, {
     fields: [emailLogs.userId],
     references: [user.id],
+  }),
+}));
+
+// ============================================
+// Blog Relations
+// ============================================
+
+export const blogPostsRelations = relations(blogPosts, ({ many }) => ({
+  postCategories: many(blogPostCategories),
+  postTags: many(blogPostTags),
+}));
+
+export const blogCategoriesRelations = relations(
+  blogCategories,
+  ({ one, many }) => ({
+    parent: one(blogCategories, {
+      fields: [blogCategories.parentId],
+      references: [blogCategories.id],
+      relationName: "categoryHierarchy",
+    }),
+    children: many(blogCategories, { relationName: "categoryHierarchy" }),
+    postCategories: many(blogPostCategories),
+  })
+);
+
+export const blogTagsRelations = relations(blogTags, ({ many }) => ({
+  postTags: many(blogPostTags),
+}));
+
+export const blogPostCategoriesRelations = relations(
+  blogPostCategories,
+  ({ one }) => ({
+    post: one(blogPosts, {
+      fields: [blogPostCategories.postId],
+      references: [blogPosts.id],
+    }),
+    category: one(blogCategories, {
+      fields: [blogPostCategories.categoryId],
+      references: [blogCategories.id],
+    }),
+  })
+);
+
+export const blogPostTagsRelations = relations(blogPostTags, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostTags.postId],
+    references: [blogPosts.id],
+  }),
+  tag: one(blogTags, {
+    fields: [blogPostTags.tagId],
+    references: [blogTags.id],
   }),
 }));
