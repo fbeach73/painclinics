@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Upload, Home, LayoutDashboard, Settings, Database, BarChart3, Grid3X3, Shield, CreditCard, Mail, FileText, PenSquare } from "lucide-react";
+import { Upload, Home, LayoutDashboard, Settings, Database, BarChart3, Grid3X3, Shield, CreditCard, Mail, FileText, PenSquare, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin/import", label: "Data Import", icon: Upload },
   { href: "/admin/clinics", label: "Clinics", icon: Database },
   { href: "/admin/services", label: "Services", icon: Grid3X3 },
+  { href: "/admin/url-validation", label: "URL Validation", icon: Link2 },
   { href: "/admin/blog/migration", label: "Blog Migration", icon: FileText },
   { href: "/admin/blog", label: "Blog Posts", icon: PenSquare },
   { href: "/admin/claims", label: "Claims", icon: Shield },
