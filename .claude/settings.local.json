@@ -89,7 +89,10 @@
       "Bash(do echo \"\")",
       "Bash(pnpm db:migrate:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: implement WordPress blog migration system with public blog pages\n\nComplete implementation of WordPress blog migration feature including:\n\nDatabase Schema \\(Phase 1\\):\n- Add blog tables: blogPosts, blogCategories, blogTags\n- Add junction tables: blogPostCategories, blogPostTags\n- Add blogImportBatches for migration tracking\n- Add relations and indexes for efficient querying\n\nCore Blog Libraries \\(Phase 2\\):\n- WordPress REST API client for fetching posts/categories/tags\n- Sitemap parser for discovering blog post URLs\n- Image migrator for transferring images to Vercel Blob\n- Content processor for updating URLs in HTML\n- Database queries for blog operations\n\nMigration API Endpoints \\(Phase 3\\):\n- SSE streaming endpoint for real-time migration progress\n- Preview, status, rollback, and redirect generation endpoints\n- Sitemaps discovery endpoint\n\nAdmin Migration Interface \\(Phase 4\\):\n- 4-step migration wizard \\(discover, preview, execute, results\\)\n- Real-time progress display with SSE consumption\n- Rollback capability and CSV export\n\nPublic Blog Pages \\(Phase 5\\):\n- Blog listing page with pagination\n- Individual post pages with Article schema \\(JSON-LD\\)\n- Category and tag archive pages\n- Blog sidebar with categories, recent posts, tags\n- Static generation support via generateStaticParams\n- SEO optimization with Open Graph and Twitter cards\n\nAdditional changes:\n- Add clinic FAQ management tab and API endpoints\n- Update admin sidebar with blog migration link\n- Minor fixes to clinic map and accordion components\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "mcp__shadcn__view_items_in_registries",
+      "Bash(git diff:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

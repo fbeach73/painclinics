@@ -102,7 +102,7 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
 
       {/* Content */}
       <div
-        className="prose prose-slate dark:prose-invert max-w-none prose-img:rounded-lg prose-a:text-primary"
+        className="prose max-w-none prose-img:rounded-lg prose-a:text-primary prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/90 prose-blockquote:border-primary prose-td:text-foreground prose-th:text-foreground prose-table:text-foreground"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
 

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { BlogPostContent, RelatedPostCard } from "@/components/blog";
+import { BlogPostContent, RelatedPostCard, FloatingToc } from "@/components/blog";
 import {
   getBlogPostBySlug,
   getAllPublishedPostSlugs,
@@ -110,6 +110,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <article className="max-w-4xl mx-auto">
           <BlogPostContent post={post as BlogPostWithRelations} />
         </article>
+
+        {/* Floating Table of Contents */}
+        <FloatingToc />
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
