@@ -1,7 +1,11 @@
 import { eq, desc, sql, and, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
-import type { BlogPostsQueryOptions, BlogPostsQueryResult } from "./types";
+import type {
+  BlogPostsQueryOptions,
+  BlogPostsQueryResult,
+  BlogPostWithRelations,
+} from "./types";
 
 /**
  * Get a single blog post by slug with categories and tags
@@ -52,6 +56,14 @@ export async function getBlogPosts(
 
   // Build base conditions
   const conditions = [eq(schema.blogPosts.status, status)];
+
+  // For published posts, only show posts with publishedAt in the past
+  // This ensures scheduled posts don't appear on the public blog
+  if (status === "published") {
+    conditions.push(
+      sql`(${schema.blogPosts.publishedAt} IS NULL OR ${schema.blogPosts.publishedAt} <= NOW())`
+    );
+  }
 
   // Add search condition
   if (search) {
@@ -156,12 +168,18 @@ export async function getBlogPosts(
 
 /**
  * Get all published post slugs (for static generation)
+ * Only returns posts that are published and have publishedAt in the past
  */
 export async function getAllPublishedPostSlugs(): Promise<string[]> {
   const posts = await db
     .select({ slug: schema.blogPosts.slug })
     .from(schema.blogPosts)
-    .where(eq(schema.blogPosts.status, "published"));
+    .where(
+      and(
+        eq(schema.blogPosts.status, "published"),
+        sql`(${schema.blogPosts.publishedAt} IS NULL OR ${schema.blogPosts.publishedAt} <= NOW())`
+      )
+    );
 
   return posts.map((p) => p.slug);
 }
@@ -224,10 +242,14 @@ export async function getTagBySlug(slug: string) {
 
 /**
  * Get recent posts (for sidebar)
+ * Only returns posts that are published and have publishedAt in the past
  */
 export async function getRecentPosts(limit = 5) {
   return db.query.blogPosts.findMany({
-    where: eq(schema.blogPosts.status, "published"),
+    where: and(
+      eq(schema.blogPosts.status, "published"),
+      sql`(${schema.blogPosts.publishedAt} IS NULL OR ${schema.blogPosts.publishedAt} <= NOW())`
+    ),
     orderBy: desc(schema.blogPosts.publishedAt),
     limit,
     columns: {
@@ -280,7 +302,8 @@ export async function getRelatedPosts(postId: string, limit = 3) {
         schema.blogPosts.id,
         relatedPostIds.map((p) => p.postId)
       ),
-      eq(schema.blogPosts.status, "published")
+      eq(schema.blogPosts.status, "published"),
+      sql`(${schema.blogPosts.publishedAt} IS NULL OR ${schema.blogPosts.publishedAt} <= NOW())`
     ),
     orderBy: desc(schema.blogPosts.publishedAt),
     limit,
@@ -315,6 +338,7 @@ export async function getTagByWpId(wpId: number) {
 
 /**
  * Get categories with post counts for sidebar
+ * Only counts posts that are published and have publishedAt in the past
  */
 export async function getCategoriesWithCounts() {
   const categories = await db.query.blogCategories.findMany({
@@ -323,25 +347,29 @@ export async function getCategoriesWithCounts() {
       postCategories: {
         with: {
           post: {
-            columns: { status: true },
+            columns: { status: true, publishedAt: true },
           },
         },
       },
     },
   });
 
+  const now = new Date();
   return categories.map((category) => ({
     id: category.id,
     name: category.name,
     slug: category.slug,
     postCount: category.postCategories.filter(
-      (pc) => pc.post.status === "published"
+      (pc) =>
+        pc.post.status === "published" &&
+        (pc.post.publishedAt === null || new Date(pc.post.publishedAt) <= now)
     ).length,
   }));
 }
 
 /**
  * Get tags with post counts for sidebar
+ * Only counts posts that are published and have publishedAt in the past
  */
 export async function getTagsWithCounts() {
   const tags = await db.query.blogTags.findMany({
@@ -350,19 +378,23 @@ export async function getTagsWithCounts() {
       postTags: {
         with: {
           post: {
-            columns: { status: true },
+            columns: { status: true, publishedAt: true },
           },
         },
       },
     },
   });
 
+  const now = new Date();
   return tags.map((tag) => ({
     id: tag.id,
     name: tag.name,
     slug: tag.slug,
-    postCount: tag.postTags.filter((pt) => pt.post.status === "published")
-      .length,
+    postCount: tag.postTags.filter(
+      (pt) =>
+        pt.post.status === "published" &&
+        (pt.post.publishedAt === null || new Date(pt.post.publishedAt) <= now)
+    ).length,
   }));
 }
 
@@ -382,4 +414,129 @@ export async function getLatestBlogImportBatch() {
   return db.query.blogImportBatches.findFirst({
     orderBy: desc(schema.blogImportBatches.createdAt),
   });
+}
+
+// ============================================
+// Admin Query Functions
+// ============================================
+
+export interface AdminBlogPostsQueryOptions {
+  page?: number;
+  limit?: number;
+  status?: "draft" | "published" | "archived" | "all";
+  search?: string | undefined;
+}
+
+export interface AdminBlogPostsQueryResult {
+  posts: BlogPostWithRelations[];
+  total: number;
+}
+
+/**
+ * Get a single blog post by ID with categories and tags (for admin editing)
+ */
+export async function getBlogPostById(
+  id: string
+): Promise<BlogPostWithRelations | null> {
+  const result = await db.query.blogPosts.findFirst({
+    where: eq(schema.blogPosts.id, id),
+    with: {
+      postCategories: {
+        with: {
+          category: true,
+        },
+      },
+      postTags: {
+        with: {
+          tag: true,
+        },
+      },
+    },
+  });
+
+  return result as BlogPostWithRelations | null;
+}
+
+/**
+ * Get paginated blog posts for admin panel (includes all statuses)
+ */
+export async function getBlogPostsAdmin(
+  options: AdminBlogPostsQueryOptions = {}
+): Promise<AdminBlogPostsQueryResult> {
+  const { page = 1, limit = 50, status = "all", search } = options;
+  const offset = (page - 1) * limit;
+
+  // Build conditions
+  const conditions = [];
+
+  // Status filter
+  if (status !== "all") {
+    conditions.push(eq(schema.blogPosts.status, status));
+  }
+
+  // Search filter (search in title)
+  if (search) {
+    conditions.push(
+      sql`${schema.blogPosts.title} ILIKE ${`%${search}%`}`
+    );
+  }
+
+  // Fetch posts
+  const posts = await db.query.blogPosts.findMany({
+    where: conditions.length > 0 ? and(...conditions) : undefined,
+    orderBy: desc(schema.blogPosts.updatedAt),
+    limit,
+    offset,
+    with: {
+      postCategories: {
+        with: {
+          category: true,
+        },
+      },
+      postTags: {
+        with: {
+          tag: true,
+        },
+      },
+    },
+  });
+
+  // Get total count
+  const countResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.blogPosts)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+  return {
+    posts: posts as BlogPostWithRelations[],
+    total: Number(countResult[0]?.count || 0),
+  };
+}
+
+/**
+ * Get post counts by status for admin dashboard
+ */
+export async function getBlogPostCountsByStatus() {
+  const results = await db
+    .select({
+      status: schema.blogPosts.status,
+      count: sql<number>`count(*)`,
+    })
+    .from(schema.blogPosts)
+    .groupBy(schema.blogPosts.status);
+
+  const counts = {
+    all: 0,
+    draft: 0,
+    published: 0,
+    archived: 0,
+  };
+
+  for (const row of results) {
+    const status = row.status as "draft" | "published" | "archived";
+    counts[status] = Number(row.count);
+    counts.all += Number(row.count);
+  }
+
+  return counts;
 }
