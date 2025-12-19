@@ -171,7 +171,7 @@ export default async function Home() {
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild className="gap-2 bg-transparent border-primary-foreground/20 hover:bg-primary-foreground/10">
-                <a href="tel:+1-800-555-0123">
+                <a href="tel:+1-800-662-4357">
                   <Phone className="h-5 w-5" />
                   Call for Help
                 </a>

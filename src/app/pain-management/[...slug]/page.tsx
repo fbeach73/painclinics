@@ -575,15 +575,6 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
       <main className="flex-1">
         <div className="container mx-auto py-8 md:py-12">
-          {/* Claim Benefits Banner - shown for unclaimed clinics */}
-          {showClaimBanner && (
-            <ClaimBenefitsBanner
-              clinicId={clinic.id}
-              clinicName={clinic.name}
-              className="mb-8"
-            />
-          )}
-
           {/* Edit Listing Button - Client component handles auth check */}
           <ClinicEditButton
             clinicId={clinic.id}
@@ -637,6 +628,14 @@ export default async function PainManagementClinicPage({ params }: Props) {
                 reviewKeywords={clinic.reviewKeywords}
                 totalReviews={clinic.reviewCount}
               />
+
+              {/* Claim Benefits Banner - shown for unclaimed clinics */}
+              {showClaimBanner && (
+                <ClaimBenefitsBanner
+                  clinicId={clinic.id}
+                  clinicName={clinic.name}
+                />
+              )}
 
               {/* Insurance Section */}
               {clinic.insuranceAccepted.length > 0 && (
