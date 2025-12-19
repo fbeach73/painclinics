@@ -734,3 +734,29 @@ export const blogPostTagsRelations = relations(blogPostTags, ({ one }) => ({
     references: [blogTags.id],
   }),
 }));
+
+// ============================================
+// 404 Logging Table
+// ============================================
+
+export const notFoundLogs = pgTable(
+  "not_found_logs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    path: text("path").notNull(),
+    fullUrl: text("full_url"),
+    referrer: text("referrer"),
+    userAgent: text("user_agent"),
+    ipAddress: text("ip_address"),
+    hitCount: integer("hit_count").default(1).notNull(),
+    firstSeenAt: timestamp("first_seen_at").defaultNow().notNull(),
+    lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("not_found_logs_path_idx").on(table.path),
+    index("not_found_logs_hit_count_idx").on(table.hitCount),
+    index("not_found_logs_last_seen_idx").on(table.lastSeenAt),
+  ]
+);
