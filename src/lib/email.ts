@@ -8,6 +8,7 @@ import {
   renderContactClinicInquiryEmail,
   renderFeaturedWelcomeEmail,
   renderFeaturedRenewalEmail,
+  renderInquiryConfirmationEmail,
   renderPaymentFailedEmail,
   renderSubscriptionCanceledEmail,
   renderWelcomeEmail,
@@ -19,6 +20,7 @@ import {
   type ContactClinicInquiryProps,
   type FeaturedWelcomeProps,
   type FeaturedRenewalProps,
+  type InquiryConfirmationProps,
   type PaymentFailedProps,
   type SubscriptionCanceledProps,
   type WelcomeProps,
@@ -34,6 +36,8 @@ const mg =
     ? mailgun.client({
         username: "api",
         key: process.env.MAILGUN_API_KEY,
+        // Use EU endpoint if MAILGUN_REGION=eu is set
+        ...(process.env.MAILGUN_REGION === "eu" && { url: "https://api.eu.mailgun.net" }),
       })
     : null;
 
@@ -110,11 +114,22 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 
     return { success: true, messageId: result.id, logId };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorDetails = error && typeof error === "object" && "status" in error
+      ? { status: (error as { status?: number }).status, message: errorMessage }
+      : { message: errorMessage };
+
     await updateEmailLog(logId, {
       status: "failed",
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorMessage,
     });
-    console.error("Email send failed:", error);
+    console.error("Email send failed:", {
+      to,
+      subject,
+      domain: process.env.MAILGUN_DOMAIN,
+      error: errorDetails,
+      fullError: error,
+    });
     return { success: false, error, logId };
   }
 }
@@ -435,20 +450,32 @@ export async function sendPasswordResetEmail(
   });
 }
 
-const ADMIN_EMAIL = "pc@freddybeach.com";
+// Admin emails that receive all contact form submissions
+const ADMIN_EMAILS = ["kyle@freddybeach.com", "hello@painclinics.com"] as const;
+const PRIMARY_ADMIN_EMAIL: string = ADMIN_EMAILS[0];
 
 export async function sendContactClinicInquiryEmail(
   clinicEmail: string | null,
   props: ContactClinicInquiryProps
 ): Promise<{ success: boolean; error?: string }> {
-  const hasClinicEmail = clinicEmail && clinicEmail.trim() !== "";
+  const validClinicEmail = clinicEmail && clinicEmail.trim() !== "" ? clinicEmail : null;
 
-  const to = hasClinicEmail ? clinicEmail : ADMIN_EMAIL;
-  const subjectPrefix = hasClinicEmail ? "" : "[No Clinic Email] ";
+  // If clinic has email, send to clinic with BCC to all admins
+  // If no clinic email, send to primary admin
+  const to = validClinicEmail ?? PRIMARY_ADMIN_EMAIL;
+  const subjectPrefix = validClinicEmail ? "" : "[No Clinic Email] ";
   const subject = `${subjectPrefix}New Patient Inquiry - ${props.clinicName}`;
 
   const html = await renderContactClinicInquiryEmail(props);
 
+  // Determine BCC recipients:
+  // - If sending to clinic: BCC all admin emails
+  // - If sending to primary admin: BCC other admin emails (if any)
+  const bccList = validClinicEmail
+    ? ADMIN_EMAILS.join(",")
+    : ADMIN_EMAILS.slice(1).join(",");
+
+  // Send to clinic (or primary admin if no clinic email), BCC admin emails
   const result = await sendEmail({
     to,
     subject,
@@ -458,7 +485,34 @@ export async function sendContactClinicInquiryEmail(
       clinicName: props.clinicName,
       patientEmail: props.patientEmail,
     },
-    ...(hasClinicEmail && { bcc: ADMIN_EMAIL }),
+    ...(bccList && { bcc: bccList }),
+  });
+
+  const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
+
+  if (errorMessage) {
+    return { success: result.success, error: errorMessage };
+  }
+  return { success: result.success };
+}
+
+export async function sendInquiryConfirmationEmail(
+  patientEmail: string,
+  props: InquiryConfirmationProps
+): Promise<{ success: boolean; error?: string }> {
+  const subject = `Your inquiry to ${props.clinicName} has been received`;
+
+  const html = await renderInquiryConfirmationEmail(props);
+
+  const result = await sendEmail({
+    to: patientEmail,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.INQUIRY_CONFIRMATION,
+    metadata: {
+      clinicName: props.clinicName,
+      patientName: props.patientName,
+    },
   });
 
   const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getClinicById } from "@/lib/clinic-queries";
-import { sendContactClinicInquiryEmail } from "@/lib/email";
+import { sendContactClinicInquiryEmail, sendInquiryConfirmationEmail } from "@/lib/email";
 
 /**
  * Zod validation schema for contact form data
@@ -65,6 +65,9 @@ export async function POST(request: NextRequest) {
     // Get the first clinic email (emails is an array)
     const clinicEmail = clinic.emails?.[0] || null;
 
+    // Get clinic phone (use first from array if available, fallback to single phone)
+    const clinicPhone = clinic.phones?.[0] || clinic.phone || undefined;
+
     // Send email to clinic (with BCC to admin)
     const emailResult = await sendContactClinicInquiryEmail(
       clinicEmail,
@@ -72,6 +75,9 @@ export async function POST(request: NextRequest) {
         clinicName: clinic.title,
         clinicCity: clinic.city,
         clinicState: clinic.stateAbbreviation || "",
+        ...(clinicPhone && { clinicPhone }),
+        ...(clinic.website && { clinicWebsite: clinic.website }),
+        ...(clinic.permalink && { clinicPermalink: clinic.permalink }),
         patientName: data.name,
         patientEmail: data.email,
         patientPhone: data.phone,
@@ -90,11 +96,42 @@ export async function POST(request: NextRequest) {
     );
 
     if (!emailResult.success) {
-      console.error("Failed to send contact inquiry email:", emailResult.error);
+      console.error("Failed to send contact inquiry email:", {
+        error: emailResult.error,
+        clinicId: data.clinicId,
+        clinicEmail,
+        clinicName: clinic.title,
+      });
       return NextResponse.json(
         { success: false, error: "Failed to send your inquiry. Please try again." },
         { status: 500 }
       );
+    }
+
+    // Send confirmation email to patient (don't fail the request if this fails)
+    const submittedAt = new Date().toLocaleString("en-US", {
+      timeZone: "America/New_York",
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+
+    const confirmationResult = await sendInquiryConfirmationEmail(
+      data.email,
+      {
+        patientName: data.name,
+        clinicName: clinic.title,
+        clinicCity: clinic.city,
+        clinicState: clinic.stateAbbreviation || "",
+        submittedAt,
+      }
+    );
+
+    if (!confirmationResult.success) {
+      // Log but don't fail the request - the main inquiry was sent successfully
+      console.error("Failed to send confirmation email to patient:", {
+        error: confirmationResult.error,
+        patientEmail: data.email,
+      });
     }
 
     return NextResponse.json(

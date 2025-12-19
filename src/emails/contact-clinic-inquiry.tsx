@@ -7,6 +7,9 @@ export interface ContactClinicInquiryProps {
   clinicName: string;
   clinicCity: string;
   clinicState: string;
+  clinicPhone?: string;
+  clinicWebsite?: string;
+  clinicPermalink?: string;
   patientName: string;
   patientEmail: string;
   patientPhone: string;
@@ -23,6 +26,9 @@ export function ContactClinicInquiry({
   clinicName,
   clinicCity,
   clinicState,
+  clinicPhone,
+  clinicWebsite,
+  clinicPermalink,
   patientName,
   patientEmail,
   patientPhone,
@@ -34,6 +40,9 @@ export function ContactClinicInquiry({
   insuranceStatus,
   submittedAt,
 }: ContactClinicInquiryProps) {
+  const baseUrl = "https://painclinics.com";
+  const clinicUrl = clinicPermalink ? `${baseUrl}/clinic/${clinicPermalink}` : undefined;
+
   return (
     <EmailLayout previewText={`New patient inquiry for ${clinicName}`}>
       <Text style={headingStyle}>New Patient Inquiry</Text>
@@ -42,6 +51,18 @@ export function ContactClinicInquiry({
         A potential patient has submitted an inquiry for{" "}
         <strong>{clinicName}</strong> in {clinicCity}, {clinicState}.
       </Text>
+
+      {/* Clinic Contact Info - for admin reference when forwarding */}
+      <EmailCard variant="default">
+        <EmailCardTitle>Clinic Contact Info</EmailCardTitle>
+        <Section style={dataRowsStyle}>
+          <EmailDataRow label="Clinic" value={clinicName} />
+          <EmailDataRow label="Location" value={`${clinicCity}, ${clinicState}`} />
+          {clinicPhone && <EmailDataRow label="Phone" value={clinicPhone} />}
+          {clinicWebsite && <EmailDataRow label="Website" value={clinicWebsite} />}
+          {clinicUrl && <EmailDataRow label="Directory Listing" value={clinicUrl} />}
+        </Section>
+      </EmailCard>
 
       <EmailCard variant="highlight">
         <EmailCardTitle>Contact Information</EmailCardTitle>

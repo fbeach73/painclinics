@@ -5,6 +5,7 @@ import { ClaimVerification } from "./claim-verification";
 import { ContactClinicInquiry } from "./contact-clinic-inquiry";
 import { FeaturedRenewal } from "./featured-renewal";
 import { FeaturedWelcome } from "./featured-welcome";
+import { InquiryConfirmation } from "./inquiry-confirmation";
 import { PasswordReset } from "./password-reset";
 import { PaymentFailed } from "./payment-failed";
 import { SubscriptionCanceled } from "./subscription-canceled";
@@ -18,6 +19,7 @@ export {
   ContactClinicInquiry,
   FeaturedWelcome,
   FeaturedRenewal,
+  InquiryConfirmation,
   PaymentFailed,
   SubscriptionCanceled,
   Welcome,
@@ -88,6 +90,9 @@ export interface ContactClinicInquiryProps {
   clinicName: string;
   clinicCity: string;
   clinicState: string;
+  clinicPhone?: string;
+  clinicWebsite?: string;
+  clinicPermalink?: string;
   patientName: string;
   patientEmail: string;
   patientPhone: string;
@@ -97,6 +102,14 @@ export interface ContactClinicInquiryProps {
   painDuration: string;
   previousTreatment: string;
   insuranceStatus: string;
+  submittedAt: string;
+}
+
+export interface InquiryConfirmationProps {
+  patientName: string;
+  clinicName: string;
+  clinicCity: string;
+  clinicState: string;
   submittedAt: string;
 }
 
@@ -141,12 +154,17 @@ export async function renderContactClinicInquiryEmail(props: ContactClinicInquir
   return render(ContactClinicInquiry(props));
 }
 
+export async function renderInquiryConfirmationEmail(props: InquiryConfirmationProps): Promise<string> {
+  return render(InquiryConfirmation(props));
+}
+
 // Template name constants for logging
 export const EMAIL_TEMPLATES = {
   CLAIM_VERIFICATION: "claim-verification",
   CLAIM_APPROVED: "claim-approved",
   CLAIM_REJECTED: "claim-rejected",
   CONTACT_CLINIC_INQUIRY: "contact-clinic-inquiry",
+  INQUIRY_CONFIRMATION: "inquiry-confirmation",
   FEATURED_WELCOME: "featured-welcome",
   FEATURED_RENEWAL: "featured-renewal",
   PAYMENT_FAILED: "payment-failed",
