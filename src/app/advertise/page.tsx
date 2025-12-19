@@ -1,8 +1,10 @@
-import { Award, CheckCircle2, Mail, Target, TrendingUp, Users } from "lucide-react";
+import { Award, CheckCircle2, Target, TrendingUp, Users } from "lucide-react";
 import { Metadata } from "next";
+
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { AdvertiseForm } from "./advertise-form";
 
 export const metadata: Metadata = {
   title: "Advertise With Us | Pain Clinics",
@@ -189,30 +191,8 @@ export default function AdvertisePage() {
 
         {/* Contact for Advertising */}
         <section>
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="rounded-full bg-primary/10 p-4">
-                  <Mail className="h-8 w-8 text-primary" />
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-xl font-semibold mb-2">Get Started</h2>
-                  <p className="text-foreground mb-4">
-                    Interested in advertising on Pain Clinics? Contact our team to discuss your goals
-                    and learn about our current rates and availability.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-                    <Button asChild>
-                      <a href="mailto:advertising@painclinics.com">Contact Our Team</a>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <a href="/contact">General Inquiries</a>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <h2 className="text-xl font-semibold mb-4">Get Started</h2>
+          <AdvertiseForm />
 
           <div className="mt-6 text-center text-sm text-foreground/80">
             <p>

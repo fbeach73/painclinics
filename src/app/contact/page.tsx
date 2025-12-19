@@ -1,10 +1,9 @@
 import { Clock, Mail, MapPin } from "lucide-react";
 import { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact Us | Pain Clinics",
@@ -16,7 +15,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email",
-    details: "info@painclinics.com",
+    details: "hello@painclinics.com",
     description: "We typically respond within 1-2 business days",
   },
   {
@@ -46,55 +45,7 @@ export default function ContactPage() {
 
         <div className="grid gap-8 md:grid-cols-2">
           {/* Contact Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Send us a message</CardTitle>
-              <CardDescription>
-                Fill out the form below and we&apos;ll get back to you as soon as possible.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="John" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Doe" required />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john@example.com" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="How can we help?" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Tell us more about your inquiry..."
-                    className="min-h-[120px]"
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Send Message
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  By submitting this form, you agree to our{" "}
-                  <a href="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </a>
-                  .
-                </p>
-              </form>
-            </CardContent>
-          </Card>
+          <ContactForm />
 
           {/* Contact Information */}
           <div className="space-y-6">

@@ -2,26 +2,32 @@ import { createId } from "@paralleldrive/cuid2";
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
 import {
+  renderAdvertiseInquiryEmail,
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
   renderClaimRejectedEmail,
   renderContactClinicInquiryEmail,
   renderFeaturedWelcomeEmail,
   renderFeaturedRenewalEmail,
+  renderGeneralContactEmail,
   renderInquiryConfirmationEmail,
   renderPaymentFailedEmail,
+  renderSubmitClinicEmail,
   renderSubscriptionCanceledEmail,
   renderWelcomeEmail,
   renderPasswordResetEmail,
   EMAIL_TEMPLATES,
+  type AdvertiseInquiryProps,
   type ClaimVerificationProps,
   type ClaimApprovedProps,
   type ClaimRejectedProps,
   type ContactClinicInquiryProps,
   type FeaturedWelcomeProps,
   type FeaturedRenewalProps,
+  type GeneralContactProps,
   type InquiryConfirmationProps,
   type PaymentFailedProps,
+  type SubmitClinicProps,
   type SubscriptionCanceledProps,
   type WelcomeProps,
   type PasswordResetProps,
@@ -512,6 +518,87 @@ export async function sendInquiryConfirmationEmail(
     metadata: {
       clinicName: props.clinicName,
       patientName: props.patientName,
+    },
+  });
+
+  const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
+
+  if (errorMessage) {
+    return { success: result.success, error: errorMessage };
+  }
+  return { success: result.success };
+}
+
+export async function sendGeneralContactEmail(
+  props: GeneralContactProps
+): Promise<{ success: boolean; error?: string }> {
+  const subject = `Contact Form: ${props.subject}`;
+
+  const html = await renderGeneralContactEmail(props);
+
+  const result = await sendEmail({
+    to: "hello@painclinics.com",
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.GENERAL_CONTACT,
+    metadata: {
+      senderEmail: props.email,
+      senderName: `${props.firstName} ${props.lastName}`,
+    },
+  });
+
+  const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
+
+  if (errorMessage) {
+    return { success: result.success, error: errorMessage };
+  }
+  return { success: result.success };
+}
+
+export async function sendAdvertiseInquiryEmail(
+  props: AdvertiseInquiryProps
+): Promise<{ success: boolean; error?: string }> {
+  const subject = `Advertising Inquiry: ${props.companyName}`;
+
+  const html = await renderAdvertiseInquiryEmail(props);
+
+  const result = await sendEmail({
+    to: "features@painclinics.com",
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.ADVERTISE_INQUIRY,
+    metadata: {
+      companyName: props.companyName,
+      contactEmail: props.email,
+      interestArea: props.interestArea,
+    },
+  });
+
+  const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
+
+  if (errorMessage) {
+    return { success: result.success, error: errorMessage };
+  }
+  return { success: result.success };
+}
+
+export async function sendSubmitClinicEmail(
+  props: SubmitClinicProps
+): Promise<{ success: boolean; error?: string }> {
+  const subject = `New Clinic Submission: ${props.clinicName}`;
+
+  const html = await renderSubmitClinicEmail(props);
+
+  const result = await sendEmail({
+    to: "features@painclinics.com",
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.SUBMIT_CLINIC,
+    metadata: {
+      clinicName: props.clinicName,
+      contactEmail: props.contactEmail,
+      city: props.city,
+      state: props.state,
     },
   });
 

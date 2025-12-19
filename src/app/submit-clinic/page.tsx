@@ -1,11 +1,10 @@
 import { CheckCircle2, ClipboardList, Clock, Mail } from "lucide-react";
 import { Metadata } from "next";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
+import { SubmitClinicForm } from "./submit-clinic-form";
 
 export const metadata: Metadata = {
   title: "Submit a Clinic | Pain Clinics",
@@ -83,90 +82,7 @@ export default function SubmitClinicPage() {
         <div className="grid gap-8 md:grid-cols-3">
           {/* Submission Form */}
           <div className="md:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Clinic Information</CardTitle>
-                <CardDescription>
-                  Please provide accurate information about your pain management clinic.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="clinicName">Clinic Name *</Label>
-                    <Input id="clinicName" placeholder="Pain Management Associates" required />
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="contactName">Contact Name *</Label>
-                      <Input id="contactName" placeholder="Dr. Jane Smith" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contactEmail">Contact Email *</Label>
-                      <Input id="contactEmail" type="email" placeholder="contact@clinic.com" required />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Street Address *</Label>
-                    <Input id="address" placeholder="123 Medical Center Dr" required />
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City *</Label>
-                      <Input id="city" placeholder="Houston" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State *</Label>
-                      <Input id="state" placeholder="TX" maxLength={2} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zip">ZIP Code *</Label>
-                      <Input id="zip" placeholder="77001" required />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input id="phone" type="tel" placeholder="(555) 123-4567" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="website">Website</Label>
-                      <Input id="website" type="url" placeholder="https://www.clinic.com" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="services">Services Offered</Label>
-                    <Textarea
-                      id="services"
-                      placeholder="Describe the pain management services your clinic provides (e.g., injections, physical therapy, medication management, etc.)"
-                      className="min-h-[100px]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="additionalInfo">Additional Information</Label>
-                    <Textarea
-                      id="additionalInfo"
-                      placeholder="Any other details you'd like to share about your clinic"
-                      className="min-h-[80px]"
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full">
-                    Submit Clinic
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    By submitting, you confirm this information is accurate and you are authorized to
-                    represent this clinic.
-                  </p>
-                </form>
-              </CardContent>
-            </Card>
+            <SubmitClinicForm />
           </div>
 
           {/* Requirements Sidebar */}
