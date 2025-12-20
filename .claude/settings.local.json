@@ -54,8 +54,7 @@
       "mcp__shadcn__view_items_in_registries",
       "mcp__shadcn__search_items_in_registries",
       "mcp__shadcn__get_project_registries",
-      "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql -h ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech -U neondb_owner -d neondb -c \"\nSELECT COUNT\\(*\\) as total_with_query_string\nFROM clinics \nWHERE permalink LIKE ''%?%'' OR permalink LIKE ''%painclinics.com%'';\n\")",
-      "Bash(PGPASSWORD=\"npg_C6dToLlw7qDx\" psql:*)"
+      "Bash(pnpm db:push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
