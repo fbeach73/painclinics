@@ -14,6 +14,17 @@ interface OptimizedHtmlContentProps {
 }
 
 /**
+ * Fix common HTML malformations from WordPress imports
+ */
+function sanitizeHtml(html: string): string {
+  return html
+    // Fix missing space between tag name and attributes (e.g., <divclass=" -> <div class=")
+    .replace(/<(\w+)(class|style|id|href|src|alt|width|height)=/gi, '<$1 $2=')
+    // Fix self-closing tags that might cause issues
+    .replace(/<(img|br|hr|input)([^>]*[^/])>/gi, '<$1$2 />');
+}
+
+/**
  * Renders HTML content with optimized images using Next.js Image component.
  * This replaces regular <img> tags with Next.js <Image> for better performance.
  */
@@ -21,6 +32,7 @@ export function OptimizedHtmlContent({
   html,
   className,
 }: OptimizedHtmlContentProps) {
+  const sanitizedHtml = sanitizeHtml(html);
   const options: HTMLReactParserOptions = {
     replace: (domNode) => {
       // Check if this is an img element
@@ -106,5 +118,5 @@ export function OptimizedHtmlContent({
     },
   };
 
-  return <div className={className}>{parse(html, options)}</div>;
+  return <div className={className}>{parse(sanitizedHtml, options)}</div>;
 }

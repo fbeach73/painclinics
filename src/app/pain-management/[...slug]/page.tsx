@@ -37,6 +37,9 @@ import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
+// Revalidate pages every hour to pick up data changes
+export const revalidate = 3600;
+
 // Check if a slug is a valid US state abbreviation
 function isValidStateAbbrev(slug: string): boolean {
   return slug.length === 2 && slug.toUpperCase() in US_STATES_REVERSE;

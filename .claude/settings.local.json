@@ -54,7 +54,8 @@
       "mcp__shadcn__view_items_in_registries",
       "mcp__shadcn__search_items_in_registries",
       "mcp__shadcn__get_project_registries",
-      "Bash(pnpm db:push:*)"
+      "Bash(pnpm db:push:*)",
+      "Bash(pnpm tsx:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
