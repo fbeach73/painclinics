@@ -79,15 +79,14 @@ const BLOCKED_COUNTRIES = [
 ];
 
 /**
- * URL normalization proxy for SEO preservation.
- * In Next.js 16+, proxy.ts replaces middleware.ts for Node.js runtime.
+ * Next.js Middleware for request handling.
  * Handles:
  * 0. Geo-blocking for spam countries
  * 1. Legacy /clinics/[slug] redirects to /pain-management/[slug]/
  * 2. Case normalization (lowercase)
  * 3. Trailing slash normalization (add if missing)
  */
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 0. Geo-blocking - check country and block if needed
