@@ -362,12 +362,22 @@ export function parseAmenities(amenities: string | undefined): string[] | null {
 }
 
 /**
- * Parse comma-separated image URLs into array
+ * Parse comma or pipe-separated image URLs into array
  */
 export function parseImageUrls(urls: string | undefined): string[] | null {
   if (!urls) return null;
-  const parsed = urls.split(",").map((u) => u.trim()).filter(Boolean);
+  // Split by pipe first (WordPress export format), then by comma
+  const parsed = urls.split(/[|,]/).map((u) => u.trim()).filter(Boolean);
   return parsed.length > 0 ? parsed : null;
+}
+
+/**
+ * Get the first URL from a pipe or comma-separated string
+ */
+export function getFirstImageUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  const urls = url.split(/[|,]/).map((u) => u.trim()).filter(Boolean);
+  return urls.length > 0 ? (urls[0] ?? null) : null;
 }
 
 /**
@@ -573,9 +583,9 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     ),
     content: emptyToNull(row.Content),
     newPostContent: emptyToNull(row["New Post Content"]),
-    imageUrl: emptyToNull(row["Image URL"]),
-    imageFeatured: emptyToNull(row["Image Featured"]),
-    featImage: emptyToNull(row["Feat Image"]),
+    imageUrl: getFirstImageUrl(row["Image URL"]),
+    imageFeatured: getFirstImageUrl(row["Image Featured"]),
+    featImage: getFirstImageUrl(row["Feat Image"]),
     clinicImageUrls: parseImageUrls(row["Clinic Image URLS"]),
     clinicImageMedia: parseImageUrls(row["Clinic Image Media"]),
     qrCode: emptyToNull(row["QR Code"]),
