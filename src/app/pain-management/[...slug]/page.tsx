@@ -1,6 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink, Phone } from "lucide-react";
+import { ChevronRight, ExternalLink, Phone } from "lucide-react";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClinicAmenities } from "@/components/clinic/clinic-amenities";
@@ -587,6 +588,55 @@ export default async function PainManagementClinicPage({ params }: Props) {
           {/* Hero Section: Header + Featured Image */}
           <div className="grid gap-8 lg:grid-cols-2 mb-8">
             <div className="space-y-6">
+              {/* Breadcrumb Navigation */}
+              <nav aria-label="Breadcrumb">
+                <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+                  <li>
+                    <Link href="/" className="hover:text-primary transition-colors">
+                      Home
+                    </Link>
+                  </li>
+                  <li>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </li>
+                  <li>
+                    <Link href="/pain-management/" className="hover:text-primary transition-colors">
+                      Pain Management
+                    </Link>
+                  </li>
+                  <li>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </li>
+                  <li>
+                    <Link
+                      href={`/pain-management/${clinic.address.state.toLowerCase()}/`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {getStateName(clinic.address.state)}
+                    </Link>
+                  </li>
+                  <li>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </li>
+                  <li>
+                    <Link
+                      href={`/pain-management/${clinic.address.state.toLowerCase()}/${clinic.address.city.toLowerCase().replace(/\s+/g, "-")}/`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {clinic.address.city}
+                    </Link>
+                  </li>
+                  <li>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </li>
+                  <li>
+                    <span aria-current="page" className="text-foreground font-medium truncate max-w-[200px]">
+                      {clinic.name}
+                    </span>
+                  </li>
+                </ol>
+              </nav>
+
               <ClinicHeader clinic={clinic} />
               {clinic.services.length > 0 && (
                 <div>
