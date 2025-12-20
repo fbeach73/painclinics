@@ -13,8 +13,15 @@ interface BlogPostPageProps {
 }
 
 export async function generateStaticParams() {
-  const slugs = await getAllPublishedPostSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getAllPublishedPostSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch (error) {
+    // If database is unavailable (e.g., in CI), return empty array
+    // Pages will be generated on-demand at runtime instead
+    console.warn("generateStaticParams: Database unavailable, skipping static generation:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({

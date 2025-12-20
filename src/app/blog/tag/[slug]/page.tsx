@@ -9,8 +9,15 @@ interface TagPageProps {
 }
 
 export async function generateStaticParams() {
-  const tags = await getAllTags();
-  return tags.map((tag) => ({ slug: tag.slug }));
+  try {
+    const tags = await getAllTags();
+    return tags.map((tag) => ({ slug: tag.slug }));
+  } catch (error) {
+    // If database is unavailable (e.g., in CI), return empty array
+    // Pages will be generated on-demand at runtime instead
+    console.warn("generateStaticParams: Database unavailable, skipping static generation:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({
