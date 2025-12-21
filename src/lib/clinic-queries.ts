@@ -500,14 +500,17 @@ export type FeaturedClinic = Awaited<ReturnType<typeof getFeaturedClinics>>[numb
  * @returns The clinic record or null if not found
  */
 export async function getClinicByLegacySlug(legacySlug: string) {
-  // Parse legacy format: extract name, state (2 chars) and zipcode (5 digits) from end
+  // Parse legacy format: extract name, state (2 chars) and zipcode (4-5 digits) from end
   // Format: {name-slug}-{state}-{zipcode}
-  const match = legacySlug.match(/^(.+)-([a-z]{2})-(\d{5})$/i);
-  if (!match) {
+  // Note: Some zips like CT 06492 may appear as 6492 in URLs (missing leading zero)
+  const match = legacySlug.match(/^(.+)-([a-z]{2})-(\d{4,5})$/i);
+  if (!match || !match[1] || !match[2] || !match[3]) {
     return null;
   }
 
-  const [, nameSlug, stateAbbrev, zipCode] = match;
+  const nameSlug = match[1];
+  const stateAbbrev = match[2];
+  const zipCode = match[3];
 
   // Convert slug to title format for matching (e.g., "open-arms-pain-clinic" -> "Open Arms Pain Clinic")
   const titleFromSlug = nameSlug
@@ -515,13 +518,17 @@ export async function getClinicByLegacySlug(legacySlug: string) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
-  // Look up by state, postal code, and title match
+  // Handle zip codes with or without leading zeros
+  // Try exact match first, then padded match for 4-digit zips
+  const zipPadded = zipCode.padStart(5, "0");
+
+  // Look up by state, postal code (with/without leading zero), and title match
   const results = await db
     .select()
     .from(clinics)
     .where(
       sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})
-          AND ${clinics.postalCode} = ${zipCode}
+          AND (${clinics.postalCode} = ${zipCode} OR ${clinics.postalCode} = ${zipPadded})
           AND LOWER(${clinics.title}) = LOWER(${titleFromSlug})`
     )
     .limit(1);
