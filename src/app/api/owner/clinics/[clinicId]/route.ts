@@ -2,10 +2,10 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { getClinicById } from "@/lib/clinic-queries";
 import { db } from "@/lib/db";
 import {
   getClinicForOwner,
-  getClinicById,
   updateClinicByOwner,
   updateClinicByAdmin,
   type ClinicUpdateData,
@@ -42,7 +42,7 @@ export async function GET(
     // Admins can access any clinic
     let clinic;
     if (user.role === "admin") {
-      clinic = await getClinicById(clinicId);
+      clinic = await getClinicById(clinicId, { includeRelations: true });
     } else {
       clinic = await getClinicForOwner(clinicId, session.user.id);
     }

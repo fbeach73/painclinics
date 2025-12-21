@@ -537,7 +537,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
   // Clinic page logic
   const slugPath = slug.join("/");
-  let dbClinic = await getClinicByPermalink(slugPath);
+  const dbClinic = await getClinicByPermalink(slugPath);
 
   // If not found and single segment, try legacy WordPress slug format
   // Legacy format: {clinic-name-slug}-{state}-{zipcode} e.g. "open-arms-pain-clinic-co-80909"

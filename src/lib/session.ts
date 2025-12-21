@@ -1,3 +1,16 @@
+/**
+ * Server Component Auth Helpers
+ *
+ * Use these functions in Server Components (pages, layouts) for:
+ * - requireAuth() - Redirect to home if not authenticated
+ * - requireAdmin() - Redirect if not admin
+ * - requireOwner() - Redirect if not clinic owner or admin
+ * - requireClinicOwnership() - Verify user owns specific clinic
+ * - getOptionalSession() - Get session without requiring auth
+ *
+ * For API Routes, use @/lib/admin-auth instead.
+ */
+
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq, and } from "drizzle-orm";

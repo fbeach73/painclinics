@@ -17,6 +17,7 @@ import {
   type MappedReview,
   type MappedClinicHour,
 } from "@/lib/google-places";
+import { sleep } from "@/lib/utils";
 import {
   getClinicForSync,
   updateClinicFromSync,
@@ -581,10 +582,6 @@ export async function previewPlaceData(
 // ============================================
 // Utility Functions
 // ============================================
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /**
  * Check if the Places API is configured and available

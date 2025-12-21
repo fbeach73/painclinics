@@ -64,25 +64,6 @@ export async function getClinicForOwner(clinicId: string, userId: string) {
 }
 
 /**
- * Get a clinic by ID (for admins who can access any clinic)
- */
-export async function getClinicById(clinicId: string) {
-  const clinic = await db.query.clinics.findFirst({
-    where: eq(schema.clinics.id, clinicId),
-    with: {
-      clinicServices: {
-        with: {
-          service: true,
-        },
-      },
-      owner: true,
-    },
-  });
-
-  return clinic;
-}
-
-/**
  * Update a clinic by an owner (verifies ownership)
  */
 export async function updateClinicByOwner(

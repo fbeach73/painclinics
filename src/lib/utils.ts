@@ -32,3 +32,11 @@ export function formatDisplayUrl(url: string): string {
   // Remove protocol (http:// or https://)
   return cleanUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 }
+
+/**
+ * Sleep utility for async delays
+ * @param ms - Milliseconds to sleep
+ */
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

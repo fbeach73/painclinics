@@ -1,3 +1,13 @@
+/**
+ * API Route Auth Helpers
+ *
+ * Use these functions in API Routes (route.ts files) for:
+ * - checkAdminApi() - Returns session/user or error object
+ * - adminErrorResponse() - Helper to create error Response
+ *
+ * For Server Components (pages), use @/lib/session instead.
+ */
+
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";

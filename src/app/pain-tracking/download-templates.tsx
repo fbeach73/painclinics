@@ -57,6 +57,18 @@ const templates = [
   },
 ];
 
+/**
+ * Trigger a file download via programmatic link click
+ */
+function triggerDownload(url: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 export function DownloadTemplates() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -117,22 +129,11 @@ export function DownloadTemplates() {
       const data = await response.json();
 
       if (data.success && data.downloadUrl) {
-        // Trigger download
-        const link = document.createElement("a");
-        link.href = data.downloadUrl;
-        link.download = template.filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        triggerDownload(data.downloadUrl, template.filename);
       }
     } catch {
-      // Download failed but we can still try direct download
-      const link = document.createElement("a");
-      link.href = `/templates/${template.filename}`;
-      link.download = template.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Fallback to direct download
+      triggerDownload(`/templates/${template.filename}`, template.filename);
     }
   };
 
@@ -177,12 +178,7 @@ export function DownloadTemplates() {
       if (data.downloadUrl) {
         const template = templates.find((t) => t.id === selectedTemplate);
         if (template) {
-          const link = document.createElement("a");
-          link.href = data.downloadUrl;
-          link.download = template.filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          triggerDownload(data.downloadUrl, template.filename);
         }
       }
     } catch {

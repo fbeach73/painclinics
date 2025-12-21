@@ -1,6 +1,8 @@
 // Rate Limiter for OpenRouter API calls
 // Implements sliding window rate limiting with exponential backoff
 
+import { sleep } from "@/lib/utils";
+
 export interface RateLimiterConfig {
   maxRequests: number; // Maximum requests allowed in window
   windowMs: number; // Time window in milliseconds
@@ -41,7 +43,7 @@ export class RateLimiter {
       const waitTime = this.config.windowMs - (now - oldestRequest) + 100; // +100ms buffer
 
       if (waitTime > 0) {
-        await this.sleep(waitTime);
+        await sleep(waitTime);
         return waitTime;
       }
     }
@@ -103,7 +105,7 @@ export class RateLimiter {
           onRetry(attempt + 1, lastError, actualWaitTime);
         }
 
-        await this.sleep(actualWaitTime);
+        await sleep(actualWaitTime);
       }
     }
 
@@ -146,10 +148,6 @@ export class RateLimiter {
    */
   reset(): void {
     this.requestTimes = [];
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

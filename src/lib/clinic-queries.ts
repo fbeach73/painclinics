@@ -194,20 +194,46 @@ export async function getClinicsWithImages() {
     .from(clinics);
 }
 
+export interface GetClinicByIdOptions {
+  includeRelations?: boolean;
+}
+
 /**
  * Fetch a single clinic by its ID.
  *
  * @param id - The clinic ID
+ * @param options - Optional configuration
+ * @param options.includeRelations - Include clinicServices and owner relations
  * @returns The clinic record or null if not found
  */
-export async function getClinicById(id: string) {
+export async function getClinicById(
+  id: string,
+  options: GetClinicByIdOptions = {}
+) {
+  const { includeRelations = false } = options;
+
+  if (includeRelations) {
+    const result = await db.query.clinics.findFirst({
+      where: eq(clinics.id, id),
+      with: {
+        clinicServices: {
+          with: {
+            service: true,
+          },
+        },
+        owner: true,
+      },
+    });
+    return result ?? null;
+  }
+
   const results = await db
     .select()
     .from(clinics)
     .where(eq(clinics.id, id))
     .limit(1);
 
-  return results[0] || null;
+  return results[0] ?? null;
 }
 
 /**

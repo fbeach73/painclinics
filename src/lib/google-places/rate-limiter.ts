@@ -3,6 +3,8 @@
  * Implements queue-based rate limiting to respect API quotas
  */
 
+import { sleep } from "@/lib/utils";
+
 export interface RateLimiterOptions {
   /**
    * Maximum requests per second
@@ -72,7 +74,7 @@ export class PlacesRateLimiter {
       while (this.queue.length > 0) {
         // Wait if we're at max concurrent requests
         if (this.activeCount >= this.maxConcurrent) {
-          await this.sleep(10);
+          await sleep(10);
           continue;
         }
 
@@ -80,7 +82,7 @@ export class PlacesRateLimiter {
         const now = Date.now();
         const timeSinceLastRequest = now - this.lastRequestTime;
         if (timeSinceLastRequest < this.minInterval) {
-          await this.sleep(this.minInterval - timeSinceLastRequest);
+          await sleep(this.minInterval - timeSinceLastRequest);
         }
 
         const task = this.queue.shift();
@@ -113,13 +115,6 @@ export class PlacesRateLimiter {
         this.processQueue();
       }
     }
-  }
-
-  /**
-   * Sleep utility
-   */
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -162,7 +157,7 @@ export class PlacesRateLimiter {
    */
   async drain(): Promise<void> {
     while (this.isBusy) {
-      await this.sleep(50);
+      await sleep(50);
     }
   }
 }
