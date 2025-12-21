@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
 import {
   getClinicByPermalink,
+  getClinicByLegacySlug,
   getClinicsByState,
   getClinicsByCity,
 } from "@/lib/clinic-queries";
@@ -246,7 +247,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // Clinic page metadata
   const slugPath = slug.join("/");
-  const clinic = await getClinicByPermalink(slugPath);
+  let clinic = await getClinicByPermalink(slugPath);
+
+  // If not found and single segment, try legacy WordPress slug format
+  if (!clinic && slug.length === 1 && slug[0]) {
+    clinic = await getClinicByLegacySlug(slug[0]);
+  }
 
   if (!clinic) {
     return {
@@ -531,7 +537,18 @@ export default async function PainManagementClinicPage({ params }: Props) {
 
   // Clinic page logic
   const slugPath = slug.join("/");
-  const dbClinic = await getClinicByPermalink(slugPath);
+  let dbClinic = await getClinicByPermalink(slugPath);
+
+  // If not found and single segment, try legacy WordPress slug format
+  // Legacy format: {clinic-name-slug}-{state}-{zipcode} e.g. "open-arms-pain-clinic-co-80909"
+  if (!dbClinic && slug.length === 1 && slug[0]) {
+    const legacyClinic = await getClinicByLegacySlug(slug[0]);
+    if (legacyClinic && legacyClinic.permalink) {
+      // Redirect to the canonical URL (301 permanent redirect)
+      const newPath = legacyClinic.permalink.replace(/^pain-management\//, "");
+      redirect(`/pain-management/${newPath}`);
+    }
+  }
 
   if (!dbClinic) {
     notFound();

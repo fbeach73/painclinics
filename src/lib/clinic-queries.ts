@@ -490,3 +490,41 @@ export async function getFeaturedClinics(options: GetFeaturedClinicsOptions = {}
 }
 
 export type FeaturedClinic = Awaited<ReturnType<typeof getFeaturedClinics>>[number];
+
+/**
+ * Look up a clinic by legacy WordPress slug format.
+ * Old WordPress format: {clinic-name-slug}-{state}-{zipcode}
+ * Example: open-arms-pain-clinic-co-80909
+ *
+ * @param legacySlug - The legacy WordPress slug
+ * @returns The clinic record or null if not found
+ */
+export async function getClinicByLegacySlug(legacySlug: string) {
+  // Parse legacy format: extract name, state (2 chars) and zipcode (5 digits) from end
+  // Format: {name-slug}-{state}-{zipcode}
+  const match = legacySlug.match(/^(.+)-([a-z]{2})-(\d{5})$/i);
+  if (!match) {
+    return null;
+  }
+
+  const [, nameSlug, stateAbbrev, zipCode] = match;
+
+  // Convert slug to title format for matching (e.g., "open-arms-pain-clinic" -> "Open Arms Pain Clinic")
+  const titleFromSlug = nameSlug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  // Look up by state, postal code, and title match
+  const results = await db
+    .select()
+    .from(clinics)
+    .where(
+      sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})
+          AND ${clinics.postalCode} = ${zipCode}
+          AND LOWER(${clinics.title}) = LOWER(${titleFromSlug})`
+    )
+    .limit(1);
+
+  return results[0] || null;
+}
