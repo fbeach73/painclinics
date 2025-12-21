@@ -9,6 +9,8 @@ import {
   Wrench,
   Link2,
   AlertCircle,
+  CloudDownload,
+  ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,12 +75,24 @@ interface FixResult {
   rowsAffected: number;
 }
 
+interface WordPressCheckResult {
+  success: boolean;
+  action: string;
+  message: string;
+  wpTotal: number;
+  dbTotal: number;
+  missingCount: number;
+  missingSlugs: string[];
+}
+
 export function UrlValidationClient() {
   const [data, setData] = useState<ValidationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fixingAction, setFixingAction] = useState<string | null>(null);
   const [lastFixResult, setLastFixResult] = useState<FixResult | null>(null);
+  const [wpCheckResult, setWpCheckResult] = useState<WordPressCheckResult | null>(null);
+  const [wpChecking, setWpChecking] = useState(false);
 
   const fetchValidation = useCallback(async () => {
     try {
@@ -121,6 +135,28 @@ export function UrlValidationClient() {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setFixingAction(null);
+    }
+  };
+
+  const checkWordPress = async () => {
+    try {
+      setWpChecking(true);
+      setWpCheckResult(null);
+      setError(null);
+      const response = await fetch("/api/admin/validate-urls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "check-wordpress" }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to check WordPress");
+      }
+      const result = await response.json();
+      setWpCheckResult(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setWpChecking(false);
     }
   };
 
@@ -247,6 +283,96 @@ export function UrlValidationClient() {
           </Card>
         </div>
       )}
+
+      {/* WordPress Sync Check */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <CloudDownload className="h-5 w-5" />
+                WordPress Sync Check
+              </CardTitle>
+              <CardDescription>
+                Compare WordPress URLs against the database to find missing clinics
+              </CardDescription>
+            </div>
+            <Button
+              onClick={checkWordPress}
+              disabled={wpChecking}
+            >
+              {wpChecking ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Checking (~4500 URLs)...
+                </>
+              ) : (
+                <>
+                  <CloudDownload className="mr-2 h-4 w-4" />
+                  Check WordPress
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        {wpCheckResult && (
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold">{wpCheckResult.wpTotal.toLocaleString()}</div>
+                  <div className="text-sm text-muted-foreground">WordPress URLs</div>
+                </div>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <div className="text-2xl font-bold">{wpCheckResult.dbTotal.toLocaleString()}</div>
+                  <div className="text-sm text-muted-foreground">Database URLs</div>
+                </div>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <div className={`text-2xl font-bold ${wpCheckResult.missingCount > 0 ? "text-destructive" : "text-green-600"}`}>
+                    {wpCheckResult.missingCount.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Missing from DB</div>
+                </div>
+              </div>
+
+              {wpCheckResult.missingSlugs.length > 0 && (
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">Missing URLs ({wpCheckResult.missingCount})</h4>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const content = wpCheckResult.missingSlugs.map(slug =>
+                          `- https://wordpress-1356334-4988742.cloudwaysapps.com/pain-management/${slug}`
+                        ).join("\n");
+                        navigator.clipboard.writeText(content);
+                      }}
+                    >
+                      Copy as Markdown
+                    </Button>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {wpCheckResult.missingSlugs.map((slug, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <a
+                          href={`https://wordpress-1356334-4988742.cloudwaysapps.com/pain-management/${slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-muted-foreground hover:text-primary truncate flex-1"
+                        >
+                          /pain-management/{slug}
+                        </a>
+                        <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        )}
+      </Card>
 
       {/* Issue Categories & Fix Actions */}
       {data && (

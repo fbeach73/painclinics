@@ -380,6 +380,78 @@ export async function POST(request: Request) {
       });
     }
 
+    if (action === "check-wordpress") {
+      // Fetch all slugs from WordPress and compare with DB
+      const WP_API_BASE = "https://wordpress-1356334-4988742.cloudwaysapps.com/wp-json/wp/v2/pain-management";
+      const PER_PAGE = 100;
+      const wpSlugs: string[] = [];
+      let page = 1;
+      let hasMore = true;
+
+      // Fetch all pages from WordPress API
+      while (hasMore) {
+        const res = await fetch(`${WP_API_BASE}?per_page=${PER_PAGE}&page=${page}&_fields=slug`);
+        if (!res.ok) {
+          if (res.status === 400) {
+            // No more pages
+            hasMore = false;
+            break;
+          }
+          throw new Error(`WordPress API error: ${res.status}`);
+        }
+        const posts = await res.json() as { slug: string }[];
+        if (posts.length === 0) {
+          hasMore = false;
+        } else {
+          wpSlugs.push(...posts.map(p => p.slug));
+          page++;
+          // Safety limit
+          if (page > 50) hasMore = false;
+        }
+      }
+
+      // Get all permalinks from DB
+      const dbClinics = await db
+        .select({
+          permalink: schema.clinics.permalink,
+          title: schema.clinics.title,
+        })
+        .from(schema.clinics);
+
+      // Create a set of DB slugs (extract the slug part from permalink)
+      // DB format: pain-management/slug-state-zip
+      const dbSlugs = new Set(
+        dbClinics.map(c => {
+          if (!c.permalink) return "";
+          // Remove pain-management/ prefix and extract just the slug
+          const slug = c.permalink.replace(/^pain-management\//, "");
+          return slug.toLowerCase();
+        })
+      );
+
+      // Find WordPress slugs not in DB
+      const missingFromDb: string[] = [];
+      for (const wpSlug of wpSlugs) {
+        // Check if this slug exists in DB (exact match or partial match)
+        const found = dbSlugs.has(wpSlug.toLowerCase()) ||
+          [...dbSlugs].some(dbSlug => dbSlug.includes(wpSlug.toLowerCase()));
+
+        if (!found) {
+          missingFromDb.push(wpSlug);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        action: "check-wordpress",
+        message: `Found ${missingFromDb.length} WordPress URLs not in database`,
+        wpTotal: wpSlugs.length,
+        dbTotal: dbClinics.length,
+        missingCount: missingFromDb.length,
+        missingSlugs: missingFromDb.slice(0, 200), // Limit response size
+      });
+    }
+
     if (action === "regenerate-broken") {
       // Regenerate permalinks that have WordPress URLs or missing state codes
       // This generates new slugs from title + state + postal_code
