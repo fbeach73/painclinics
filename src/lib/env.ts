@@ -21,6 +21,12 @@ const serverEnvSchema = z.object({
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("openai/gpt-5-mini"),
 
+  // Google Places API
+  GOOGLE_PLACES_API_KEY: z.string().optional(),
+
+  // Cron Jobs
+  CRON_SECRET: z.string().optional(),
+
   // Storage
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
 
@@ -106,6 +112,14 @@ export function checkEnv(): void {
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     warnings.push("BLOB_READ_WRITE_TOKEN is not set. Using local storage for file uploads.");
+  }
+
+  if (!process.env.GOOGLE_PLACES_API_KEY) {
+    warnings.push("GOOGLE_PLACES_API_KEY is not set. Google Places sync will not work.");
+  }
+
+  if (!process.env.CRON_SECRET) {
+    warnings.push("CRON_SECRET is not set. Scheduled sync jobs will not be protected.");
   }
 
   // Log warnings in development

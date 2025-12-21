@@ -54,6 +54,25 @@ export const blogPostStatusEnum = pgEnum("blog_post_status", [
   "archived",
 ]);
 
+// ============================================
+// Google Places Sync Enums
+// ============================================
+
+export const syncScheduleFrequencyEnum = pgEnum("sync_schedule_frequency", [
+  "manual",
+  "daily",
+  "weekly",
+  "monthly",
+]);
+
+export const syncStatusEnum = pgEnum("sync_status", [
+  "pending",
+  "in_progress",
+  "completed",
+  "failed",
+  "cancelled",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -760,3 +779,139 @@ export const notFoundLogs = pgTable(
     index("not_found_logs_last_seen_idx").on(table.lastSeenAt),
   ]
 );
+
+// ============================================
+// Resource Downloads Table
+// ============================================
+
+export const resourceDownloads = pgTable(
+  "resource_downloads",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    email: text("email").notNull(),
+    resourceName: text("resource_name").notNull(),
+    source: text("source").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("resource_downloads_email_idx").on(table.email)]
+);
+
+// ============================================
+// Google Places Sync Tables
+// ============================================
+
+export const syncSchedules = pgTable(
+  "sync_schedules",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    frequency: syncScheduleFrequencyEnum("frequency").default("manual"),
+    isActive: boolean("is_active").default(true).notNull(),
+    scope: text("scope").default("all"), // "all" | "selected" | "missing_data"
+    clinicIds: text("clinic_ids").array(),
+    stateFilter: text("state_filter"),
+    syncReviews: boolean("sync_reviews").default(true),
+    syncHours: boolean("sync_hours").default(true),
+    syncPhotos: boolean("sync_photos").default(false),
+    syncContact: boolean("sync_contact").default(true),
+    syncLocation: boolean("sync_location").default(false),
+    nextRunAt: timestamp("next_run_at"),
+    lastRunAt: timestamp("last_run_at"),
+    lastRunStatus: syncStatusEnum("last_run_status"),
+    createdBy: text("created_by").references(() => user.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("sync_schedules_next_run_idx").on(table.nextRunAt),
+    index("sync_schedules_active_idx").on(table.isActive),
+  ]
+);
+
+export const syncLogs = pgTable(
+  "sync_logs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    scheduleId: text("schedule_id").references(() => syncSchedules.id),
+    status: syncStatusEnum("status").default("pending"),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    totalClinics: integer("total_clinics").default(0),
+    successCount: integer("success_count").default(0),
+    errorCount: integer("error_count").default(0),
+    skippedCount: integer("skipped_count").default(0),
+    errors: jsonb("errors"), // Array of { clinicId, error, timestamp }
+    apiCallsUsed: integer("api_calls_used").default(0),
+    triggeredBy: text("triggered_by"), // "cron" | "manual" | userId
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sync_logs_schedule_idx").on(table.scheduleId),
+    index("sync_logs_status_idx").on(table.status),
+    index("sync_logs_created_idx").on(table.createdAt),
+  ]
+);
+
+export const clinicSyncStatus = pgTable(
+  "clinic_sync_status",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    lastReviewSync: timestamp("last_review_sync"),
+    lastHoursSync: timestamp("last_hours_sync"),
+    lastPhotosSync: timestamp("last_photos_sync"),
+    lastContactSync: timestamp("last_contact_sync"),
+    lastLocationSync: timestamp("last_location_sync"),
+    lastFullSync: timestamp("last_full_sync"),
+    lastSyncError: text("last_sync_error"),
+    consecutiveErrors: integer("consecutive_errors").default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("clinic_sync_status_clinic_idx").on(table.clinicId),
+    index("clinic_sync_status_last_full_sync_idx").on(table.lastFullSync),
+  ]
+);
+
+// ============================================
+// Google Places Sync Relations
+// ============================================
+
+export const syncSchedulesRelations = relations(syncSchedules, ({ one, many }) => ({
+  creator: one(user, {
+    fields: [syncSchedules.createdBy],
+    references: [user.id],
+  }),
+  logs: many(syncLogs),
+}));
+
+export const syncLogsRelations = relations(syncLogs, ({ one }) => ({
+  schedule: one(syncSchedules, {
+    fields: [syncLogs.scheduleId],
+    references: [syncSchedules.id],
+  }),
+}));
+
+export const clinicSyncStatusRelations = relations(clinicSyncStatus, ({ one }) => ({
+  clinic: one(clinics, {
+    fields: [clinicSyncStatus.clinicId],
+    references: [clinics.id],
+  }),
+}));

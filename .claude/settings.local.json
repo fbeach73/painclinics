@@ -55,7 +55,15 @@
       "mcp__shadcn__search_items_in_registries",
       "mcp__shadcn__get_project_registries",
       "Bash(pnpm db:push:*)",
-      "Bash(pnpm tsx:*)"
+      "Bash(pnpm tsx:*)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" pnpm tsx:*)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" pnpm tsx -e:*)",
+      "WebFetch(domain:wordpress-1356334-4988742.cloudwaysapps.com)",
+      "Bash(PGPASSWORD=npg_C6dToLlw7qDx psql:*)",
+      "Bash(pnpm db:generate:*)",
+      "WebFetch(domain:developers.google.com)",
+      "Bash(pnpm drizzle-kit push:*)",
+      "Bash(yes:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
