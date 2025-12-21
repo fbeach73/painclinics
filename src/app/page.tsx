@@ -8,7 +8,6 @@ import {
   generateWebSiteSchema,
   generateOrganizationSchema,
 } from '@/lib/structured-data';
-import { getStateName } from '@/lib/us-states';
 
 // ISR: Revalidate every hour
 export const revalidate = 3600;
@@ -18,31 +17,16 @@ export default async function Home() {
 
   // Fetch states and counts with fallback for CI builds
   let states: string[] = [];
-  let stateCounts: { stateAbbreviation: string | null; count: number }[] = [];
+  let totalClinics = 0;
 
   try {
     const { getAllStatesWithClinics, getClinicCountsByState } = await import('@/lib/clinic-queries');
     states = await getAllStatesWithClinics();
-    stateCounts = await getClinicCountsByState();
+    const stateCounts = await getClinicCountsByState();
+    totalClinics = stateCounts.reduce((sum, s) => sum + s.count, 0);
   } catch (error) {
     console.warn("Homepage: Database unavailable, using empty data:", error);
   }
-
-  // Create a map for quick count lookup
-  const countMap = new Map(
-    stateCounts.map((s) => [s.stateAbbreviation, s.count])
-  );
-
-  // Sort states by clinic count (most clinics first)
-  const sortedStates = states
-    .map((abbrev) => ({
-      abbrev,
-      name: getStateName(abbrev),
-      count: countMap.get(abbrev) || 0,
-    }))
-    .sort((a, b) => b.count - a.count);
-
-  const totalClinics = stateCounts.reduce((sum, s) => sum + s.count, 0);
 
   // Generate structured data schemas
   const websiteSchema = generateWebSiteSchema(baseUrl);
@@ -116,41 +100,26 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Browse by State Section */}
+        {/* Browse by State CTA */}
         <section id="browse-states" className="container mx-auto py-16 md:py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">
-              Browse Clinics by State
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Select your state to find pain management clinics near you.
-              Each listing includes ratings, reviews, and contact information.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {sortedStates.map(({ abbrev, name, count }) => (
-              <Link
-                key={abbrev}
-                href={`/pain-management/${abbrev.toLowerCase()}/`}
-                className="block"
-              >
-                <Card className="h-full hover:border-primary/50 hover:shadow-md transition-all">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">{name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {count.toLocaleString()} clinic{count !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <div className="text-2xl font-bold text-primary/20">
-                      {abbrev}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+            <CardContent className="p-8 md:p-12 text-center">
+              <MapPin className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h2 className="text-3xl font-bold tracking-tight mb-4">
+                Browse Clinics by State
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
+                Find pain management clinics in all {states.length} states. Each listing includes
+                ratings, patient reviews, and contact information to help you find the right care.
+              </p>
+              <Button size="lg" asChild className="gap-2">
+                <Link href="/pain-management">
+                  <Search className="h-5 w-5" />
+                  View All {states.length} States
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </section>
 
         {/* CTA Section */}

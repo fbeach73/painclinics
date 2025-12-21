@@ -600,8 +600,8 @@ export default async function PainManagementClinicPage({ params }: Props) {
                     <ChevronRight className="h-3.5 w-3.5" />
                   </li>
                   <li>
-                    <Link href="/pain-management/" className="hover:text-primary transition-colors">
-                      Pain Management
+                    <Link href="/pain-management" className="hover:text-primary transition-colors">
+                      Clinics
                     </Link>
                   </li>
                   <li>
@@ -609,7 +609,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
                   </li>
                   <li>
                     <Link
-                      href={`/pain-management/${clinic.address.state.toLowerCase()}/`}
+                      href={`/pain-management/${clinic.address.state.toLowerCase()}`}
                       className="hover:text-primary transition-colors"
                     >
                       {getStateName(clinic.address.state)}
@@ -620,7 +620,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
                   </li>
                   <li>
                     <Link
-                      href={`/pain-management/${clinic.address.state.toLowerCase()}/${clinic.address.city.toLowerCase().replace(/\s+/g, "-")}/`}
+                      href={`/pain-management/${clinic.address.state.toLowerCase()}/${clinic.address.city.toLowerCase().replace(/\s+/g, "-")}`}
                       className="hover:text-primary transition-colors"
                     >
                       {clinic.address.city}
