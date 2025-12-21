@@ -448,7 +448,7 @@ export async function POST(request: Request) {
         wpTotal: wpSlugs.length,
         dbTotal: dbClinics.length,
         missingCount: missingFromDb.length,
-        missingSlugs: missingFromDb.slice(0, 200), // Limit response size
+        missingSlugs: missingFromDb, // Return all missing slugs
       });
     }
 

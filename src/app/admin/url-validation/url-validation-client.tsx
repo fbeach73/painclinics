@@ -339,22 +339,41 @@ export function UrlValidationClient() {
                 <div className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium">Missing URLs ({wpCheckResult.missingCount})</h4>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const content = wpCheckResult.missingSlugs.map(slug =>
-                          `- https://wordpress-1356334-4988742.cloudwaysapps.com/pain-management/${slug}`
-                        ).join("\n");
-                        navigator.clipboard.writeText(content);
-                      }}
-                    >
-                      Copy as Markdown
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const content = wpCheckResult.missingSlugs.map(slug =>
+                            `- https://wordpress-1356334-4988742.cloudwaysapps.com/pain-management/${slug}`
+                          ).join("\n");
+                          navigator.clipboard.writeText(content);
+                        }}
+                      >
+                        Copy as Markdown
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const content = JSON.stringify(wpCheckResult.missingSlugs, null, 2);
+                          const blob = new Blob([content], { type: "application/json" });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `missing-clinics-${new Date().toISOString().split("T")[0]}.json`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        Download JSON
+                      </Button>
+                    </div>
                   </div>
-                  <div className="max-h-64 overflow-y-auto space-y-1">
+                  <div className="max-h-96 overflow-y-auto space-y-1 border rounded p-2 bg-muted/30">
                     {wpCheckResult.missingSlugs.map((slug, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground w-8 text-right shrink-0">{i + 1}.</span>
                         <a
                           href={`https://wordpress-1356334-4988742.cloudwaysapps.com/pain-management/${slug}`}
                           target="_blank"
