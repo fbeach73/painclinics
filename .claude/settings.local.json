@@ -63,7 +63,9 @@
       "Bash(pnpm db:generate:*)",
       "WebFetch(domain:developers.google.com)",
       "Bash(pnpm drizzle-kit push:*)",
-      "Bash(yes:*)"
+      "Bash(yes:*)",
+      "Bash(printf:*)",
+      "Bash(timeout 60 pnpm db:push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

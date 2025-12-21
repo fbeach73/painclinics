@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { FloatingToc } from "@/components/blog/floating-toc";
 import { generateFAQStructuredData } from "@/lib/structured-data";
 import { DownloadTemplates } from "./download-templates";
 
@@ -54,7 +55,7 @@ const faqData = [
 
 function PainScaleVisual() {
   return (
-    <div className="not-prose my-8 overflow-x-auto">
+    <div className="not-prose my-6 overflow-x-auto">
       <div className="min-w-[600px]">
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => {
@@ -132,6 +133,44 @@ export default function PainTrackingPage() {
             </AlertDescription>
           </Alert>
 
+          {/* CTA: Download Templates - Primary action at top */}
+          <DownloadTemplates />
+
+          {/* Pain Scale Visual - Eye-catching, close to CTA */}
+          <h2>Understanding the Pain Scale</h2>
+          <p>
+            Our pain trackers use the standard 0-10 numeric pain scale used by
+            healthcare providers worldwide. Here&apos;s what each level means:
+          </p>
+
+          <PainScaleVisual />
+
+          <ul>
+            <li>
+              <strong>0:</strong> No pain at all
+            </li>
+            <li>
+              <strong>1-2 (Mild):</strong> Barely noticeable, doesn&apos;t interfere
+              with activities
+            </li>
+            <li>
+              <strong>3-4 (Moderate):</strong> Noticeable and distracting, but
+              manageable
+            </li>
+            <li>
+              <strong>5-6 (Significant):</strong> Moderately strong pain that
+              interferes with tasks
+            </li>
+            <li>
+              <strong>7-8 (Severe):</strong> Severely limits activities, hard to
+              concentrate
+            </li>
+            <li>
+              <strong>9-10 (Extreme):</strong> Worst pain imaginable, may require
+              emergency care
+            </li>
+          </ul>
+
           <h2>Why Track Your Pain?</h2>
           <p>
             Tracking your pain is one of the most effective ways to take control of
@@ -202,42 +241,6 @@ export default function PainTrackingPage() {
               work, or activities?
             </li>
           </ul>
-
-          <h2>Understanding the Pain Scale</h2>
-          <p>
-            Our pain trackers use the standard 0-10 numeric pain scale used by
-            healthcare providers worldwide. Here&apos;s what each level means:
-          </p>
-
-          <PainScaleVisual />
-
-          <ul>
-            <li>
-              <strong>0:</strong> No pain at all
-            </li>
-            <li>
-              <strong>1-2 (Mild):</strong> Barely noticeable, doesn&apos;t interfere
-              with activities
-            </li>
-            <li>
-              <strong>3-4 (Moderate):</strong> Noticeable and distracting, but
-              manageable
-            </li>
-            <li>
-              <strong>5-6 (Significant):</strong> Moderately strong pain that
-              interferes with tasks
-            </li>
-            <li>
-              <strong>7-8 (Severe):</strong> Severely limits activities, hard to
-              concentrate
-            </li>
-            <li>
-              <strong>9-10 (Extreme):</strong> Worst pain imaginable, may require
-              emergency care
-            </li>
-          </ul>
-
-          <DownloadTemplates />
 
           <h2>How to Use Your Pain Tracker</h2>
           <p>
@@ -376,6 +379,9 @@ export default function PainTrackingPage() {
           </ul>
         </div>
       </main>
+
+      {/* Floating Table of Contents */}
+      <FloatingToc />
     </>
   );
 }
