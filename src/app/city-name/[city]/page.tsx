@@ -2,9 +2,9 @@ import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
 import { sql } from "drizzle-orm";
-import { getAllCitiesWithClinics } from "@/lib/clinic-queries";
 
-export const revalidate = 86400; // Cache for 24 hours
+// Dynamic route - no static generation needed for redirects
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ city: string }>;
@@ -40,16 +40,4 @@ export default async function CityRedirectPage({ params }: Props) {
 
   // 301 permanent redirect to new URL
   redirect(`/pain-management/${stateSlug}/${citySlug}/`);
-}
-
-// Pre-generate redirects at build time for performance
-export async function generateStaticParams() {
-  try {
-    const cities = await getAllCitiesWithClinics();
-    return cities.map(({ city }) => ({
-      city: city.toLowerCase().replace(/\s+/g, "-"),
-    }));
-  } catch {
-    return [];
-  }
 }
