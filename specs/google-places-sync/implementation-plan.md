@@ -11,18 +11,18 @@ Enhance the existing admin clinic management system with:
 
 ---
 
-## Phase 1: Database Schema & Environment Setup
+## Phase 1: Database Schema & Environment Setup (COMPLETED)
 
 Set up the foundational database tables and environment configuration needed for sync tracking.
 
 ### Tasks
 
-- [ ] Add sync-related enums to schema (syncScheduleFrequencyEnum, syncStatusEnum)
-- [ ] Create syncSchedules table for storing schedule configurations
-- [ ] Create syncLogs table for execution history tracking
-- [ ] Create clinicSyncStatus table for per-clinic sync tracking
-- [ ] Add GOOGLE_PLACES_API_KEY and CRON_SECRET to env.ts
-- [ ] Run database migration to apply schema changes
+- [x] Add sync-related enums to schema (syncScheduleFrequencyEnum, syncStatusEnum)
+- [x] Create syncSchedules table for storing schedule configurations
+- [x] Create syncLogs table for execution history tracking
+- [x] Create clinicSyncStatus table for per-clinic sync tracking
+- [x] Add GOOGLE_PLACES_API_KEY and CRON_SECRET to env.ts
+- [x] Run database migration to apply schema changes
 
 ### Technical Details
 
@@ -131,16 +131,16 @@ pnpm db:push
 
 ---
 
-## Phase 2: Google Places API Client
+## Phase 2: Google Places API Client (COMPLETED)
 
 Create the API client wrapper with rate limiting and field mapping utilities.
 
 ### Tasks
 
-- [ ] Create types.ts with TypeScript interfaces for Places API responses
-- [ ] Create client.ts with GooglePlacesClient class (getPlaceDetails, searchPlaces)
-- [ ] Create field-mapper.ts to map Places API response to clinic schema
-- [ ] Create rate-limiter.ts with queue-based rate limiting (10 QPS)
+- [x] Create types.ts with TypeScript interfaces for Places API responses
+- [x] Create client.ts with GooglePlacesClient class (getPlaceDetails, searchPlaces)
+- [x] Create field-mapper.ts to map Places API response to clinic schema
+- [x] Create rate-limiter.ts with queue-based rate limiting (10 QPS)
 
 ### Technical Details
 

@@ -33,7 +33,7 @@ export function FeaturedClinicsSidebar({
     ...(city ? { city } : {}),
     excludeClinicId: currentClinicId,
     limit: 5,
-    useGeolocation: true,
+    useGeolocation: false, // Only request geolocation on homepage
     radiusMiles: 100,
     randomize: true,
   });

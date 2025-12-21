@@ -32,7 +32,7 @@ export function SearchFeaturedSection({
     ...(stateAbbrev && { stateAbbrev }),
     ...(city && { city }),
     limit: 6,
-    useGeolocation: true,
+    useGeolocation: false, // Only request geolocation on homepage
     radiusMiles: 100,
     randomize: true,
   });
