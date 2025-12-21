@@ -1,5 +1,8 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { ClinicsTable } from "@/components/admin/clinics-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   getClinicsForAdmin,
   getClinicCount,
@@ -35,9 +38,17 @@ export default async function ClinicsPage() {
             Manage clinic data and services
           </p>
         </div>
-        <Badge variant="secondary" className="text-sm">
-          {totalCount.toLocaleString()} total clinics
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="secondary" className="text-sm">
+            {totalCount.toLocaleString()} total clinics
+          </Badge>
+          <Link href="/admin/clinics/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Clinic
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <ClinicsTable

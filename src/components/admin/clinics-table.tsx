@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles } from 'lucide-react';
+import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { BulkEnhanceModal } from './bulk-enhance-modal';
+import { BulkSyncModal } from './sync/bulk-sync-modal';
 
 interface Clinic {
   id: string;
@@ -66,6 +67,7 @@ export function ClinicsTable({
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showBulkSyncModal, setShowBulkSyncModal] = useState(false);
 
   // Create a map of clinic IDs to names for the modal
   const clinicNamesMap = useMemo(() => {
@@ -224,6 +226,10 @@ export function ClinicsTable({
               <Button variant="outline" size="sm" onClick={clearSelection}>
                 Clear Selection
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowBulkSyncModal(true)}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Bulk Sync
+              </Button>
               <Button size="sm" onClick={() => setShowBulkModal(true)}>
                 <Sparkles className="mr-2 h-4 w-4" />
                 Bulk Enhance
@@ -371,6 +377,18 @@ export function ClinicsTable({
         clinicNames={clinicNamesMap}
         open={showBulkModal}
         onOpenChange={setShowBulkModal}
+        onComplete={() => {
+          clearSelection();
+          fetchClinics();
+        }}
+      />
+
+      {/* Bulk Sync Modal */}
+      <BulkSyncModal
+        clinicIds={Array.from(selectedIds)}
+        clinicNames={clinicNamesMap}
+        open={showBulkSyncModal}
+        onOpenChange={setShowBulkSyncModal}
         onComplete={() => {
           clearSelection();
           fetchClinics();

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown, RefreshCw } from "lucide-react";
 import { ClinicContentTab } from "@/components/admin/clinics/clinic-content-tab";
 import { ClinicFAQTab } from "@/components/admin/clinics/clinic-faq-tab";
 import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
 import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
+import { ClinicSyncTab } from "@/components/admin/clinics/clinic-sync-tab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,6 +175,10 @@ export default async function ClinicDetailPage({ params }: PageProps) {
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
+          <TabsTrigger value="sync" className="flex items-center gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
+            Sync
+          </TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="featured">Featured</TabsTrigger>
         </TabsList>
@@ -203,6 +208,14 @@ export default async function ClinicDetailPage({ params }: PageProps) {
 
         <TabsContent value="faq" className="space-y-4">
           <ClinicFAQTab clinicId={clinic.id} clinicName={clinic.title} />
+        </TabsContent>
+
+        <TabsContent value="sync" className="space-y-4">
+          <ClinicSyncTab
+            clinicId={clinic.id}
+            clinicName={clinic.title}
+            initialPlaceId={clinic.placeId}
+          />
         </TabsContent>
 
         <TabsContent value="details" className="space-y-4">

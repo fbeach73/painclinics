@@ -324,15 +324,15 @@ export class PlacesRateLimiter {
 
 ---
 
-## Phase 3: Sync Service Layer
+## Phase 3: Sync Service Layer (COMPLETED)
 
 Create the core sync orchestration service and database queries.
 
 ### Tasks
 
-- [ ] Create sync-queries.ts with database operations for sync tables
-- [ ] Create sync-service.ts with syncClinic, syncBulk, and field-specific sync functions
-- [ ] Create scheduler.ts with utilities for calculating next run times
+- [x] Create sync-queries.ts with database operations for sync tables
+- [x] Create sync-service.ts with syncClinic, syncBulk, and field-specific sync functions
+- [x] Create scheduler.ts with utilities for calculating next run times
 
 ### Technical Details
 
@@ -391,20 +391,20 @@ export function calculateNextRun(frequency: SyncFrequency, lastRun?: Date): Date
 
 ---
 
-## Phase 4: Single Clinic Sync & CRUD
+## Phase 4: Single Clinic Sync & CRUD (COMPLETED)
 
 Add individual clinic sync capability and basic CRUD operations.
 
 ### Tasks
 
-- [ ] Create PUT endpoint for updating clinic at /api/admin/clinics/[clinicId]/route.ts
-- [ ] Create DELETE endpoint for deleting clinic at /api/admin/clinics/[clinicId]/route.ts
-- [ ] Create POST endpoint for creating clinic at /api/admin/clinics/route.ts
-- [ ] Create sync endpoint at /api/admin/clinics/[clinicId]/sync/route.ts
-- [ ] Create places lookup endpoint at /api/admin/places/lookup/route.ts
-- [ ] Create places preview endpoint at /api/admin/places/preview/[placeId]/route.ts
-- [ ] Create ClinicSyncTab component for clinic detail page
-- [ ] Add Sync tab to clinic detail page TabsList
+- [x] Create PUT endpoint for updating clinic at /api/admin/clinics/[clinicId]/route.ts
+- [x] Create DELETE endpoint for deleting clinic at /api/admin/clinics/[clinicId]/route.ts
+- [x] Create POST endpoint for creating clinic at /api/admin/clinics/route.ts
+- [x] Create sync endpoint at /api/admin/clinics/[clinicId]/sync/route.ts
+- [x] Create places lookup endpoint at /api/admin/places/lookup/route.ts
+- [x] Create places preview endpoint at /api/admin/places/preview/[placeId]/route.ts
+- [x] Create ClinicSyncTab component for clinic detail page
+- [x] Add Sync tab to clinic detail page TabsList
 
 ### Technical Details
 
@@ -481,19 +481,19 @@ interface ClinicSyncTabProps {
 
 ---
 
-## Phase 5: Bulk Sync & Clinic Form
+## Phase 5: Bulk Sync & Clinic Form (COMPLETED)
 
 Add bulk sync operations and the clinic add/edit form.
 
 ### Tasks
 
-- [ ] Create bulk-sync endpoint at /api/admin/clinics/bulk-sync/route.ts
-- [ ] Create BulkSyncModal component based on bulk-enhance-modal pattern
-- [ ] Create ClinicForm component for add/edit operations
-- [ ] Create PlacesLookupDialog component for searching Google Places
-- [ ] Create new clinic page at /admin/clinics/new/page.tsx
-- [ ] Add "Add Clinic" button to clinics list page header
-- [ ] Add "Bulk Sync" action to bulk toolbar in clinics table
+- [x] Create bulk-sync endpoint at /api/admin/clinics/bulk-sync/route.ts
+- [x] Create BulkSyncModal component based on bulk-enhance-modal pattern
+- [x] Create ClinicForm component for add/edit operations
+- [x] Create PlacesLookupDialog component for searching Google Places
+- [x] Create new clinic page at /admin/clinics/new/page.tsx
+- [x] Add "Add Clinic" button to clinics list page header
+- [x] Add "Bulk Sync" action to bulk toolbar in clinics table
 
 ### Technical Details
 

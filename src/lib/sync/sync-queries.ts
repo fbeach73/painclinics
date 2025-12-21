@@ -9,7 +9,7 @@ import {
   clinicSyncStatus,
   clinics,
 } from "@/lib/schema";
-import { eq, and, lte, isNull, or, desc, inArray } from "drizzle-orm";
+import { eq, and, lte, isNull, isNotNull, or, desc, inArray, gte } from "drizzle-orm";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 // ============================================
@@ -63,6 +63,9 @@ export async function upsertSyncStatus(
       .where(eq(clinicSyncStatus.clinicId, clinicId))
       .returning();
 
+    if (!updated) {
+      throw new Error(`Failed to update sync status for clinic ${clinicId}`);
+    }
     return updated;
   } else {
     const [created] = await db
@@ -73,6 +76,9 @@ export async function upsertSyncStatus(
       })
       .returning();
 
+    if (!created) {
+      throw new Error(`Failed to create sync status for clinic ${clinicId}`);
+    }
     return created;
   }
 }
@@ -114,18 +120,9 @@ export async function getClinicsWithExcessiveErrors(
   const results = await db
     .select()
     .from(clinicSyncStatus)
-    .where(
-      and(
-        clinicSyncStatus.consecutiveErrors
-          ? lte(clinicSyncStatus.consecutiveErrors, threshold) === false
-          : undefined
-      )
-    );
+    .where(gte(clinicSyncStatus.consecutiveErrors, threshold));
 
-  // Filter manually since we need >= comparison
-  return results.filter(
-    (r) => r.consecutiveErrors !== null && r.consecutiveErrors >= threshold
-  );
+  return results;
 }
 
 // ============================================
@@ -138,21 +135,18 @@ export async function getClinicsWithExcessiveErrors(
 export async function getSchedules(
   filters: { isActive?: boolean } = {}
 ): Promise<SyncSchedule[]> {
-  const conditions = [];
-
   if (filters.isActive !== undefined) {
-    conditions.push(eq(syncSchedules.isActive, filters.isActive));
+    return db
+      .select()
+      .from(syncSchedules)
+      .where(eq(syncSchedules.isActive, filters.isActive))
+      .orderBy(desc(syncSchedules.createdAt));
   }
 
-  const query =
-    conditions.length > 0
-      ? db
-          .select()
-          .from(syncSchedules)
-          .where(and(...conditions))
-      : db.select().from(syncSchedules);
-
-  return query.orderBy(desc(syncSchedules.createdAt));
+  return db
+    .select()
+    .from(syncSchedules)
+    .orderBy(desc(syncSchedules.createdAt));
 }
 
 /**
@@ -178,6 +172,9 @@ export async function createSchedule(
 ): Promise<SyncSchedule> {
   const [created] = await db.insert(syncSchedules).values(data).returning();
 
+  if (!created) {
+    throw new Error("Failed to create sync schedule");
+  }
   return created;
 }
 
@@ -267,6 +264,9 @@ export async function createSyncLog(
     })
     .returning();
 
+  if (!created) {
+    throw new Error("Failed to create sync log");
+  }
   return created;
 }
 
@@ -298,25 +298,40 @@ export async function getSyncLogs(
   } = {}
 ): Promise<SyncLog[]> {
   const { scheduleId, status, limit = 50, offset = 0 } = filters;
-  const conditions = [];
+
+  if (scheduleId && status) {
+    return db
+      .select()
+      .from(syncLogs)
+      .where(and(eq(syncLogs.scheduleId, scheduleId), eq(syncLogs.status, status)))
+      .orderBy(desc(syncLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
 
   if (scheduleId) {
-    conditions.push(eq(syncLogs.scheduleId, scheduleId));
+    return db
+      .select()
+      .from(syncLogs)
+      .where(eq(syncLogs.scheduleId, scheduleId))
+      .orderBy(desc(syncLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
   if (status) {
-    conditions.push(eq(syncLogs.status, status));
+    return db
+      .select()
+      .from(syncLogs)
+      .where(eq(syncLogs.status, status))
+      .orderBy(desc(syncLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
   }
 
-  const query =
-    conditions.length > 0
-      ? db
-          .select()
-          .from(syncLogs)
-          .where(and(...conditions))
-      : db.select().from(syncLogs);
-
-  return query
+  return db
+    .select()
+    .from(syncLogs)
     .orderBy(desc(syncLogs.createdAt))
     .limit(limit)
     .offset(offset);
@@ -351,25 +366,13 @@ export async function getRecentSyncStats(
   const logs = await db
     .select()
     .from(syncLogs)
-    .where(
-      and(
-        syncLogs.createdAt
-          ? lte(since, syncLogs.createdAt) === false
-          : undefined,
-        eq(syncLogs.status, "completed")
-      )
-    );
-
-  // Filter by createdAt manually
-  const recentLogs = logs.filter(
-    (log) => log.createdAt && log.createdAt >= since
-  );
+    .where(gte(syncLogs.createdAt, since));
 
   return {
-    totalRuns: recentLogs.length,
-    successCount: recentLogs.filter((l) => l.status === "completed").length,
-    errorCount: recentLogs.filter((l) => l.status === "failed").length,
-    totalClinicsProcessed: recentLogs.reduce(
+    totalRuns: logs.length,
+    successCount: logs.filter((l) => l.status === "completed").length,
+    errorCount: logs.filter((l) => l.status === "failed").length,
+    totalClinicsProcessed: logs.reduce(
       (sum, l) => sum + (l.totalClinics ?? 0),
       0
     ),
@@ -421,49 +424,33 @@ export async function getClinicIdsWithPlaceId(
     limit?: number;
   } = {}
 ): Promise<string[]> {
-  const conditions = [clinics.placeId ? true : false];
+  const { stateFilter, limit = 10000 } = filters;
 
-  if (filters.stateFilter) {
-    conditions.push(
-      or(
-        eq(clinics.state, filters.stateFilter),
-        eq(clinics.stateAbbreviation, filters.stateFilter)
-      ) as ReturnType<typeof eq>
-    );
+  let results;
+
+  if (stateFilter) {
+    results = await db
+      .select({ id: clinics.id })
+      .from(clinics)
+      .where(
+        and(
+          isNotNull(clinics.placeId),
+          or(
+            eq(clinics.state, stateFilter),
+            eq(clinics.stateAbbreviation, stateFilter)
+          )
+        )
+      )
+      .limit(limit);
+  } else {
+    results = await db
+      .select({ id: clinics.id })
+      .from(clinics)
+      .where(isNotNull(clinics.placeId))
+      .limit(limit);
   }
 
-  let query = db
-    .select({ id: clinics.id })
-    .from(clinics)
-    .where(
-      and(
-        clinics.placeId ? undefined : undefined, // placeholder for proper filter
-        filters.stateFilter
-          ? or(
-              eq(clinics.state, filters.stateFilter),
-              eq(clinics.stateAbbreviation, filters.stateFilter)
-            )
-          : undefined
-      )
-    );
-
-  // Need to filter for non-null placeId after the fact since the SQL check is complex
-  const results = await query.limit(filters.limit ?? 10000);
-
-  // Post-filter to only include clinics with placeId
-  const filtered = await db
-    .select({ id: clinics.id, placeId: clinics.placeId })
-    .from(clinics);
-
-  return filtered
-    .filter((c) => c.placeId !== null)
-    .filter((c) =>
-      filters.stateFilter
-        ? results.some((r) => r.id === c.id)
-        : true
-    )
-    .slice(0, filters.limit ?? 10000)
-    .map((c) => c.id);
+  return results.map((c) => c.id);
 }
 
 /**
@@ -480,16 +467,16 @@ export async function getClinicIdsWithMissingData(): Promise<string[]> {
       clinicHours: clinics.clinicHours,
       phone: clinics.phone,
     })
-    .from(clinics);
+    .from(clinics)
+    .where(isNotNull(clinics.placeId));
 
   return results
     .filter(
       (c) =>
-        c.placeId !== null &&
-        (c.rating === null ||
-          c.reviewCount === null ||
-          c.clinicHours === null ||
-          c.phone === null)
+        c.rating === null ||
+        c.reviewCount === null ||
+        c.clinicHours === null ||
+        c.phone === null
     )
     .map((c) => c.id);
 }
