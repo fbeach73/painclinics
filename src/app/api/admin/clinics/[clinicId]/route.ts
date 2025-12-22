@@ -68,30 +68,62 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Validate and collect updates for allowed fields
     const allowedFields = [
+      // Basic info
       "title",
+      "clinicType",
+      "permalink",
+      // Location
       "streetAddress",
       "city",
       "state",
       "stateAbbreviation",
       "postalCode",
-      "phone",
-      "website",
-      "clinicType",
-      "placeId",
       "mapLatitude",
       "mapLongitude",
       "detailedAddress",
+      "placeId",
+      // Contact
+      "phone",
+      "phones",
+      "website",
+      "emails",
+      // Content
       "content",
       "newPostContent",
+      // Media
       "imageUrl",
       "imageFeatured",
+      "featImage",
+      "clinicImageUrls",
+      "qrCode",
+      // Features
+      "amenities",
+      "checkboxFeatures",
+      "googleListingLink",
+      // Social media
+      "facebook",
+      "instagram",
+      "twitter",
+      "youtube",
+      "linkedin",
+      "tiktok",
+      "pinterest",
+      // Featured status
       "isFeatured",
       "featuredTier",
+      "featuredUntil",
+      // Review data (admin override)
       "rating",
       "reviewCount",
+      // Business hours
       "clinicHours",
+      "closedOn",
+      // Reviews
       "featuredReviews",
-      "googleListingLink",
+      "reviewsPerScore",
+      "reviewKeywords",
+      // Q&A
+      "questions",
     ];
 
     for (const field of allowedFields) {

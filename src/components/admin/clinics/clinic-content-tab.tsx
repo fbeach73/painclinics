@@ -8,6 +8,7 @@ import {
   FileText,
   Loader2,
   RefreshCw,
+  Save,
   Sparkles,
   Wand2,
 } from "lucide-react";
@@ -18,7 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClinicWysiwygEditor } from "./clinic-wysiwyg-editor";
 
 interface ContentStatus {
   clinicId: string;
@@ -48,12 +50,24 @@ interface ClinicContentTabProps {
   clinicName: string;
 }
 
+// Count words in HTML content
+function countWords(html: string): number {
+  const text = html.replace(/<[^>]*>/g, " ").trim();
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
 export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [contentStatus, setContentStatus] = useState<ContentStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Editable content states
+  const [originalContent, setOriginalContent] = useState("");
+  const [enhancedContent, setEnhancedContent] = useState("");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const fetchContentStatus = useCallback(async () => {
     setIsLoading(true);
@@ -68,6 +82,9 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
       }
 
       setContentStatus(data);
+      setOriginalContent(data.originalContent || "");
+      setEnhancedContent(data.enhancedContent || "");
+      setHasUnsavedChanges(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch content status");
     } finally {
@@ -79,6 +96,48 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
   useEffect(() => {
     fetchContentStatus();
   }, [fetchContentStatus]);
+
+  const handleOriginalContentChange = (html: string) => {
+    setOriginalContent(html);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleEnhancedContentChange = (html: string) => {
+    setEnhancedContent(html);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSaveContent = async () => {
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/admin/clinics/${clinicId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: originalContent || null,
+          newPostContent: enhancedContent || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save content");
+      }
+
+      toast.success("Content saved successfully");
+      setHasUnsavedChanges(false);
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save content";
+      setError(message);
+      toast.error("Save failed", { description: message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleEnhanceContent = async () => {
     setIsEnhancing(true);
@@ -99,9 +158,12 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
         description: `Used ${data.usage?.totalTokens || 0} tokens`,
       });
 
-      // Refresh the content status
+      // Update the enhanced content with the new AI-generated content
+      setEnhancedContent(data.content);
+      setHasUnsavedChanges(true);
+
+      // Refresh to update word counts
       await fetchContentStatus();
-      router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to enhance content";
       setError(message);
@@ -111,46 +173,71 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
     }
   };
 
-  // Strip HTML tags for display
-  const stripHtml = (html: string): string => {
-    return html.replace(/<[^>]*>/g, "").trim();
-  };
-
   if (isLoading && !contentStatus) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading content status...</span>
+          <span className="ml-2 text-muted-foreground">Loading content...</span>
         </CardContent>
       </Card>
     );
   }
 
+  const originalWordCount = countWords(originalContent);
+  const enhancedWordCount = countWords(enhancedContent);
+
   return (
     <div className="space-y-6">
-      {/* Status Overview */}
+      {/* Status Bar with Save Button */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Content Status
-          </CardTitle>
-          <CardDescription>
-            AI-enhanced About section content for {clinicName}
-          </CardDescription>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Content Editor
+              </CardTitle>
+              <CardDescription>
+                Edit clinic description content for {clinicName}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasUnsavedChanges && (
+                <Badge variant="outline" className="text-yellow-600 border-yellow-300">
+                  Unsaved changes
+                </Badge>
+              )}
+              <Button
+                onClick={handleSaveContent}
+                disabled={isSaving || !hasUnsavedChanges}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <Label className="text-muted-foreground">Original Content</Label>
               <div className="flex items-center gap-2 mt-1">
-                {contentStatus?.hasOriginalContent ? (
+                {originalContent ? (
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="font-medium">Available</span>
                     <Badge variant="secondary" className="ml-1">
-                      {contentStatus.originalWordCount} words
+                      {originalWordCount} words
                     </Badge>
                   </>
                 ) : (
@@ -165,14 +252,14 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
             <div>
               <Label className="text-muted-foreground">Enhanced Content</Label>
               <div className="flex items-center gap-2 mt-1">
-                {contentStatus?.hasEnhancedContent ? (
+                {enhancedContent ? (
                   <>
                     <Sparkles className="h-4 w-4 text-purple-500" />
                     <span className="font-medium text-purple-600 dark:text-purple-400">
-                      Generated
+                      Available
                     </span>
                     <Badge variant="secondary" className="ml-1">
-                      {contentStatus.enhancedWordCount} words
+                      {enhancedWordCount} words
                     </Badge>
                   </>
                 ) : (
@@ -185,11 +272,11 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
             </div>
 
             <div>
-              <Label className="text-muted-foreground">Actions</Label>
+              <Label className="text-muted-foreground">AI Enhancement</Label>
               <div className="flex items-center gap-2 mt-1">
                 <Button
                   size="sm"
-                  variant={contentStatus?.hasEnhancedContent ? "outline" : "default"}
+                  variant={enhancedContent ? "outline" : "default"}
                   onClick={handleEnhanceContent}
                   disabled={isEnhancing}
                 >
@@ -198,7 +285,7 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Enhancing...
                     </>
-                  ) : contentStatus?.hasEnhancedContent ? (
+                  ) : enhancedContent ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Regenerate
@@ -225,109 +312,98 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
         </Alert>
       )}
 
-      {/* Content Comparison */}
-      {contentStatus && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Original Content */}
+      {/* Content Editors */}
+      <Tabs defaultValue="original" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="original" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Original Content
+            {originalWordCount > 0 && (
+              <Badge variant="secondary" className="ml-1">
+                {originalWordCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="enhanced" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Enhanced Content
+            {enhancedWordCount > 0 && (
+              <Badge variant="secondary" className="ml-1">
+                {enhancedWordCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="original" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Original Content
-              </CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Original Clinic Description</CardTitle>
               <CardDescription>
-                {contentStatus.hasOriginalContent
-                  ? `${contentStatus.originalWordCount} words from database`
-                  : "No original content available"}
+                The base content for this clinic. This is typically imported from
+                external sources or entered manually.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {contentStatus.originalContent ? (
-                <Textarea
-                  value={stripHtml(contentStatus.originalContent)}
-                  readOnly
-                  className="min-h-[200px] font-mono text-sm resize-none bg-muted/50"
-                />
-              ) : (
-                <div className="flex items-center justify-center min-h-[200px] border rounded-md bg-muted/20 text-muted-foreground">
-                  No content to display
-                </div>
-              )}
+              <ClinicWysiwygEditor
+                content={originalContent}
+                onChange={handleOriginalContentChange}
+                placeholder="Enter the original clinic description..."
+                minHeight="300px"
+              />
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Enhanced Content */}
-          <Card className={contentStatus.hasEnhancedContent ? "border-purple-200 dark:border-purple-800" : ""}>
-            <CardHeader>
+        <TabsContent value="enhanced" className="mt-4">
+          <Card className="border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-500" />
-                Enhanced Content
+                AI-Enhanced Content
               </CardTitle>
               <CardDescription>
-                {contentStatus.hasEnhancedContent
-                  ? `${contentStatus.enhancedWordCount} words - AI generated`
-                  : "Click 'Generate' to create enhanced content"}
+                This content is displayed on the public clinic page. You can edit
+                it manually or regenerate it using AI.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {contentStatus.enhancedContent ? (
-                <Textarea
-                  value={contentStatus.enhancedContent}
-                  readOnly
-                  className="min-h-[200px] font-mono text-sm resize-none bg-purple-50/50 dark:bg-purple-950/20"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center min-h-[200px] border rounded-md bg-muted/20 text-muted-foreground gap-3">
-                  <Wand2 className="h-8 w-8" />
-                  <p className="text-sm">No enhanced content yet</p>
-                  <Button
-                    size="sm"
-                    onClick={handleEnhanceContent}
-                    disabled={isEnhancing}
-                  >
-                    {isEnhancing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 className="mr-2 h-4 w-4" />
-                        Generate Now
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
+              <ClinicWysiwygEditor
+                content={enhancedContent}
+                onChange={handleEnhancedContentChange}
+                placeholder="Enter or generate enhanced clinic description..."
+                minHeight="300px"
+                className="border-purple-200 dark:border-purple-800"
+              />
             </CardContent>
           </Card>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       {/* Info Section */}
       <Card className="bg-muted/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">About AI Content Enhancement</CardTitle>
+          <CardTitle className="text-base">About Content Management</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>
-            <strong>AI Enhancement</strong> uses OpenRouter to generate clean, SEO-friendly
-            About section content based on the clinic&apos;s existing data.
+            <strong>Original Content:</strong> The base description text for this clinic.
+            Can be edited manually or imported from external sources.
           </p>
           <Separator className="my-3" />
-          <p>The AI will:</p>
+          <p>
+            <strong>Enhanced Content:</strong> The AI-improved version that appears on the
+            public clinic page. When available, this takes priority over original content.
+          </p>
+          <Separator className="my-3" />
+          <p>The AI enhancement will:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Remove addresses, phone numbers, and emails (shown elsewhere)</li>
+            <li>Remove duplicate contact information (shown elsewhere on page)</li>
             <li>Fix formatting and grammar issues</li>
             <li>Incorporate services and amenities naturally</li>
             <li>Include positive themes from review keywords</li>
             <li>Keep content between 150-250 words</li>
           </ul>
-          <Separator className="my-3" />
-          <p>
-            <strong>Note:</strong> Enhanced content is stored in the <code className="px-1 py-0.5 bg-muted rounded text-xs">newPostContent</code> field
-            and will be displayed on the public clinic page when available.
-          </p>
         </CardContent>
       </Card>
     </div>

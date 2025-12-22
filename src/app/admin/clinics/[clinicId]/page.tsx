@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown, RefreshCw } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown, RefreshCw, Settings } from "lucide-react";
 import { ClinicContentTab } from "@/components/admin/clinics/clinic-content-tab";
+import { ClinicDetailsTab } from "@/components/admin/clinics/clinic-details-tab";
 import { ClinicFAQTab } from "@/components/admin/clinics/clinic-faq-tab";
 import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
 import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
@@ -179,7 +180,10 @@ export default async function ClinicDetailPage({ params }: PageProps) {
             <RefreshCw className="h-3.5 w-3.5" />
             Sync
           </TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="details" className="flex items-center gap-1.5">
+            <Settings className="h-3.5 w-3.5" />
+            Details
+          </TabsTrigger>
           <TabsTrigger value="featured">Featured</TabsTrigger>
         </TabsList>
 
@@ -219,68 +223,38 @@ export default async function ClinicDetailPage({ params }: PageProps) {
         </TabsContent>
 
         <TabsContent value="details" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Clinic Information</CardTitle>
-              <CardDescription>
-                Basic information about this clinic
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">ID</h4>
-                  <p className="text-sm font-mono">{clinic.id}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Permalink</h4>
-                  <p className="text-sm font-mono">/{clinic.permalink}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Full Address</h4>
-                  <p className="text-sm">{clinic.detailedAddress || "N/A"}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Coordinates</h4>
-                  <p className="text-sm">
-                    {clinic.mapLatitude.toFixed(6)}, {clinic.mapLongitude.toFixed(6)}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Clinic Type</h4>
-                  <p className="text-sm">{clinic.clinicType || "N/A"}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Place ID</h4>
-                  <p className="text-sm font-mono truncate">{clinic.placeId || "N/A"}</p>
-                </div>
-              </div>
-
-              {clinic.clinicHours ? (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Hours</h4>
-                  <pre className="text-xs bg-muted p-3 rounded-md overflow-auto">
-                    {JSON.stringify(clinic.clinicHours as Record<string, unknown>, null, 2)}
-                  </pre>
-                </div>
-              ) : null}
-
-              {clinic.amenities && Array.isArray(clinic.amenities) && clinic.amenities.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                    Legacy Amenities
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {(clinic.amenities as string[]).map((amenity, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
-                        {amenity}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ClinicDetailsTab
+            clinicId={clinic.id}
+            initialData={{
+              id: clinic.id,
+              title: clinic.title,
+              clinicType: clinic.clinicType,
+              permalink: clinic.permalink,
+              streetAddress: clinic.streetAddress,
+              city: clinic.city,
+              state: clinic.state,
+              stateAbbreviation: clinic.stateAbbreviation,
+              postalCode: clinic.postalCode,
+              mapLatitude: clinic.mapLatitude,
+              mapLongitude: clinic.mapLongitude,
+              detailedAddress: clinic.detailedAddress,
+              phone: clinic.phone,
+              website: clinic.website,
+              emails: clinic.emails as string[] | null,
+              googleListingLink: clinic.googleListingLink,
+              facebook: clinic.facebook,
+              instagram: clinic.instagram,
+              twitter: clinic.twitter,
+              youtube: clinic.youtube,
+              linkedin: clinic.linkedin,
+              tiktok: clinic.tiktok,
+              pinterest: clinic.pinterest,
+              clinicHours: clinic.clinicHours,
+              closedOn: clinic.closedOn,
+              rating: clinic.rating,
+              reviewCount: clinic.reviewCount,
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="featured" className="space-y-4">
