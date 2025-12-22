@@ -18,7 +18,7 @@ interface HomepageFeaturedSectionProps {
  * Homepage featured clinics section with geo-awareness.
  * Shows featured clinics near the user when location is available,
  * otherwise shows random featured clinics.
- * Hides entirely when no featured clinics exist.
+ * Uses fixed min-height during loading to prevent CLS.
  */
 export function HomepageFeaturedSection({ className }: HomepageFeaturedSectionProps) {
   const { clinics, isLoading, hasLocation } = useFeaturedClinics({
@@ -31,14 +31,20 @@ export function HomepageFeaturedSection({ className }: HomepageFeaturedSectionPr
   // Convert to ClinicWithDistance for carousel compatibility
   const clinicsWithDistance = clinics.map(featuredToClinicWithDistance);
 
-  // Don't render anything if no featured clinics and not loading
-  if (!isLoading && clinicsWithDistance.length === 0) {
-    return null;
-  }
+  // If finished loading and no clinics, render nothing
+  // But we use opacity/visibility to prevent layout shift during initial load
+  const hasNoClinics = !isLoading && clinicsWithDistance.length === 0;
 
   return (
-    <section className={className}>
-      <div className="py-12 bg-gradient-to-b from-emerald-50/80 via-teal-50/40 to-transparent dark:from-emerald-950/20 dark:via-teal-950/10 dark:to-transparent">
+    <section
+      className={className}
+      // Use CSS to hide without layout shift - content-visibility helps performance
+      style={{
+        display: hasNoClinics ? 'none' : undefined,
+      }}
+    >
+      {/* Fixed min-height container prevents CLS during loading */}
+      <div className="py-12 bg-gradient-to-b from-emerald-50/80 via-teal-50/40 to-transparent dark:from-emerald-950/20 dark:via-teal-950/10 dark:to-transparent min-h-[520px]">
         <div className="container mx-auto px-4">
           {/* Section header with improved contrast */}
           <div className="flex items-center gap-3 mb-2">

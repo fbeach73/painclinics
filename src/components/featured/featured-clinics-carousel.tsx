@@ -232,19 +232,31 @@ export function FeaturedClinicsCarouselSkeleton({
                 : 'basis-full sm:basis-1/2 lg:basis-1/3'
             )}
           >
-            <div className="min-w-[320px] max-w-[400px] h-full rounded-xl border border-white/20 overflow-hidden bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
-              <Skeleton className="h-52 w-full bg-gradient-to-br from-emerald-100/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10" />
-              <div className="p-4 space-y-3">
+            {/* Match exact structure of FeaturedClinicCard for consistent height */}
+            <div className="min-w-[320px] max-w-[400px] flex flex-col rounded-xl border border-white/20 overflow-hidden bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm">
+              {/* Image section - matches h-52 from FeaturedClinicCard */}
+              <Skeleton className="h-52 w-full rounded-none bg-gradient-to-br from-emerald-100/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10" />
+              {/* CardHeader equivalent - py-6 px-6 pb-3 */}
+              <div className="px-6 pt-6 pb-3 space-y-2">
                 <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/3" />
-                <div className="space-y-2 pt-1">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              {/* CardContent equivalent - flex-1 px-6 space-y-2.5 */}
+              <div className="flex-1 px-6 space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0 rounded" />
+                  <Skeleton className="h-4 flex-1" />
                 </div>
-                <div className="flex gap-2 pt-3">
-                  <Skeleton className="h-10 flex-1 bg-emerald-100 dark:bg-emerald-950/30" />
-                  <Skeleton className="h-10 w-12" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0 rounded" />
+                  <Skeleton className="h-4 w-32" />
                 </div>
+                <Skeleton className="h-8 w-full" />
+              </div>
+              {/* CardFooter equivalent - px-6 pb-6 pt-3 */}
+              <div className="flex gap-2 px-6 pb-6 pt-3">
+                <Skeleton className="h-10 flex-1 bg-emerald-100 dark:bg-emerald-950/30" />
+                <Skeleton className="h-10 w-10" />
               </div>
             </div>
           </div>
