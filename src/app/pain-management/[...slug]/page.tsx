@@ -699,29 +699,10 @@ export default async function PainManagementClinicPage({ params }: Props) {
                 totalReviews={clinic.reviewCount}
               />
 
-              {/* Claim Benefits Banner - shown for unclaimed clinics */}
-              {showClaimBanner && (
-                <ClaimBenefitsBanner
-                  clinicId={clinic.id}
-                  clinicName={clinic.name}
-                />
-              )}
-
               {/* Insurance Section */}
               {clinic.insuranceAccepted.length > 0 && (
                 <ClinicInsurance insurance={clinic.insuranceAccepted} />
               )}
-
-              {/* Gallery Section */}
-              {clinic.photos.length > 0 && (
-                <ClinicGallery photos={clinic.photos} clinicName={clinic.name} />
-              )}
-
-              {/* Featured Clinics Section - Horizontal carousel below gallery */}
-              <SearchFeaturedSection
-                stateAbbrev={clinic.address.state}
-                city={clinic.address.city}
-              />
             </div>
 
             {/* Right Column - Sidebar */}
@@ -817,6 +798,28 @@ export default async function PainManagementClinicPage({ params }: Props) {
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          {/* Full-Width Sections */}
+          <div className="mt-8 space-y-8">
+            {/* Claim Benefits Banner - shown for unclaimed clinics */}
+            {showClaimBanner && (
+              <ClaimBenefitsBanner
+                clinicId={clinic.id}
+                clinicName={clinic.name}
+              />
+            )}
+
+            {/* Gallery Section */}
+            {clinic.photos.length > 0 && (
+              <ClinicGallery photos={clinic.photos} clinicName={clinic.name} />
+            )}
+
+            {/* Featured Clinics Section - Horizontal carousel below gallery */}
+            <SearchFeaturedSection
+              stateAbbrev={clinic.address.state}
+              city={clinic.address.city}
+            />
           </div>
         </div>
 
