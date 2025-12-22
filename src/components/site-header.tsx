@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, Menu } from 'lucide-react';
 import { UserProfile } from '@/components/auth/user-profile';
 import { SearchBar } from './search/search-bar';
 import { Button } from './ui/button';
@@ -16,6 +16,22 @@ import {
   SheetTitle,
   SheetDescription,
 } from './ui/sheet';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from './ui/navigation-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from './ui/dropdown-menu';
 
 export function SiteHeader() {
   const router = useRouter();
@@ -65,19 +81,96 @@ export function SiteHeader() {
             </Link>
           </h1>
 
-          {/* Desktop search bar */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-auto">
+          {/* Desktop Navigation */}
+          <NavigationMenu className="hidden lg:flex">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Link href="/pain-tracking" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Pain Tracking
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[300px] gap-1 p-2">
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/blog"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium">Blog</div>
+                          <p className="text-xs text-muted-foreground">Latest articles on pain management</p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/clinics"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium">Browse Clinics</div>
+                          <p className="text-xs text-muted-foreground">Find pain clinics near you</p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/treatment-options"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium">Treatment Options</div>
+                          <p className="text-xs text-muted-foreground">Explore pain treatment methods</p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+
+          {/* Desktop search bar - shrunk */}
+          <div className="hidden md:flex flex-1 max-w-sm mx-auto">
             <SearchBar
               value={searchQuery}
               onChange={handleSearch}
-              placeholder="Search clinics, services, or locations..."
+              placeholder="Search clinics..."
               size="default"
               className="w-full"
             />
           </div>
 
+          {/* Mobile Navigation Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="lg:hidden">
+              <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link href="/pain-tracking">Pain Tracking</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/blog">Blog</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/clinics">Browse Clinics</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/treatment-options">Treatment Options</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Actions */}
-          <div className="flex items-center gap-2 ml-auto" role="group" aria-label="User actions">
+          <div className="flex items-center gap-2" role="group" aria-label="User actions">
             {/* Mobile search button */}
             <Button
               variant="ghost"

@@ -7,6 +7,7 @@ import { getStateName } from "@/lib/us-states";
 const resourcesLinks = [
   { label: "Browse All Clinics", href: "/clinics" },
   { label: "Find Clinics Near Me", href: "/clinics" },
+  { label: "Pain Tracking Templates", href: "/pain-tracking" },
   { label: "Blog", href: "/blog" },
   { label: "Pain Management Guide", href: "/pain-management-guide" },
   { label: "Treatment Options", href: "/treatment-options" },
