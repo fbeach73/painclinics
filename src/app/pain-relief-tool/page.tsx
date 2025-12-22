@@ -1,8 +1,15 @@
 import { AlertTriangle } from 'lucide-react';
 import { Metadata } from 'next';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { generateFAQStructuredData } from '@/lib/structured-data';
+import {
+  generateFAQStructuredData,
+  generateItemListSchema,
+  generateMedicalWebPageSchema,
+  generateResourceBreadcrumbSchema,
+} from '@/lib/structured-data';
 import { PainReliefComparison } from './pain-relief-comparison';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://painclinics.com';
 
 export const metadata: Metadata = {
   title: 'Pain Relief Comparison Tool | Ice vs Heat, OTC Medications',
@@ -48,8 +55,46 @@ const faqData = [
   },
 ];
 
+// Pain relief methods for ItemList schema
+const painReliefMethodsForSchema = [
+  { name: 'Ice Pack Therapy', description: 'Cold therapy to reduce inflammation and numb pain. Best for acute injuries in the first 48-72 hours.' },
+  { name: 'Heating Pad', description: 'Heat therapy to relax muscles and increase blood flow. Ideal for chronic stiffness and muscle tension.' },
+  { name: 'Contrast Therapy', description: 'Alternating hot and cold treatment to reduce swelling and improve circulation.' },
+  { name: 'Ibuprofen (Advil/Motrin)', description: 'NSAID medication that reduces inflammation and pain. Effective for muscle and joint pain.' },
+  { name: 'Acetaminophen (Tylenol)', description: 'Pain reliever that is gentler on the stomach. Good for headaches and general pain.' },
+  { name: 'Naproxen (Aleve)', description: 'Long-lasting NSAID providing 8-12 hours of relief. Good for arthritis and back pain.' },
+  { name: 'Stretching', description: 'Gentle exercises to improve flexibility and reduce muscle tension. Free and can be done at home.' },
+  { name: 'Self-Massage', description: 'Manual therapy to release muscle knots and tension. Can be done with hands or massage tools.' },
+  { name: 'Rest & Positioning', description: 'Proper rest and ergonomic positioning to allow healing and prevent further strain.' },
+  { name: 'TENS Unit', description: 'Electrical nerve stimulation device that blocks pain signals. Good for chronic pain management.' },
+  { name: 'Topical Pain Creams', description: 'Over-the-counter creams containing menthol, capsaicin, or lidocaine for localized relief.' },
+  { name: 'Epsom Salt Bath', description: 'Warm bath with magnesium sulfate to relax muscles and reduce inflammation.' },
+];
+
 export default function PainReliefToolPage() {
   const faqSchema = generateFAQStructuredData(faqData);
+
+  const itemListSchema = generateItemListSchema({
+    name: 'Pain Relief Methods Comparison',
+    description:
+      'Compare 17 different pain relief methods including ice therapy, heat therapy, OTC medications, stretching, and alternative treatments.',
+    items: painReliefMethodsForSchema,
+  });
+
+  const medicalWebPageSchema = generateMedicalWebPageSchema({
+    name: 'Pain Relief Comparison Tool - Ice vs Heat, Advil vs Tylenol',
+    description:
+      'Compare pain relief methods including ice vs heat therapy, Advil vs Tylenol, stretching, massage, and more. Find the best treatment for your specific pain type and location.',
+    url: `${BASE_URL}/pain-relief-tool`,
+    datePublished: '2024-01-01',
+    dateModified: new Date().toISOString().slice(0, 10),
+    about: ['Pain Management', 'Pain Relief', 'Anti-Inflammatory Agents', 'Physical Therapy'],
+  });
+
+  const breadcrumbSchema = generateResourceBreadcrumbSchema({
+    pageName: 'Pain Relief Comparison Tool',
+    pageUrl: `${BASE_URL}/pain-relief-tool`,
+  });
 
   return (
     <>
@@ -59,6 +104,18 @@ export default function PainReliefToolPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalWebPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <main id="main-content" className="container mx-auto py-8 md:py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">

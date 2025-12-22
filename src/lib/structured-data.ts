@@ -438,3 +438,146 @@ export function generateDefaultClinicFAQ(clinic: DbClinic) {
     },
   ];
 }
+
+/**
+ * Generates HowTo structured data for instructional content.
+ * Great for step-by-step guides like pain tracking instructions.
+ */
+export function generateHowToSchema(data: {
+  name: string;
+  description: string;
+  totalTime?: string;
+  steps: Array<{ name: string; text: string }>;
+  baseUrl?: string;
+}) {
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: data.name,
+    description: data.description,
+    ...(data.totalTime && { totalTime: data.totalTime }),
+    step: data.steps.map((step, index) => ({
+      "@type": "HowToStep",
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+    })),
+    publisher: {
+      "@type": "Organization",
+      name: "Pain Clinics Directory",
+      url: baseUrl,
+    },
+  };
+}
+
+/**
+ * Generates ItemList structured data for comparison lists.
+ * Ideal for pain relief methods comparison tool.
+ */
+export function generateItemListSchema(data: {
+  name: string;
+  description: string;
+  items: Array<{
+    name: string;
+    description: string;
+    position?: number;
+  }>;
+  baseUrl?: string;
+}) {
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: data.name,
+    description: data.description,
+    numberOfItems: data.items.length,
+    itemListElement: data.items.map((item, index) => ({
+      "@type": "ListItem",
+      position: item.position || index + 1,
+      item: {
+        "@type": "Thing",
+        name: item.name,
+        description: item.description,
+      },
+    })),
+    publisher: {
+      "@type": "Organization",
+      name: "Pain Clinics Directory",
+      url: baseUrl,
+    },
+  };
+}
+
+/**
+ * Generates MedicalWebPage structured data.
+ * Appropriate for health-related informational pages.
+ */
+export function generateMedicalWebPageSchema(data: {
+  name: string;
+  description: string;
+  url: string;
+  datePublished?: string;
+  dateModified?: string;
+  about?: string[];
+  baseUrl?: string;
+}) {
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
+    name: data.name,
+    description: data.description,
+    url: data.url,
+    ...(data.datePublished && { datePublished: data.datePublished }),
+    ...(data.dateModified && { dateModified: data.dateModified }),
+    ...(data.about && data.about.length > 0 && {
+      about: data.about.map((topic) => ({
+        "@type": "MedicalCondition",
+        name: topic,
+      })),
+    }),
+    publisher: {
+      "@type": "Organization",
+      name: "Pain Clinics Directory",
+      url: baseUrl,
+    },
+    medicalAudience: {
+      "@type": "PatientAudience",
+      audienceType: "Patient",
+    },
+  };
+}
+
+/**
+ * Generates simple BreadcrumbList for resource pages.
+ */
+export function generateResourceBreadcrumbSchema(data: {
+  pageName: string;
+  pageUrl: string;
+  baseUrl?: string;
+}) {
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: data.pageName,
+        item: data.pageUrl,
+      },
+    ],
+  };
+}

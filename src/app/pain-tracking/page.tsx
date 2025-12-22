@@ -8,8 +8,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { FloatingToc } from "@/components/blog/floating-toc";
-import { generateFAQStructuredData } from "@/lib/structured-data";
+import {
+  generateFAQStructuredData,
+  generateHowToSchema,
+  generateMedicalWebPageSchema,
+  generateResourceBreadcrumbSchema,
+} from "@/lib/structured-data";
 import { DownloadTemplates } from "./download-templates";
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
 
 export const metadata: Metadata = {
   title: "Free Pain Tracking Template | Printable Pain Diary PDF",
@@ -101,8 +108,59 @@ function PainScaleVisual() {
   );
 }
 
+// HowTo steps for pain tracking
+const howToSteps = [
+  {
+    name: "Choose the right format",
+    text: "Daily trackers work best for acute pain or flare-ups. Weekly and monthly formats are ideal for chronic conditions.",
+  },
+  {
+    name: "Set a reminder",
+    text: "Track at the same time each day for consistency. Many people find evening reviews work best.",
+  },
+  {
+    name: "Be specific",
+    text: "Instead of 'back pain,' note 'lower right back pain that radiates down leg.'",
+  },
+  {
+    name: "Note everything",
+    text: "Include activities, meals, sleep quality, stress levels, and weather conditions.",
+  },
+  {
+    name: "Track treatments",
+    text: "Record all medications (including dose and time) and other therapies used.",
+  },
+  {
+    name: "Review regularly",
+    text: "Look back weekly to identify patterns and prepare for doctor visits.",
+  },
+];
+
 export default function PainTrackingPage() {
   const faqSchema = generateFAQStructuredData(faqData);
+
+  const howToSchema = generateHowToSchema({
+    name: "How to Use a Pain Tracking Template",
+    description:
+      "Learn how to effectively track your pain using a pain diary or tracking template to identify triggers, measure treatment effectiveness, and communicate better with your doctor.",
+    totalTime: "PT10M",
+    steps: howToSteps,
+  });
+
+  const medicalWebPageSchema = generateMedicalWebPageSchema({
+    name: "Free Pain Tracking Templates - Printable Pain Diary",
+    description:
+      "Download free printable pain tracking templates. Daily, weekly, and monthly pain journals to log symptoms, triggers, and treatments for your doctor.",
+    url: `${BASE_URL}/pain-tracking`,
+    datePublished: "2024-01-01",
+    dateModified: new Date().toISOString().slice(0, 10),
+    about: ["Chronic Pain", "Pain Management", "Pain Assessment"],
+  });
+
+  const breadcrumbSchema = generateResourceBreadcrumbSchema({
+    pageName: "Pain Tracking Templates",
+    pageUrl: `${BASE_URL}/pain-tracking`,
+  });
 
   return (
     <>
@@ -114,6 +172,24 @@ export default function PainTrackingPage() {
           }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(howToSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(medicalWebPageSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
 
       <main id="main-content" className="container mx-auto py-8 md:py-12 px-4">
         <div className="max-w-6xl mx-auto prose prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-ol:text-foreground">
