@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, FileText, Loader2, Check } from "lucide-react";
+import { Download, FileText, Loader2, Check, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,8 @@ const templates = [
     title: "Daily Pain Tracker",
     description:
       "Track pain hour-by-hour. Best for flare-ups and acute pain episodes.",
-    filename: "pain-tracker-daily.pdf",
+    filename: "Daily-Pain-Log.xlsx",
+    onlineUrl: "https://drive.google.com/file/d/1eLwpw4eVU-kQxr1qcw3SbQXITwsBvEE6/view",
     badge: "Daily",
   },
   {
@@ -44,7 +45,8 @@ const templates = [
     title: "Weekly Pain Tracker",
     description:
       "Daily summary view. See patterns across the week at a glance.",
-    filename: "pain-tracker-weekly.pdf",
+    filename: "Weekly-Pain-Tracker.xlsx",
+    onlineUrl: "https://drive.google.com/file/d/1bwht4IjT_WLIiDR5Qy9UDGPRASBK3gQ7/view",
     badge: "Weekly",
   },
   {
@@ -52,7 +54,8 @@ const templates = [
     title: "Monthly Pain Tracker",
     description:
       "Long-term tracking. Ideal for chronic conditions and doctor visits.",
-    filename: "pain-tracker-monthly.pdf",
+    filename: "Monthly-Pain-Overview.xlsx",
+    onlineUrl: "https://drive.google.com/file/d/1AlrUDEFpWFtrkzJACqgmwU6lMmOobYrO/view",
     badge: "Monthly",
   },
 ];
@@ -194,8 +197,8 @@ export function DownloadTemplates() {
         Download Free Pain Tracking Templates
       </h2>
       <p className="text-muted-foreground mb-6">
-        Choose the format that works best for your needs. All templates are
-        printable PDF files.
+        Choose the format that works best for your needs. Fill out online with
+        our interactive forms, or download the Excel spreadsheet.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -212,7 +215,7 @@ export function DownloadTemplates() {
                 {template.description}
               </CardDescription>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-2">
               <Button
                 onClick={() => handleDownloadClick(template.id)}
                 className="w-full"
@@ -220,7 +223,7 @@ export function DownloadTemplates() {
                 {hasAccess ? (
                   <>
                     <Download className="size-4" />
-                    Download PDF
+                    Download Excel
                   </>
                 ) : (
                   <>
@@ -228,6 +231,20 @@ export function DownloadTemplates() {
                     Get Free Template
                   </>
                 )}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                asChild
+              >
+                <a
+                  href={template.onlineUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="size-4" />
+                  Fill Out Online
+                </a>
               </Button>
             </CardFooter>
           </Card>

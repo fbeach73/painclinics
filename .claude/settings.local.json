@@ -65,7 +65,8 @@
       "Bash(pnpm drizzle-kit push:*)",
       "Bash(yes:*)",
       "Bash(printf:*)",
-      "Bash(timeout 60 pnpm db:push:*)"
+      "Bash(timeout 60 pnpm db:push:*)",
+      "Bash(unzip:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

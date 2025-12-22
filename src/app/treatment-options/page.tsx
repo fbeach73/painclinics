@@ -17,9 +17,9 @@ export default function TreatmentOptionsPage() {
           An overview of pain treatment options available at pain management clinics.
         </p>
 
-        <Alert variant="destructive" className="not-prose my-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="not-prose my-6 border-yellow-500 bg-yellow-500/10">
+          <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          <AlertDescription className="text-yellow-200">
             This information is for educational purposes only. Treatment
             decisions should be made in consultation with a qualified healthcare
             provider based on your individual condition and medical history.
