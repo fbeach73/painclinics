@@ -92,6 +92,13 @@ export function SiteHeader() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
+                <Link href="/pain-relief-tool" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Pain Relief Tool
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
                 <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[300px] gap-1 p-2">
@@ -155,6 +162,9 @@ export function SiteHeader() {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild>
                 <Link href="/pain-tracking">Pain Tracking</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/pain-relief-tool">Pain Relief Tool</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>

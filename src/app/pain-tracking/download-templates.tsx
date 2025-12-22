@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, FileText, Loader2, Check, ExternalLink } from "lucide-react";
+import { Download, Loader2, Check, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,8 @@ interface StoredAccess {
   timestamp: number;
 }
 
+type ActionType = "download" | "online";
+
 const STORAGE_KEY = "pain_tracker_access";
 const ACCESS_DURATION_MS = 365 * 24 * 60 * 60 * 1000; // 365 days
 
@@ -36,8 +38,8 @@ const templates = [
     title: "Daily Pain Tracker",
     description:
       "Track pain hour-by-hour. Best for flare-ups and acute pain episodes.",
-    filename: "Daily-Pain-Log.xlsx",
-    onlineUrl: "https://drive.google.com/file/d/1eLwpw4eVU-kQxr1qcw3SbQXITwsBvEE6/view",
+    excelFilename: "Daily-Pain-Log.xlsx",
+    htmlPath: "/templates/daily-pain-log.html",
     badge: "Daily",
   },
   {
@@ -45,8 +47,8 @@ const templates = [
     title: "Weekly Pain Tracker",
     description:
       "Daily summary view. See patterns across the week at a glance.",
-    filename: "Weekly-Pain-Tracker.xlsx",
-    onlineUrl: "https://drive.google.com/file/d/1bwht4IjT_WLIiDR5Qy9UDGPRASBK3gQ7/view",
+    excelFilename: "Weekly-Pain-Tracker.xlsx",
+    htmlPath: "/templates/weekly-pain-tracker.html",
     badge: "Weekly",
   },
   {
@@ -54,8 +56,8 @@ const templates = [
     title: "Monthly Pain Tracker",
     description:
       "Long-term tracking. Ideal for chronic conditions and doctor visits.",
-    filename: "Monthly-Pain-Overview.xlsx",
-    onlineUrl: "https://drive.google.com/file/d/1AlrUDEFpWFtrkzJACqgmwU6lMmOobYrO/view",
+    excelFilename: "Monthly-Pain-Overview.xlsx",
+    htmlPath: "/templates/monthly-pain-overview.html",
     badge: "Monthly",
   },
 ];
@@ -74,6 +76,7 @@ function triggerDownload(url: string, filename: string) {
 
 export function DownloadTemplates() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<ActionType>("download");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,43 +103,44 @@ export function DownloadTemplates() {
     }
   }, []);
 
-  const handleDownloadClick = (templateId: string) => {
+  const handleActionClick = (templateId: string, action: ActionType) => {
     setSelectedTemplate(templateId);
+    setActionType(action);
     setError(null);
 
     if (hasAccess) {
-      // User already has access, download directly
-      initiateDownload(templateId);
+      // User already has access, perform action directly
+      performAction(templateId, action);
     } else {
       // Show email gate dialog
       setIsDialogOpen(true);
     }
   };
 
-  const initiateDownload = async (templateId: string) => {
+  const performAction = async (templateId: string, action: ActionType) => {
     const template = templates.find((t) => t.id === templateId);
     if (!template) return;
 
     try {
-      // Call API to log download (even for returning users)
-      const response = await fetch("/api/resources/download", {
+      // Call API to log access (even for returning users)
+      await fetch("/api/resources/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email,
           resourceName: templateId,
-          source: "pain-tracking-page",
+          source: action === "online" ? "pain-tracking-online" : "pain-tracking-download",
         }),
       });
-
-      const data = await response.json();
-
-      if (data.success && data.downloadUrl) {
-        triggerDownload(data.downloadUrl, template.filename);
-      }
     } catch {
-      // Fallback to direct download
-      triggerDownload(`/templates/${template.filename}`, template.filename);
+      // Continue even if logging fails
+    }
+
+    if (action === "download") {
+      triggerDownload(`/templates/${template.excelFilename}`, template.excelFilename);
+    } else {
+      // Open HTML template in new tab
+      window.open(template.htmlPath, "_blank");
     }
   };
 
@@ -154,7 +158,7 @@ export function DownloadTemplates() {
         body: JSON.stringify({
           email: email,
           resourceName: selectedTemplate,
-          source: "pain-tracking-page",
+          source: actionType === "online" ? "pain-tracking-online" : "pain-tracking-download",
         }),
       });
 
@@ -177,11 +181,13 @@ export function DownloadTemplates() {
       // Close dialog
       setIsDialogOpen(false);
 
-      // Trigger download
-      if (data.downloadUrl) {
-        const template = templates.find((t) => t.id === selectedTemplate);
-        if (template) {
-          triggerDownload(data.downloadUrl, template.filename);
+      // Perform the requested action
+      const template = templates.find((t) => t.id === selectedTemplate);
+      if (template) {
+        if (actionType === "download") {
+          triggerDownload(`/templates/${template.excelFilename}`, template.excelFilename);
+        } else {
+          window.open(template.htmlPath, "_blank");
         }
       }
     } catch {
@@ -194,7 +200,7 @@ export function DownloadTemplates() {
   return (
     <section className="not-prose my-8">
       <h2 className="text-2xl font-bold mb-2 text-foreground">
-        Download Free Pain Tracking Templates
+        Free Pain Tracking Templates
       </h2>
       <p className="text-muted-foreground mb-6">
         Choose the format that works best for your needs. Fill out online with
@@ -217,34 +223,19 @@ export function DownloadTemplates() {
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
               <Button
-                onClick={() => handleDownloadClick(template.id)}
+                onClick={() => handleActionClick(template.id, "online")}
                 className="w-full"
               >
-                {hasAccess ? (
-                  <>
-                    <Download className="size-4" />
-                    Download Excel
-                  </>
-                ) : (
-                  <>
-                    <FileText className="size-4" />
-                    Get Free Template
-                  </>
-                )}
+                <ExternalLink className="size-4" />
+                {hasAccess ? "Fill Out Online" : "Get Free Template"}
               </Button>
               <Button
                 variant="outline"
                 className="w-full"
-                asChild
+                onClick={() => handleActionClick(template.id, "download")}
               >
-                <a
-                  href={template.onlineUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="size-4" />
-                  Fill Out Online
-                </a>
+                <Download className="size-4" />
+                Download Excel
               </Button>
             </CardFooter>
           </Card>
@@ -254,7 +245,7 @@ export function DownloadTemplates() {
       {hasAccess && (
         <p className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
           <Check className="size-4 text-green-600" />
-          You have instant download access
+          You have instant access to all templates
         </p>
       )}
 
@@ -263,7 +254,7 @@ export function DownloadTemplates() {
           <DialogHeader>
             <DialogTitle>Get Your Free Pain Tracker</DialogTitle>
             <DialogDescription>
-              Enter your email to download the template. We&apos;ll also send
+              Enter your email to access the template. We&apos;ll also send
               you helpful pain management tips (unsubscribe anytime).
             </DialogDescription>
           </DialogHeader>
@@ -292,14 +283,18 @@ export function DownloadTemplates() {
                 </>
               ) : (
                 <>
-                  <Download className="size-4" />
-                  Download Now
+                  {actionType === "online" ? (
+                    <ExternalLink className="size-4" />
+                  ) : (
+                    <Download className="size-4" />
+                  )}
+                  {actionType === "online" ? "Open Template" : "Download Now"}
                 </>
               )}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              By downloading, you agree to receive occasional emails. We respect
+              By continuing, you agree to receive occasional emails. We respect
               your privacy.
             </p>
           </form>

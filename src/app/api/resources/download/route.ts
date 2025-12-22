@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -15,9 +16,9 @@ const downloadSchema = z.object({
 });
 
 const resourceFileMap: Record<string, string> = {
-  "pain-tracker-daily": "/templates/pain-tracker-daily.pdf",
-  "pain-tracker-weekly": "/templates/pain-tracker-weekly.pdf",
-  "pain-tracker-monthly": "/templates/pain-tracker-monthly.pdf",
+  "pain-tracker-daily": "/templates/Daily-Pain-Log.xlsx",
+  "pain-tracker-weekly": "/templates/Weekly-Pain-Tracker.xlsx",
+  "pain-tracker-monthly": "/templates/Monthly-Pain-Overview.xlsx",
 };
 
 export async function POST(request: NextRequest) {
@@ -37,12 +38,21 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Save email to database
-    await db.insert(resourceDownloads).values({
-      email: data.email,
-      resourceName: data.resourceName,
-      source: data.source,
-    });
+    // Check if email already exists
+    const existing = await db
+      .select({ id: resourceDownloads.id })
+      .from(resourceDownloads)
+      .where(eq(resourceDownloads.email, data.email))
+      .limit(1);
+
+    // Only insert if email is new
+    if (existing.length === 0) {
+      await db.insert(resourceDownloads).values({
+        email: data.email,
+        resourceName: data.resourceName,
+        source: data.source,
+      });
+    }
 
     // Return download URL
     const downloadUrl = resourceFileMap[data.resourceName];

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Pain Log</title>
+    <style>
+        @media print {
+            body { margin: 0.5in; }
+            .no-print { display: none; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            font-size: 11px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        .date-section {
+            margin-bottom: 20px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 11px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .time-col { width: 15%; }
+        .location-col { width: 20%; }
+        .intensity-col { width: 12%; }
+        .duration-col { width: 15%; }
+        .trigger-col { width: 38%; }
+        .scale {
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .notes-section {
+            margin-top: 10px;
+        }
+        .notes-section label {
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .notes-area {
+            width: 100%;
+            height: 60px;
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: 11px;
+        }
+        input[type="text"], input[type="date"] {
+            border: none;
+            border-bottom: 1px solid #ccc;
+            width: 100%;
+            font-size: 11px;
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Daily Pain Log</h1>
+    <div class="instructions">
+        Track your pain throughout the day. Rate intensity from 1-10 (1=minimal, 10=severe). Note what you were doing and what helped.
+    </div>
+
+    <div class="date-section">
+        <strong>Date:</strong> <input type="date" style="width: 150px;">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="time-col">Time</th>
+                <th class="location-col">Pain Location</th>
+                <th class="intensity-col">Intensity<br>(1-10)</th>
+                <th class="duration-col">Duration</th>
+                <th class="trigger-col">Activity/Trigger</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" placeholder="e.g., 8:00 AM"></td>
+                <td><input type="text" placeholder="e.g., Lower back"></td>
+                <td><input type="text"></td>
+                <td><input type="text" placeholder="e.g., 2 hours"></td>
+                <td><input type="text"></td>
+            </tr>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            </tr>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            </tr>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            </tr>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            </tr>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="notes-section">
+        <label>Medications Taken Today:</label>
+        <textarea class="notes-area" placeholder="List medications, dosage, and time taken"></textarea>
+    </div>
+
+    <div class="notes-section">
+        <label>What Helped Relieve Pain:</label>
+        <textarea class="notes-area" placeholder="Ice, heat, stretching, rest, etc."></textarea>
+    </div>
+
+    <div class="notes-section">
+        <label>Additional Notes (sleep quality, mood, weather, etc.):</label>
+        <textarea class="notes-area"></textarea>
+    </div>
+
+    <div class="scale">
+        <strong>Pain Intensity Scale:</strong> 1-2 = Mild | 3-4 = Uncomfortable | 5-6 = Moderate | 7-8 = Severe | 9-10 = Unbearable
+    </div>
+</body>
+</html>

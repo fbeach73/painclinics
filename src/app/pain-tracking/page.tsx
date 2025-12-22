@@ -116,7 +116,7 @@ export default function PainTrackingPage() {
       )}
 
       <main id="main-content" className="container mx-auto py-8 md:py-12 px-4">
-        <div className="max-w-4xl mx-auto prose prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-ol:text-foreground">
+        <div className="max-w-6xl mx-auto prose prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-ol:text-foreground">
           <h1>Free Pain Tracking Templates</h1>
           <p className="lead text-foreground/70">
             Download printable pain diaries to help you monitor symptoms, identify
