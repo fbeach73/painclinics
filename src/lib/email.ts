@@ -120,22 +120,89 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 
     return { success: true, messageId: result.id, logId };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const errorDetails = error && typeof error === "object" && "status" in error
-      ? { status: (error as { status?: number }).status, message: errorMessage }
-      : { message: errorMessage };
+    // Extract detailed error information from Mailgun response
+    const extractErrorDetails = (err: unknown): {
+      message: string;
+      status?: number;
+      statusText?: string;
+      details?: string;
+      type?: string;
+    } => {
+      if (!err || typeof err !== "object") {
+        return { message: String(err) || "Unknown error" };
+      }
+
+      const e = err as Record<string, unknown>;
+
+      // Mailgun errors typically have status and details
+      const status = typeof e.status === "number" ? e.status : undefined;
+      const statusText = typeof e.statusText === "string" ? e.statusText : undefined;
+      const type = typeof e.type === "string" ? e.type : undefined;
+
+      // Try to get message from various possible locations
+      let message = "Unknown error";
+      if (typeof e.message === "string") {
+        message = e.message;
+      } else if (e.details && typeof e.details === "string") {
+        message = e.details;
+      } else if (e.error && typeof e.error === "string") {
+        message = e.error;
+      }
+
+      // Additional details might be in response body
+      let details: string | undefined;
+      if (e.body && typeof e.body === "object") {
+        details = JSON.stringify(e.body);
+      } else if (e.response && typeof e.response === "object") {
+        const resp = e.response as Record<string, unknown>;
+        if (resp.body) {
+          details = typeof resp.body === "string" ? resp.body : JSON.stringify(resp.body);
+        }
+      }
+
+      const result: {
+        message: string;
+        status?: number;
+        statusText?: string;
+        details?: string;
+        type?: string;
+      } = { message };
+
+      if (status !== undefined) result.status = status;
+      if (statusText !== undefined) result.statusText = statusText;
+      if (details !== undefined) result.details = details;
+      if (type !== undefined) result.type = type;
+
+      return result;
+    };
+
+    const errorInfo = extractErrorDetails(error);
+
+    // Build comprehensive error message for logging
+    const fullErrorMessage = [
+      errorInfo.message,
+      errorInfo.status && `(HTTP ${errorInfo.status}${errorInfo.statusText ? ` ${errorInfo.statusText}` : ""})`,
+      errorInfo.type && `[${errorInfo.type}]`,
+      errorInfo.details && `Details: ${errorInfo.details}`,
+    ].filter(Boolean).join(" ");
 
     await updateEmailLog(logId, {
       status: "failed",
-      errorMessage,
+      errorMessage: fullErrorMessage,
     });
-    console.error("Email send failed:", {
+
+    console.error("📧 Email send failed:", {
       to,
       subject,
+      templateName,
       domain: process.env.MAILGUN_DOMAIN,
-      error: errorDetails,
-      fullError: error,
+      apiKeyPresent: !!process.env.MAILGUN_API_KEY,
+      apiKeyPrefix: process.env.MAILGUN_API_KEY?.substring(0, 8) + "...",
+      region: process.env.MAILGUN_REGION || "us",
+      error: errorInfo,
+      rawError: error,
     });
+
     return { success: false, error, logId };
   }
 }
