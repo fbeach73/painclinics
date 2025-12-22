@@ -1,6 +1,7 @@
 import { sql, asc, desc, eq, or, ilike } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
+import { US_STATES_REVERSE } from "@/lib/us-states";
 
 /**
  * SQL fragment to order by featured status.
@@ -77,17 +78,18 @@ export async function getAllStatesWithClinics() {
     .from(clinics);
 
   return results
-    .filter((r) => r.stateAbbreviation)
+    .filter((r) => r.stateAbbreviation && r.stateAbbreviation in US_STATES_REVERSE)
     .map((r) => r.stateAbbreviation!);
 }
 
 /**
  * Get clinic count by state for summary statistics.
+ * Filters out invalid state abbreviations (like 'XX').
  *
  * @returns Array of { stateAbbreviation, count } objects
  */
 export async function getClinicCountsByState() {
-  return db
+  const results = await db
     .select({
       stateAbbreviation: clinics.stateAbbreviation,
       count: sql<number>`COUNT(*)::int`,
@@ -95,6 +97,11 @@ export async function getClinicCountsByState() {
     .from(clinics)
     .groupBy(clinics.stateAbbreviation)
     .orderBy(asc(clinics.stateAbbreviation));
+
+  // Filter to only valid US state abbreviations
+  return results.filter(
+    (r) => r.stateAbbreviation && r.stateAbbreviation in US_STATES_REVERSE
+  );
 }
 
 /**
