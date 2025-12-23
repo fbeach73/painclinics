@@ -1,12 +1,12 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitize from "sanitize-html";
 
 /**
  * Sanitize HTML content to prevent XSS attacks.
- * Safe to use on both server and client.
+ * Works on both server and client without jsdom dependency.
  */
 export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
+  return sanitize(html, {
+    allowedTags: [
       "h1",
       "h2",
       "h3",
@@ -31,7 +31,10 @@ export function sanitizeHtml(html: string): string {
       "pre",
       "code",
     ],
-    ALLOWED_ATTR: ["href", "target", "rel", "class"],
-    ALLOW_DATA_ATTR: false,
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+      "*": ["class"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
   });
 }

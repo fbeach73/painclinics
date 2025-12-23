@@ -72,7 +72,8 @@
       "Bash(npx tsc:*)",
       "mcp__playwright__browser_run_code",
       "Bash(pnpm tsc:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(pnpm why:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
