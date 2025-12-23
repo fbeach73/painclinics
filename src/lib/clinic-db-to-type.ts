@@ -11,7 +11,6 @@ import type {
 } from "@/types/clinic";
 import type { ClinicService } from "@/types/service";
 import { extractPermalinkSlug, type ClinicHour } from "./clinic-transformer";
-import { stripHtmlTags } from "./html-utils";
 import { parseTimeRange } from "./time-utils";
 import type { ClinicRecord } from "./clinic-queries";
 
@@ -62,7 +61,7 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
     rating: dbClinic.rating || 0,
     reviewCount: dbClinic.reviewCount || 0,
     photos: dbClinic.clinicImageUrls || [],
-    about: stripHtmlTags(dbClinic.content || ""),
+    about: dbClinic.content || "", // Keep HTML - ClinicAbout component handles rendering
     isVerified: dbClinic.isVerified ?? false,
     isFeatured: dbClinic.isFeatured ?? false,
     ownerUserId: dbClinic.ownerUserId,

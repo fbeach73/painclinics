@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import { eq } from "drizzle-orm";
@@ -135,6 +136,11 @@ export async function POST(
         updatedAt: new Date(),
       })
       .where(eq(clinics.id, clinicId));
+
+    // Revalidate the clinic page cache so changes appear immediately
+    if (clinic.permalink) {
+      revalidatePath(`/${clinic.permalink}`);
+    }
 
     // Calculate total tokens
     const inputTokens = usage?.inputTokens ?? 0;

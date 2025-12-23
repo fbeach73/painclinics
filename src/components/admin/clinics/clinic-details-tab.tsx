@@ -85,16 +85,21 @@ const US_STATES = [
   { value: "WY", label: "Wyoming" },
 ];
 
+// Common clinic types - user can also enter custom values
 const CLINIC_TYPES = [
-  { value: "pain_management", label: "Pain Management" },
-  { value: "orthopedic", label: "Orthopedic" },
-  { value: "chiropractic", label: "Chiropractic" },
-  { value: "physical_therapy", label: "Physical Therapy" },
-  { value: "neurology", label: "Neurology" },
-  { value: "rehabilitation", label: "Rehabilitation" },
-  { value: "interventional", label: "Interventional Pain" },
-  { value: "anesthesiology", label: "Anesthesiology" },
-  { value: "other", label: "Other" },
+  "Pain Management",
+  "Pain management physician",
+  "Pain control clinic",
+  "Orthopedic",
+  "Chiropractic",
+  "Physical Therapy",
+  "Neurology",
+  "Rehabilitation",
+  "Interventional Pain",
+  "Anesthesiology",
+  "Doctor",
+  "Medical clinic",
+  "Other",
 ];
 
 interface ClinicData {
@@ -318,21 +323,21 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
 
                 <div className="space-y-2">
                   <Label htmlFor="clinicType">Clinic Type</Label>
-                  <Select
+                  <Input
+                    id="clinicType"
+                    list="clinic-types"
                     value={formData.clinicType || ""}
-                    onValueChange={(value) => handleInputChange("clinicType", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select clinic type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CLINIC_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onChange={(e) => handleInputChange("clinicType", e.target.value)}
+                    placeholder="Select or enter clinic type"
+                  />
+                  <datalist id="clinic-types">
+                    {CLINIC_TYPES.map((type) => (
+                      <option key={type} value={type} />
+                    ))}
+                  </datalist>
+                  <p className="text-xs text-muted-foreground">
+                    Select from suggestions or enter a custom type
+                  </p>
                 </div>
               </div>
 

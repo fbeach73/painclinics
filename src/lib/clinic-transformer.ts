@@ -98,6 +98,15 @@ export interface RawClinicCSVRow {
   range?: string; // Price range from Outscraper (e.g., "$", "$$", "$$$")
   detailed_reviews?: string; // Full review objects JSON array from Outscraper
 
+  // Scraper format columns (no coordinates, has additional metadata)
+  is_spending_on_ads?: string;
+  competitors?: string;
+  can_claim?: string;
+  owner_name?: string;
+  owner_profile_link?: string;
+  is_temporarily_closed?: string;
+  query?: string;
+
   // Reviews Per Score - Legacy format (individual columns)
   "Reviews Per Score Rating_1"?: string;
   "Reviews Per Score Rating_2"?: string;
@@ -234,6 +243,7 @@ export interface TransformedClinic {
   linkedin: string | null;
   tiktok: string | null;
   pinterest: string | null;
+  status: "draft" | "published";
 }
 
 /**
@@ -378,6 +388,111 @@ export function parseReviewsPerScore(row: RawClinicCSVRow): ReviewsPerScore | nu
   }
 
   return hasAny ? scores : null;
+}
+
+/**
+ * Parse scraper format address string into components
+ * Handles format: "Street, City, ST ZIP, Country"
+ * @example "15 Shrine Club Rd Suite B, Lander, WY 82520, United States"
+ */
+function parseScraperAddress(address: string | undefined): {
+  streetAddress: string | null;
+  city: string | null;
+  state: string | null;
+  stateAbbreviation: string | null;
+  postalCode: string | null;
+} {
+  const empty = {
+    streetAddress: null,
+    city: null,
+    state: null,
+    stateAbbreviation: null,
+    postalCode: null,
+  };
+
+  if (!address) return empty;
+
+  // Format: "Street, City, ST ZIP, Country"
+  const parts = address.split(",").map((p) => p.trim());
+  if (parts.length < 3) {
+    // Not enough parts for full address - store as street address
+    return { ...empty, streetAddress: address };
+  }
+
+  const streetAddress = parts[0] || null;
+  const city = parts[1] || null;
+
+  // Parse "ST ZIP" from third part (e.g., "WY 82520")
+  const stateZipPart = parts[2] || "";
+  const stateZipMatch = stateZipPart.match(/^([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/);
+
+  const stateAbbreviation = stateZipMatch?.[1] || null;
+  const postalCode = stateZipMatch?.[2] || null;
+  const state = stateAbbreviation ? getStateName(stateAbbreviation) : null;
+
+  return { streetAddress, city, state, stateAbbreviation, postalCode };
+}
+
+/**
+ * Parse scraper format hours from workday_timing + closed_on
+ * workday_timing contains the standard hours (e.g., "8 a.m.-5:30 p.m.")
+ * closed_on lists days when closed (e.g., "Saturday, Sunday")
+ * Special case: "Open All Days" means no closed days
+ */
+function parseScraperHours(
+  workdayTiming: string | undefined,
+  closedOn: string | undefined
+): ClinicHour[] | null {
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  // If no timing info at all, return null
+  if (!workdayTiming && !closedOn) return null;
+
+  // Parse closed days into a set (lowercase for comparison)
+  const closedDays = new Set(
+    (closedOn || "")
+      .split(",")
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  // Handle "Open All Days" case - no days are closed
+  const isOpenAllDays = closedOn?.toLowerCase().includes("open all days");
+
+  return days.map((day) => ({
+    day,
+    hours:
+      isOpenAllDays || !closedDays.has(day.toLowerCase())
+        ? workdayTiming || "Hours not specified"
+        : "Closed",
+  }));
+}
+
+/**
+ * Parse scraper format comma-separated keywords into ReviewKeyword array
+ * Keywords come without counts, so we default count to 1
+ * @example "team, compassionate, questions" => [{keyword: "team", count: 1}, ...]
+ */
+function parseScraperKeywords(keywords: string | undefined): ReviewKeyword[] | null {
+  if (!keywords) return null;
+
+  const keywordList = keywords
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
+
+  if (keywordList.length === 0) return null;
+
+  // No counts provided in scraper format, so default to 1
+  return keywordList.map((keyword) => ({ keyword, count: 1 }));
 }
 
 /**
@@ -855,12 +970,100 @@ function emptyToNull(value: string | undefined): string | null {
 
 /**
  * Transform a raw CSV row into a clinic object ready for database insertion
- * Supports both WordPress export format and Outscraper/Google Places format
+ * Supports WordPress export, Outscraper/Google Places, and Scraper formats
  */
 export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | null {
-  // Detect format: Outscraper uses 'name' and 'coordinates', WordPress uses 'Title' and 'Map Latitude'
+  // Detect format by checking distinctive column combinations:
+  // - Outscraper: has 'name' AND 'coordinates' (JSON object with lat/lng)
+  // - Scraper: has 'name', 'place_id', 'main_category' but NO 'coordinates' (address string only)
+  // - WordPress: has 'Title' and 'Map Latitude' (explicit columns)
   const isOutscraperFormat = !!row.name && !!row.coordinates;
+  const isScraperFormat =
+    !isOutscraperFormat && !!row.name && !!row.place_id && !!row.main_category;
 
+  // ========== SCRAPER FORMAT ==========
+  // Handle scraper format first (early return) - no coordinates available
+  if (isScraperFormat) {
+    const scraperTitle = row.name?.trim();
+    if (!scraperTitle) return null;
+
+    // Parse address components from "Street, City, ST ZIP, Country" format
+    const addr = parseScraperAddress(row.address);
+
+    // Validate we have minimal location data
+    if (!addr.city && !addr.postalCode && !row.address) {
+      return null; // Skip rows with no location data
+    }
+
+    // Parse categories into array for checkboxFeatures
+    const categories = row.categories
+      ?.split(",")
+      .map((c) => c.trim())
+      .filter(Boolean) || null;
+
+    // Build state abbreviation - from parsed address or derive from state name
+    const scraperStateAbbr = addr.stateAbbreviation ||
+      (addr.state ? getStateAbbreviation(addr.state) : null) || "";
+
+    return {
+      wpId: null,
+      placeId: emptyToNull(row.place_id),
+      title: scraperTitle,
+      permalink: `pain-management/${generatePermalinkSlug(
+        scraperTitle,
+        scraperStateAbbr,
+        addr.postalCode || ""
+      )}`,
+      postType: "pain-management",
+      clinicType: emptyToNull(row.main_category),
+      streetAddress: addr.streetAddress,
+      city: addr.city || "",
+      state: addr.state || "",
+      stateAbbreviation: scraperStateAbbr || null,
+      postalCode: addr.postalCode || "",
+      mapLatitude: 0, // Not provided in scraper format - would need geocoding
+      mapLongitude: 0,
+      detailedAddress: emptyToNull(row.address),
+      phone: emptyToNull(row.phone),
+      phones: null,
+      website: emptyToNull(row.website),
+      emails: null,
+      reviewCount: safeParseInt(row.reviews) || 0,
+      rating: safeParseFloat(row.rating),
+      reviewsPerScore: null,
+      reviewKeywords: parseScraperKeywords(row.review_keywords),
+      detailedReviews: null,
+      allReviewsText: null,
+      clinicHours: parseScraperHours(row.workday_timing, row.closed_on),
+      closedOn: emptyToNull(row.closed_on),
+      popularTimes: null,
+      featuredReviews: null,
+      priceRange: null,
+      businessDescription: emptyToNull(row.description),
+      content: null,
+      newPostContent: null,
+      imageUrl: emptyToNull(row.featured_image),
+      imageFeatured: emptyToNull(row.featured_image),
+      featImage: null,
+      clinicImageUrls: null,
+      clinicImageMedia: null,
+      qrCode: null,
+      amenities: null,
+      checkboxFeatures: categories,
+      googleListingLink: emptyToNull(row.link),
+      questions: null,
+      facebook: null,
+      instagram: null,
+      twitter: null,
+      youtube: null,
+      linkedin: null,
+      tiktok: null,
+      pinterest: null,
+      status: "draft", // Import as draft for review before publishing
+    };
+  }
+
+  // ========== OUTSCRAPER & WORDPRESS FORMATS ==========
   let title: string | undefined;
   let city: string | undefined;
   let state: string | undefined;
@@ -977,6 +1180,7 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       linkedin: null,
       tiktok: null,
       pinterest: null,
+      status: "draft", // Import as draft for review before publishing
     };
   }
 
@@ -1058,6 +1262,7 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     linkedin: emptyToNull(row.linkedin || row.LinkedIn),
     tiktok: emptyToNull(row.tiktok || row.TikTok),
     pinterest: emptyToNull(row.pinterest || row.Pinterest),
+    status: "draft", // Import as draft for review before publishing
   };
 }
 
