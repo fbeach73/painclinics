@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 import { parse } from "csv-parse/sync";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq, isNotNull, sql } from "drizzle-orm";
+import { eq, isNotNull } from "drizzle-orm";
 import {
   pgTable,
   text,
