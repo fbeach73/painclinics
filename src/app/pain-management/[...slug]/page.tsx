@@ -661,17 +661,15 @@ export default async function PainManagementClinicPage({ params }: Props) {
                 </div>
               )}
             </div>
-            {(dbClinic.imageFeatured || dbClinic.imageUrl) && (
-              <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
-                <Image
-                  src={dbClinic.imageFeatured || dbClinic.imageUrl || ""}
-                  alt={clinic.name}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            )}
+            <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+              <Image
+                src={dbClinic.imageFeatured || dbClinic.imageUrl || "/images/clinic-placeholder.png"}
+                alt={clinic.name}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
 
           {/* Main Content Grid */}

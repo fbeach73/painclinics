@@ -10,6 +10,7 @@ import {
   integer,
   doublePrecision,
   jsonb,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 // ============================================
@@ -201,6 +202,12 @@ export const clinics = pgTable(
     reviewsPerScore: jsonb("reviews_per_score"),
     reviewKeywords: jsonb("review_keywords"),
     featuredReviews: jsonb("featured_reviews"),
+    detailedReviews: jsonb("detailed_reviews"), // Full review objects array from Outscraper
+    allReviewsText: text("all_reviews_text"), // Concatenated stripped reviews for AI content generation
+
+    // Business Info
+    priceRange: varchar("price_range", { length: 50 }), // Price range from Outscraper 'range' field
+    businessDescription: text("business_description"), // From Outscraper 'about' field
 
     // Business Hours
     clinicHours: jsonb("clinic_hours"),

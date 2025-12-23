@@ -21,8 +21,10 @@ interface ClinicGalleryProps {
 export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  // Use placeholder images if no photos provided
-  const displayPhotos = photos.length > 0 ? photos : Array(4).fill(null);
+  const FALLBACK_IMAGE = '/images/clinic-placeholder.png';
+
+  // Use placeholder image if no photos provided
+  const displayPhotos = photos.length > 0 ? photos : [FALLBACK_IMAGE];
 
   const handlePrevious = () => {
     if (selectedIndex !== null) {

@@ -287,12 +287,14 @@ export async function getClinicsForAdmin(limit = 100, offset = 0) {
       rating: clinics.rating,
       reviewCount: clinics.reviewCount,
       updatedAt: clinics.updatedAt,
+      createdAt: clinics.createdAt,
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
       status: clinics.status,
+      hasEnhancedContent: sql<boolean>`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN true ELSE false END`,
     })
     .from(clinics)
-    .orderBy(desc(featuredOrderSql), asc(clinics.stateAbbreviation), asc(clinics.city), asc(clinics.title))
+    .orderBy(desc(clinics.createdAt))
     .limit(limit)
     .offset(offset);
 }

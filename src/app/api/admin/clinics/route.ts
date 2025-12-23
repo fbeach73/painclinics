@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, or, ilike, eq, and, asc, desc } from "drizzle-orm";
+import { sql, or, ilike, eq, and, asc, desc, isNotNull, isNull } from "drizzle-orm";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
+
+type SortColumn = "title" | "createdAt" | "enhanced" | "rating" | "reviewCount";
+type SortDirection = "asc" | "desc";
 
 /**
  * Search and filter clinics for admin listing.
@@ -16,6 +19,9 @@ export async function GET(request: NextRequest) {
     const city = searchParams.get("city")?.trim();
     const featured = searchParams.get("featured");
     const status = searchParams.get("status")?.trim();
+    const enhanced = searchParams.get("enhanced");
+    const sortBy = (searchParams.get("sortBy") || "createdAt") as SortColumn;
+    const sortDir = (searchParams.get("sortDir") || "desc") as SortDirection;
     const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -59,9 +65,48 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(clinics.status, status as "draft" | "published" | "deleted"));
     }
 
+    // Enhanced filter
+    if (enhanced === "true") {
+      conditions.push(
+        and(
+          isNotNull(clinics.newPostContent),
+          sql`${clinics.newPostContent} != ''`
+        )
+      );
+    } else if (enhanced === "false") {
+      conditions.push(
+        or(
+          isNull(clinics.newPostContent),
+          sql`${clinics.newPostContent} = ''`
+        )
+      );
+    }
+
     // Build the query
     const whereCondition =
       conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Build sort order
+    const sortFn = sortDir === "asc" ? asc : desc;
+    let orderByClause;
+    switch (sortBy) {
+      case "createdAt":
+        orderByClause = sortFn(clinics.createdAt);
+        break;
+      case "enhanced":
+        orderByClause = sortFn(sql`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN 1 ELSE 0 END`);
+        break;
+      case "rating":
+        orderByClause = sortFn(clinics.rating);
+        break;
+      case "reviewCount":
+        orderByClause = sortFn(clinics.reviewCount);
+        break;
+      case "title":
+      default:
+        orderByClause = sortFn(clinics.title);
+        break;
+    }
 
     // Get clinics with filters
     const results = await db
@@ -76,15 +121,12 @@ export async function GET(request: NextRequest) {
         isFeatured: clinics.isFeatured,
         featuredTier: clinics.featuredTier,
         status: clinics.status,
+        createdAt: clinics.createdAt,
+        hasEnhancedContent: sql<boolean>`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN true ELSE false END`,
       })
       .from(clinics)
       .where(whereCondition)
-      .orderBy(
-        desc(sql`CASE WHEN ${clinics.isFeatured} = true THEN 0 ELSE 1 END`),
-        asc(clinics.stateAbbreviation),
-        asc(clinics.city),
-        asc(clinics.title)
-      )
+      .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
 

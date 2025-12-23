@@ -21,6 +21,20 @@ export interface FeaturedReview {
   rating: number | null;
 }
 
+/**
+ * Detailed review from Outscraper with full metadata
+ */
+export interface DetailedReview {
+  review_id?: string;
+  review_text?: string;
+  review_rating?: number;
+  author_title?: string;
+  author_link?: string;
+  review_datetime_utc?: string;
+  owner_answer?: string;
+  review_likes?: number;
+}
+
 export interface PopularTime {
   hour: string;
   popularity: number;
@@ -31,10 +45,11 @@ export interface ReviewsPerScore {
 }
 
 /**
- * Raw CSV row type with all possible WordPress export fields
- * Supports both old (legacy) and new column naming conventions
+ * Raw CSV row type with all possible fields
+ * Supports WordPress export, Outscraper, and Google Places formats
  */
 export interface RawClinicCSVRow {
+  // WordPress format
   ID?: string;
   Title?: string;
   "Place ID"?: string;
@@ -55,6 +70,33 @@ export interface RawClinicCSVRow {
   emails?: string;
   Reviews?: string;
   Rating?: string;
+
+  // Outscraper/Google Places format
+  place_id?: string;
+  name?: string;
+  description?: string;
+  link?: string;
+  reviews?: string;
+  rating?: string;
+  website?: string;
+  phone?: string;
+  main_category?: string;
+  categories?: string;
+  workday_timing?: string;
+  closed_on?: string;
+  address?: string;
+  reviews_per_rating?: string;
+  coordinates?: string;
+  detailed_address?: string;
+  hours?: string;
+  featured_image?: string;
+  images?: string;
+  featured_images?: string;
+  review_keywords?: string;
+  featured_reviews?: string;
+  about?: string;
+  range?: string; // Price range from Outscraper (e.g., "$", "$$", "$$$")
+  detailed_reviews?: string; // Full review objects JSON array from Outscraper
 
   // Reviews Per Score - Legacy format (individual columns)
   "Reviews Per Score Rating_1"?: string;
@@ -165,10 +207,14 @@ export interface TransformedClinic {
   rating: number | null;
   reviewsPerScore: ReviewsPerScore | null;
   reviewKeywords: ReviewKeyword[] | null;
+  detailedReviews: DetailedReview[] | null;
+  allReviewsText: string | null;
   clinicHours: ClinicHour[] | null;
   closedOn: string | null;
   popularTimes: PopularTime[] | null;
   featuredReviews: FeaturedReview[] | null;
+  priceRange: string | null;
+  businessDescription: string | null;
   content: string | null;
   newPostContent: string | null;
   imageUrl: string | null;
@@ -510,6 +556,278 @@ export function generatePermalinkSlug(
 }
 
 /**
+ * Safely parse JSON string
+ */
+function safeParseJSON<T>(value: string | undefined): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse Outscraper coordinates JSON
+ * @example '{"latitude":42.8397996,"longitude":-108.71708}' => { lat: 42.84, lng: -108.72 }
+ */
+function parseOutscraperCoordinates(coords: string | undefined): { lat: number; lng: number } | null {
+  const parsed = safeParseJSON<{ latitude?: number; longitude?: number }>(coords);
+  if (!parsed || typeof parsed.latitude !== 'number' || typeof parsed.longitude !== 'number') {
+    return null;
+  }
+  return { lat: parsed.latitude, lng: parsed.longitude };
+}
+
+/**
+ * Parse Outscraper detailed_address JSON
+ * @example '{"ward":null,"street":"15 Shrine Club Rd","city":"Lander","state":"Wyoming","postal_code":"82520"}'
+ */
+interface OutscraperDetailedAddress {
+  ward?: string | null;
+  street?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+}
+
+function parseOutscraperDetailedAddress(addr: string | undefined): OutscraperDetailedAddress | null {
+  return safeParseJSON<OutscraperDetailedAddress>(addr);
+}
+
+/**
+ * Parse Outscraper hours JSON array
+ * @example '[{"day":"Monday","times":["8 a.m.-5:30 p.m."]}]'
+ */
+function parseOutscraperHours(hours: string | undefined): ClinicHour[] | null {
+  const parsed = safeParseJSON<Array<{ day?: string; times?: string[] }>>(hours);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) return null;
+
+  const result: ClinicHour[] = [];
+  for (const item of parsed) {
+    if (item.day && item.times && item.times.length > 0) {
+      result.push({
+        day: item.day,
+        hours: item.times.join(', '),
+      });
+    }
+  }
+  return result.length > 0 ? result : null;
+}
+
+/**
+ * Parse Outscraper review_keywords JSON array
+ * @example '[{"keyword":"team","count":10},{"keyword":"compassionate","count":8}]'
+ */
+function parseOutscraperReviewKeywords(keywords: string | undefined): ReviewKeyword[] | null {
+  const parsed = safeParseJSON<Array<{ keyword?: string; count?: number }>>(keywords);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) return null;
+
+  const result: ReviewKeyword[] = [];
+  for (const item of parsed) {
+    if (item.keyword) {
+      result.push({
+        keyword: item.keyword,
+        count: item.count || 0,
+      });
+    }
+  }
+  return result.length > 0 ? result : null;
+}
+
+/**
+ * Parse Outscraper reviews_per_rating JSON
+ * @example '{"1":3,"2":0,"3":0,"4":10,"5":160}'
+ */
+function parseOutscraperReviewsPerRating(ratings: string | undefined): ReviewsPerScore | null {
+  const parsed = safeParseJSON<Record<string, number>>(ratings);
+  if (!parsed || Object.keys(parsed).length === 0) return null;
+  return parsed;
+}
+
+/**
+ * Parse Outscraper featured_reviews JSON array
+ */
+function parseOutscraperFeaturedReviews(reviews: string | undefined): FeaturedReview[] | null {
+  const parsed = safeParseJSON<Array<{
+    review_id?: string;
+    author_title?: string;
+    author_link?: string;
+    review_text?: string;
+    review_datetime_utc?: string;
+    review_rating?: number;
+  }>>(reviews);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) return null;
+
+  const result: FeaturedReview[] = [];
+  for (const item of parsed) {
+    if (item.review_text) {
+      result.push({
+        username: item.author_title || null,
+        url: item.author_link || null,
+        review: item.review_text,
+        date: item.review_datetime_utc || null,
+        rating: item.review_rating || null,
+      });
+    }
+  }
+  return result.length > 0 ? result : null;
+}
+
+/**
+ * Parse Outscraper closed_on JSON array
+ * @example '["Saturday","Sunday"]'
+ */
+function parseOutscraperClosedOn(closedOn: string | undefined): string | null {
+  const parsed = safeParseJSON<string[]>(closedOn);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) return null;
+  return parsed.join(', ');
+}
+
+/**
+ * Get first image from Outscraper featured_image or featured_images
+ */
+function parseOutscraperFeaturedImage(
+  featuredImage: string | undefined,
+  featuredImages: string | undefined
+): string | null {
+  // Try direct URL first
+  if (featuredImage && featuredImage.startsWith('http')) {
+    return featuredImage;
+  }
+
+  // Try featured_images JSON array
+  const parsed = safeParseJSON<Array<{ link?: string }>>(featuredImages);
+  if (parsed && Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.link) {
+    return parsed[0].link;
+  }
+
+  return null;
+}
+
+/**
+ * Parse Outscraper categories JSON array
+ * @example '["Pain control clinic","Doctor","Pain management physician"]'
+ */
+function parseOutscraperCategories(categories: string | undefined): string[] | null {
+  const parsed = safeParseJSON<string[]>(categories);
+  if (!parsed || !Array.isArray(parsed) || parsed.length === 0) return null;
+  return parsed;
+}
+
+/**
+ * Parse Outscraper images JSON array
+ * @example '["https://example.com/image1.jpg", "https://example.com/image2.jpg"]'
+ */
+function parseOutscraperImages(images: string | undefined): string[] | null {
+  if (!images) return null;
+  try {
+    const parsed = JSON.parse(images);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((url): url is string => typeof url === 'string' && url.startsWith('http'));
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse Outscraper detailed_reviews JSON array
+ * Contains full review objects with text, rating, author, date, etc.
+ */
+function parseOutscraperDetailedReviews(reviews: string | undefined): DetailedReview[] | null {
+  if (!reviews) return null;
+  try {
+    const parsed = JSON.parse(reviews);
+    if (Array.isArray(parsed)) {
+      return parsed as DetailedReview[];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Select the best featured reviews from detailed reviews
+ * Prioritizes 5-star reviews with substantial text, sorted by likes
+ * @param reviews - Array of detailed reviews
+ * @param limit - Maximum number of featured reviews to select (default 5)
+ * @returns Selected featured reviews in FeaturedReview format
+ */
+export function selectFeaturedReviews(
+  reviews: DetailedReview[] | null,
+  limit: number = 5
+): FeaturedReview[] | null {
+  if (!reviews || reviews.length === 0) return null;
+
+  // Filter for high-quality reviews: 5 stars with text > 50 chars
+  const qualityReviews = reviews.filter(
+    (r) => r.review_rating === 5 && r.review_text && r.review_text.length > 50
+  );
+
+  // If not enough 5-star reviews, include 4-star reviews
+  let candidates = qualityReviews;
+  if (candidates.length < limit) {
+    const fourStarReviews = reviews.filter(
+      (r) => r.review_rating === 4 && r.review_text && r.review_text.length > 50
+    );
+    candidates = [...candidates, ...fourStarReviews];
+  }
+
+  // Sort by likes (descending), then by text length as tiebreaker
+  const sorted = candidates.sort((a, b) => {
+    const likeDiff = (b.review_likes || 0) - (a.review_likes || 0);
+    if (likeDiff !== 0) return likeDiff;
+    return (b.review_text?.length || 0) - (a.review_text?.length || 0);
+  });
+
+  // Take top 'limit' reviews and convert to FeaturedReview format
+  const selected = sorted.slice(0, limit).map((r): FeaturedReview => ({
+    username: r.author_title || null,
+    url: r.author_link || null,
+    review: r.review_text?.replace(/<[^>]*>/g, '').trim() || null,
+    date: r.review_datetime_utc || null,
+    rating: r.review_rating || null,
+  }));
+
+  return selected.length > 0 ? selected : null;
+}
+
+/**
+ * Create stripped reviews text for AI content generation
+ * Concatenates all review text, stripping HTML tags
+ */
+function createStrippedReviewsText(reviews: DetailedReview[] | null): string | null {
+  if (!reviews || reviews.length === 0) return null;
+
+  const textParts = reviews
+    .map((r) => r.review_text?.replace(/<[^>]*>/g, '').trim())
+    .filter((text): text is string => Boolean(text));
+
+  if (textParts.length === 0) return null;
+
+  return textParts.join('\n\n---\n\n');
+}
+
+/**
+ * Extract clinic type from categories array
+ * Prioritizes pain-related categories, falls back to first category
+ */
+function extractClinicType(categories: string[] | null): string | null {
+  if (!categories || categories.length === 0) return null;
+
+  const painKeywords = ['pain', 'anesthesi', 'physiatr', 'interventional', 'spine'];
+  const painCategory = categories.find((c) =>
+    painKeywords.some((k) => c.toLowerCase().includes(k))
+  );
+
+  return painCategory || categories[0] || null;
+}
+
+/**
  * Parse integer safely
  */
 function safeParseInt(value: string | undefined): number | null {
@@ -537,18 +855,54 @@ function emptyToNull(value: string | undefined): string | null {
 
 /**
  * Transform a raw CSV row into a clinic object ready for database insertion
+ * Supports both WordPress export format and Outscraper/Google Places format
  */
 export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | null {
-  // Validate required fields
-  const title = row.Title?.trim();
-  const city = row.City?.trim();
-  const state = row.State?.trim();
-  const postalCode = row["Postal Code"]?.trim();
-  const coordinates = validateCoordinates(
-    row["Map Latitude"],
-    row["Map Longitude"]
-  );
+  // Detect format: Outscraper uses 'name' and 'coordinates', WordPress uses 'Title' and 'Map Latitude'
+  const isOutscraperFormat = !!row.name && !!row.coordinates;
 
+  let title: string | undefined;
+  let city: string | undefined;
+  let state: string | undefined;
+  let postalCode: string | undefined;
+  let streetAddress: string | undefined;
+  let coordinates: { lat: number; lng: number } | null = null;
+
+  if (isOutscraperFormat) {
+    // Parse Outscraper format
+    title = row.name?.trim();
+    coordinates = parseOutscraperCoordinates(row.coordinates);
+
+    // Parse detailed_address for city, state, postal code, street
+    const detailedAddr = parseOutscraperDetailedAddress(row.detailed_address);
+    if (detailedAddr) {
+      city = detailedAddr.city || undefined;
+      state = detailedAddr.state || undefined;
+      postalCode = detailedAddr.postal_code || undefined;
+      streetAddress = detailedAddr.street || undefined;
+    }
+
+    // Fallback: parse from address string if detailed_address didn't have all fields
+    if (!city || !state || !postalCode) {
+      const addressMatch = row.address?.match(/([^,]+),\s*([A-Z]{2})\s+(\d{5})/);
+      if (addressMatch) {
+        city = city || addressMatch[1]?.trim();
+        const stateAbbrev = addressMatch[2];
+        state = state || (stateAbbrev ? getStateName(stateAbbrev) || stateAbbrev : undefined);
+        postalCode = postalCode || addressMatch[3];
+      }
+    }
+  } else {
+    // Parse WordPress format
+    title = row.Title?.trim();
+    city = row.City?.trim();
+    state = row.State?.trim();
+    postalCode = row["Postal Code"]?.trim();
+    streetAddress = row["Street Address"]?.trim();
+    coordinates = validateCoordinates(row["Map Latitude"], row["Map Longitude"]);
+  }
+
+  // Validate required fields
   if (!title || !city || !state || !postalCode || !coordinates) {
     return null; // Skip rows missing required fields
   }
@@ -556,6 +910,77 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
   // Get state abbreviation for permalink generation
   const stateAbbr = row["State Abbreviation"]?.trim() || getStateAbbreviation(state) || "";
 
+  if (isOutscraperFormat) {
+    // Parse categories and images upfront for reuse
+    const categories = parseOutscraperCategories(row.categories);
+    const parsedImages = parseOutscraperImages(row.images);
+    const detailedReviews = parseOutscraperDetailedReviews(row.detailed_reviews);
+
+    // Determine clinic type from categories
+    const clinicType = emptyToNull(row.main_category) || extractClinicType(categories);
+
+    // Featured image: try dedicated field first, then first image from array
+    const featuredImage = parseOutscraperFeaturedImage(row.featured_image, row.featured_images)
+      || parsedImages?.[0] || null;
+
+    // Return Outscraper-parsed data
+    return {
+      wpId: null,
+      placeId: emptyToNull(row.place_id),
+      title,
+      permalink: `pain-management/${generatePermalinkSlug(title, stateAbbr, postalCode)}`,
+      postType: null,
+      clinicType,
+      streetAddress: streetAddress || null,
+      city,
+      state,
+      stateAbbreviation: stateAbbr || null,
+      postalCode,
+      mapLatitude: coordinates.lat,
+      mapLongitude: coordinates.lng,
+      detailedAddress: emptyToNull(row.address),
+      phone: emptyToNull(row.phone),
+      phones: null,
+      website: emptyToNull(row.website),
+      emails: null,
+      reviewCount: safeParseInt(row.reviews) || 0,
+      rating: safeParseFloat(row.rating),
+      reviewsPerScore: parseOutscraperReviewsPerRating(row.reviews_per_rating),
+      reviewKeywords: parseOutscraperReviewKeywords(row.review_keywords),
+      detailedReviews,
+      allReviewsText: createStrippedReviewsText(detailedReviews),
+      clinicHours: parseOutscraperHours(row.hours),
+      closedOn: parseOutscraperClosedOn(row.closed_on),
+      popularTimes: null, // Could parse popular_times if needed
+      // Featured reviews: use Outscraper's featured_reviews if available,
+      // otherwise auto-select best reviews from detailed_reviews
+      featuredReviews: parseOutscraperFeaturedReviews(row.featured_reviews)
+        || selectFeaturedReviews(detailedReviews),
+      priceRange: emptyToNull(row.range),
+      businessDescription: emptyToNull(row.about),
+      content: emptyToNull(row.description),
+      newPostContent: null,
+      imageUrl: featuredImage,
+      imageFeatured: featuredImage,
+      featImage: null,
+      clinicImageUrls: parsedImages,
+      clinicImageMedia: null,
+      qrCode: null,
+      amenities: null,
+      checkboxFeatures: categories,
+      googleListingLink: emptyToNull(row.link),
+      questions: null,
+      facebook: null,
+      instagram: null,
+      twitter: null,
+      youtube: null,
+      linkedin: null,
+      tiktok: null,
+      pinterest: null,
+    };
+  }
+
+  // Return WordPress-parsed data
   return {
     wpId: safeParseInt(row.ID),
     placeId: emptyToNull(row["Place ID"]),
@@ -563,7 +988,7 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     permalink: extractPermalinkPath(row.Permalink) || `pain-management/${generatePermalinkSlug(title, stateAbbr, postalCode)}`,
     postType: emptyToNull(row["Post Type"]),
     clinicType: emptyToNull(row["Clinic Type"]),
-    streetAddress: emptyToNull(row["Street Address"]),
+    streetAddress: streetAddress || null,
     city,
     state,
     stateAbbreviation: stateAbbr || null,
@@ -583,6 +1008,9 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       row["Review Keywords_keyword"] || row["Review Keywords_Keyword"],
       row["Review Keywords_keyword_count"] || row["Review Keywords_Count"]
     ),
+    // Detailed reviews and stripped text not available in WordPress format
+    detailedReviews: null,
+    allReviewsText: null,
     // Clinic Hours: try new format first, then legacy
     clinicHours: parseClinicHours(
       row["Clinic Hours_day"] || row["Clinic Hours_Days"],
@@ -606,6 +1034,9 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       row["Featured Reviews_rating"] ||
         row["Featured Reviews_Google review star rating"]
     ),
+    // Price range and business description not available in WordPress format
+    priceRange: null,
+    businessDescription: null,
     content: emptyToNull(row.Content),
     newPostContent: emptyToNull(row["New Post Content"]),
     imageUrl: getFirstImageUrl(row["Image URL"]),
@@ -628,6 +1059,26 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     tiktok: emptyToNull(row.tiktok || row.TikTok),
     pinterest: emptyToNull(row.pinterest || row.Pinterest),
   };
+}
+
+/**
+ * Get full state name from abbreviation
+ */
+function getStateName(abbr: string): string | null {
+  const states: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+    CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+    HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+    KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+    MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+    MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+    NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+    OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+    SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+    VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+    DC: "District of Columbia"
+  };
+  return states[abbr.toUpperCase()] || null;
 }
 
 /**

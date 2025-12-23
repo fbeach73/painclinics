@@ -5,14 +5,21 @@ import { previewCSV, validateCSVHeaders } from "@/lib/csv-parser";
 
 /**
  * Required CSV headers for clinic data
+ * Supports WordPress format OR Outscraper/Google Places format
  */
-const REQUIRED_HEADERS = [
+const WORDPRESS_HEADERS = [
   "Title",
   "City",
   "State",
   "Postal Code",
   "Map Latitude",
   "Map Longitude",
+];
+
+const OUTSCRAPER_HEADERS = [
+  "name",
+  "coordinates",
+  "detailed_address",
 ];
 
 /**
@@ -65,14 +72,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate headers
-    const headerValidation = validateCSVHeaders(content, REQUIRED_HEADERS);
+    // Validate headers - accept either WordPress OR Outscraper format
+    const wpValidation = validateCSVHeaders(content, WORDPRESS_HEADERS);
+    const outsValidation = validateCSVHeaders(content, OUTSCRAPER_HEADERS);
 
     const validationErrors: string[] = [];
+    const isWordPressFormat = wpValidation.valid;
+    const isOutscraperFormat = outsValidation.valid;
 
-    if (!headerValidation.valid) {
+    if (!isWordPressFormat && !isOutscraperFormat) {
       validationErrors.push(
-        `Missing required headers: ${headerValidation.missing.join(", ")}`
+        `CSV must have either WordPress headers (${WORDPRESS_HEADERS.join(", ")}) ` +
+        `OR Outscraper headers (${OUTSCRAPER_HEADERS.join(", ")})`
       );
     }
 
@@ -82,21 +93,35 @@ export async function POST(request: NextRequest) {
       10
     );
 
-    // Validate preview rows for data quality
+    // Validate preview rows for data quality based on detected format
     const dataWarnings: string[] = [];
     let missingCoordinatesCount = 0;
     let missingTitleCount = 0;
-    let missingCityStateCount = 0;
+    let missingAddressCount = 0;
 
     for (const row of preview) {
-      if (!row["Map Latitude"] || !row["Map Longitude"]) {
-        missingCoordinatesCount++;
-      }
-      if (!row.Title) {
-        missingTitleCount++;
-      }
-      if (!row.City || !row.State) {
-        missingCityStateCount++;
+      if (isOutscraperFormat) {
+        // Outscraper format validation
+        if (!row.coordinates) {
+          missingCoordinatesCount++;
+        }
+        if (!row.name) {
+          missingTitleCount++;
+        }
+        if (!row.detailed_address && !row.address) {
+          missingAddressCount++;
+        }
+      } else {
+        // WordPress format validation
+        if (!row["Map Latitude"] || !row["Map Longitude"]) {
+          missingCoordinatesCount++;
+        }
+        if (!row.Title) {
+          missingTitleCount++;
+        }
+        if (!row.City || !row.State) {
+          missingAddressCount++;
+        }
       }
     }
 
@@ -106,13 +131,16 @@ export async function POST(request: NextRequest) {
       );
     }
     if (missingTitleCount > 0) {
-      dataWarnings.push(`${missingTitleCount} rows in preview missing title`);
+      dataWarnings.push(`${missingTitleCount} rows in preview missing name/title`);
     }
-    if (missingCityStateCount > 0) {
+    if (missingAddressCount > 0) {
       dataWarnings.push(
-        `${missingCityStateCount} rows in preview missing city/state`
+        `${missingAddressCount} rows in preview missing address info`
       );
     }
+
+    // Add format detection info
+    const formatInfo = isOutscraperFormat ? "Outscraper/Google Places" : "WordPress";
 
     // Store the file content temporarily using a hash or session
     // For simplicity, we'll return the content back encoded
@@ -123,6 +151,7 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       totalRows,
       headers: allHeaders,
+      format: formatInfo,
       // Return raw preview data with original column names for display
       preview: preview.map((row) => {
         const rawRow: Record<string, string> = {};
@@ -132,10 +161,10 @@ export async function POST(request: NextRequest) {
         return rawRow;
       }),
       validation: {
-        valid: headerValidation.valid && validationErrors.length === 0,
+        valid: (isWordPressFormat || isOutscraperFormat) && validationErrors.length === 0,
         errors: validationErrors,
         warnings: dataWarnings,
-        missingHeaders: headerValidation.missing,
+        missingHeaders: isWordPressFormat ? [] : (isOutscraperFormat ? [] : [...wpValidation.missing, ...outsValidation.missing]),
       },
       // Include raw content (base64 encoded) for subsequent import
       content: Buffer.from(content).toString("base64"),

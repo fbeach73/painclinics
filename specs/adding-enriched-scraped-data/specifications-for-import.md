@@ -1,3 +1,7 @@
+  # Criteria for choosing the Clinics for Listing on Painclinics.com
+
+  ## Ensure the clinics
+  
   - Data richness (website, phone, images, etc.) adds value
 
   Let me look at what the top tier looks like with these constraints:

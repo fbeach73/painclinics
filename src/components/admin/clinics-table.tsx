@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw } from 'lucide-react';
+import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +43,12 @@ interface Clinic {
   isFeatured: boolean | null;
   featuredTier: string | null;
   status: 'draft' | 'published' | 'deleted';
+  createdAt: string;
+  hasEnhancedContent: boolean;
 }
+
+type SortColumn = 'title' | 'createdAt' | 'enhanced' | 'rating' | 'reviewCount';
+type SortDirection = 'asc' | 'desc';
 
 interface ClinicsTableProps {
   initialClinics: Clinic[];
@@ -63,6 +68,9 @@ export function ClinicsTable({
   const [selectedState, setSelectedState] = useState<string>('');
   const [featuredFilter, setFeaturedFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [enhancedFilter, setEnhancedFilter] = useState<string>('');
+  const [sortBy, setSortBy] = useState<SortColumn>('createdAt');
+  const [sortDir, setSortDir] = useState<SortDirection>('desc');
   const [offset, setOffset] = useState(0);
   const limit = 100;
 
@@ -110,7 +118,7 @@ export function ClinicsTable({
     setSelectedIds(new Set());
   };
 
-  const fetchClinics = useCallback(async () => {
+  const fetchClinics = useCallback(async (currentOffset: number) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -118,8 +126,11 @@ export function ClinicsTable({
       if (selectedState) params.set('state', selectedState);
       if (featuredFilter) params.set('featured', featuredFilter);
       if (statusFilter) params.set('status', statusFilter);
+      if (enhancedFilter) params.set('enhanced', enhancedFilter);
+      params.set('sortBy', sortBy);
+      params.set('sortDir', sortDir);
       params.set('limit', limit.toString());
-      params.set('offset', offset.toString());
+      params.set('offset', currentOffset.toString());
 
       const response = await fetch(`/api/admin/clinics?${params.toString()}`);
       if (response.ok) {
@@ -132,21 +143,21 @@ export function ClinicsTable({
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedState, featuredFilter, statusFilter, offset]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, sortBy, sortDir]);
 
-  // Debounced search
+  // Debounced search - only triggers on filter/sort changes, resets to page 1
   useEffect(() => {
     const timer = setTimeout(() => {
       setOffset(0);
-      fetchClinics();
+      fetchClinics(0);
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedState, featuredFilter, statusFilter, fetchClinics]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, sortBy, sortDir, fetchClinics]);
 
-  // Fetch on offset change (pagination)
+  // Fetch on offset change (pagination) - separate from filter changes
   useEffect(() => {
     if (offset > 0) {
-      fetchClinics();
+      fetchClinics(offset);
     }
   }, [offset, fetchClinics]);
 
@@ -155,10 +166,41 @@ export function ClinicsTable({
     setSelectedState('');
     setFeaturedFilter('');
     setStatusFilter('');
+    setEnhancedFilter('');
+    setSortBy('createdAt');
+    setSortDir('desc');
     setOffset(0);
   };
 
-  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter;
+  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter || enhancedFilter;
+
+  // Toggle sort on column header click
+  const handleSort = (column: SortColumn) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDir('desc');
+    }
+  };
+
+  // Get sort icon for column header
+  const getSortIcon = (column: SortColumn) => {
+    if (sortBy !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
+    return sortDir === 'asc'
+      ? <ArrowUp className="h-3 w-3 ml-1" />
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  };
 
   return (
     <Card>
@@ -225,6 +267,18 @@ export function ClinicsTable({
             </SelectContent>
           </Select>
 
+          {/* Enhanced Filter */}
+          <Select value={enhancedFilter} onValueChange={setEnhancedFilter}>
+            <SelectTrigger className="w-full sm:w-[120px]">
+              <SelectValue placeholder="Enhanced" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="true">Enhanced</SelectItem>
+              <SelectItem value="false">Not Enhanced</SelectItem>
+            </SelectContent>
+          </Select>
+
           {/* Clear Filters */}
           {hasFilters && (
             <Button variant="outline" size="icon" onClick={clearFilters}>
@@ -255,19 +309,42 @@ export function ClinicsTable({
           </div>
         )}
 
-        {/* Results Count */}
+        {/* Results Count & Top Pagination */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             <span>
               Showing {clinics.length} of {totalCount.toLocaleString()} clinics
             </span>
+            {hasFilters && (
+              <Badge variant="outline" className="gap-1">
+                <Filter className="h-3 w-3" />
+                Filtered
+              </Badge>
+            )}
           </div>
-          {hasFilters && (
-            <Badge variant="outline" className="gap-1">
-              <Filter className="h-3 w-3" />
-              Filtered
-            </Badge>
+          {totalCount > limit && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs">
+                Page {Math.floor(offset / limit) + 1}/{Math.ceil(totalCount / limit)}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOffset(Math.max(0, offset - limit))}
+                disabled={offset === 0 || isLoading}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOffset(offset + limit)}
+                disabled={offset + limit >= totalCount || isLoading}
+              >
+                Next
+              </Button>
+            </div>
           )}
         </div>
 
@@ -294,10 +371,54 @@ export function ClinicsTable({
                       className={someSelected && !allSelected ? 'opacity-50' : ''}
                     />
                   </TableHead>
-                  <TableHead>Clinic Name</TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => handleSort('title')}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      Clinic Name
+                      {getSortIcon('title')}
+                    </button>
+                  </TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead className="text-center">Rating</TableHead>
-                  <TableHead className="text-center">Reviews</TableHead>
+                  <TableHead className="text-center w-[80px]">
+                    <button
+                      onClick={() => handleSort('createdAt')}
+                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                      title="Imported Date"
+                    >
+                      <Calendar className="h-3.5 w-3.5" />
+                      {getSortIcon('createdAt')}
+                    </button>
+                  </TableHead>
+                  <TableHead className="text-center w-[50px]">
+                    <button
+                      onClick={() => handleSort('enhanced')}
+                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                      title="Enhanced"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {getSortIcon('enhanced')}
+                    </button>
+                  </TableHead>
+                  <TableHead className="text-center">
+                    <button
+                      onClick={() => handleSort('rating')}
+                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                    >
+                      Rating
+                      {getSortIcon('rating')}
+                    </button>
+                  </TableHead>
+                  <TableHead className="text-center">
+                    <button
+                      onClick={() => handleSort('reviewCount')}
+                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                    >
+                      Reviews
+                      {getSortIcon('reviewCount')}
+                    </button>
+                  </TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -322,6 +443,16 @@ export function ClinicsTable({
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {clinic.city}, {clinic.stateAbbreviation}
+                    </TableCell>
+                    <TableCell className="text-center text-xs text-muted-foreground">
+                      {clinic.createdAt ? formatDate(clinic.createdAt) : '—'}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {clinic.hasEnhancedContent ? (
+                        <span className="text-green-600 font-medium">Y</span>
+                      ) : (
+                        <span className="text-muted-foreground">N</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       {clinic.rating ? (
@@ -409,7 +540,7 @@ export function ClinicsTable({
         onOpenChange={setShowBulkModal}
         onComplete={() => {
           clearSelection();
-          fetchClinics();
+          fetchClinics(offset);
         }}
       />
 
@@ -421,7 +552,7 @@ export function ClinicsTable({
         onOpenChange={setShowBulkSyncModal}
         onComplete={() => {
           clearSelection();
-          fetchClinics();
+          fetchClinics(offset);
         }}
       />
     </Card>

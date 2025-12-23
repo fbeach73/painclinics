@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, MapPin, Phone, Star, Globe, Crown, RefreshCw, Settings } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, MessageSquare, Phone, Star, Globe, Crown, RefreshCw, Settings } from "lucide-react";
 import { ClinicContentTab } from "@/components/admin/clinics/clinic-content-tab";
 import { ClinicDetailsTab } from "@/components/admin/clinics/clinic-details-tab";
 import { ClinicFAQTab } from "@/components/admin/clinics/clinic-faq-tab";
 import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
+import { ClinicReviewsTab } from "@/components/admin/clinics/clinic-reviews-tab";
 import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
 import { ClinicStatusCard } from "@/components/admin/clinics/clinic-status-card";
 import { ClinicSyncTab } from "@/components/admin/clinics/clinic-sync-tab";
@@ -178,6 +179,10 @@ export default async function ClinicDetailPage({ params }: PageProps) {
         <TabsList>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="reviews" className="flex items-center gap-1.5">
+            <MessageSquare className="h-3.5 w-3.5" />
+            Reviews
+          </TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
           <TabsTrigger value="sync" className="flex items-center gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" />
@@ -211,6 +216,22 @@ export default async function ClinicDetailPage({ params }: PageProps) {
 
         <TabsContent value="content" className="space-y-4 data-[state=inactive]:hidden" forceMount>
           <ClinicContentTab clinicId={clinic.id} clinicName={clinic.title} />
+        </TabsContent>
+
+        <TabsContent value="reviews" className="space-y-4">
+          <ClinicReviewsTab
+            clinicId={clinic.id}
+            clinicName={clinic.title}
+            initialData={{
+              reviewKeywords: clinic.reviewKeywords as { keyword: string; count: number }[] | null,
+              reviewsPerScore: clinic.reviewsPerScore as Record<string, number> | null,
+              featuredReviews: clinic.featuredReviews as { username: string | null; url: string | null; review: string | null; date: string | null; rating: number | null }[] | null,
+              detailedReviews: clinic.detailedReviews as { review_id?: string; review_text?: string; review_rating?: number; author_title?: string; author_link?: string; review_datetime_utc?: string; owner_answer?: string; review_likes?: number }[] | null,
+              allReviewsText: clinic.allReviewsText,
+              rating: clinic.rating,
+              reviewCount: clinic.reviewCount,
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="faq" className="space-y-4">

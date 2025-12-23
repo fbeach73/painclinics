@@ -9,6 +9,7 @@ import {
 import { parseCSV } from "@/lib/csv-parser";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
+import type { serviceCategoryEnum } from "@/lib/schema";
 
 const BATCH_SIZE = 100;
 
@@ -18,6 +19,167 @@ interface ImportOptions {
   content: string; // Base64 encoded CSV content
   fileName: string;
   duplicateHandling?: DuplicateHandling;
+}
+
+// Type for service category enum values
+type ServiceCategory = (typeof serviceCategoryEnum.enumValues)[number];
+
+/**
+ * Generate a URL-safe slug from a category name
+ */
+function generateServiceSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Collapse multiple hyphens
+    .replace(/^-|-$/g, ""); // Trim leading/trailing hyphens
+}
+
+/**
+ * Map a Google Places category to our service category enum
+ */
+function mapToServiceCategory(categoryName: string): ServiceCategory {
+  const lower = categoryName.toLowerCase();
+
+  // Injection-related
+  if (lower.includes("injection") || lower.includes("block") || lower.includes("epidural")) {
+    return "injection";
+  }
+
+  // Procedure-related
+  if (
+    lower.includes("surgeon") ||
+    lower.includes("surgery") ||
+    lower.includes("procedure") ||
+    lower.includes("interventional")
+  ) {
+    return "procedure";
+  }
+
+  // Physical therapy related
+  if (
+    lower.includes("physical therap") ||
+    lower.includes("rehabilitation") ||
+    lower.includes("chiropract") ||
+    lower.includes("massage") ||
+    lower.includes("acupunctur")
+  ) {
+    return "physical";
+  }
+
+  // Diagnostic related
+  if (
+    lower.includes("diagnost") ||
+    lower.includes("imaging") ||
+    lower.includes("x-ray") ||
+    lower.includes("mri") ||
+    lower.includes("ct scan")
+  ) {
+    return "diagnostic";
+  }
+
+  // Specialized care
+  if (
+    lower.includes("specialist") ||
+    lower.includes("neurol") ||
+    lower.includes("orthoped") ||
+    lower.includes("rheumatol") ||
+    lower.includes("anesthes")
+  ) {
+    return "specialized";
+  }
+
+  // Default to management for general pain clinics
+  return "management";
+}
+
+/**
+ * Map a Google Places category to an icon name
+ */
+function mapToIconName(categoryName: string): string {
+  const lower = categoryName.toLowerCase();
+
+  if (lower.includes("pain")) return "activity";
+  if (lower.includes("doctor") || lower.includes("physician")) return "stethoscope";
+  if (lower.includes("chiropract")) return "bone";
+  if (lower.includes("physical therap")) return "dumbbell";
+  if (lower.includes("acupunctur")) return "target";
+  if (lower.includes("massage")) return "hand";
+  if (lower.includes("hospital") || lower.includes("clinic")) return "building-2";
+  if (lower.includes("surgeon") || lower.includes("surgery")) return "scissors";
+  if (lower.includes("neurol")) return "brain";
+  if (lower.includes("orthoped")) return "bone";
+
+  return "heart-pulse"; // Default icon for medical services
+}
+
+/**
+ * Create or find services from category names and link them to a clinic
+ */
+async function linkServicesFromCategories(
+  clinicId: string,
+  categories: string[]
+): Promise<{ created: number; linked: number }> {
+  let created = 0;
+  let linked = 0;
+
+  for (const categoryName of categories) {
+    const slug = generateServiceSlug(categoryName);
+    if (!slug) continue;
+
+    try {
+      // Try to find existing service
+      let service = await db.query.services.findFirst({
+        where: eq(schema.services.slug, slug),
+      });
+
+      // Create service if it doesn't exist
+      if (!service) {
+        const result = await db
+          .insert(schema.services)
+          .values({
+            name: categoryName,
+            slug,
+            iconName: mapToIconName(categoryName),
+            category: mapToServiceCategory(categoryName),
+            description: null,
+            isActive: true,
+            displayOrder: 0,
+          })
+          .returning();
+        service = result[0];
+        created++;
+      }
+
+      if (service) {
+        // Check if link already exists
+        const existingLink = await db.query.clinicServices.findFirst({
+          where: (cs, { and }) =>
+            and(
+              eq(cs.clinicId, clinicId),
+              eq(cs.serviceId, service.id)
+            ),
+        });
+
+        // Create link if it doesn't exist
+        if (!existingLink) {
+          await db.insert(schema.clinicServices).values({
+            clinicId,
+            serviceId: service.id,
+            isFeatured: false,
+            displayOrder: 0,
+          });
+          linked++;
+        }
+      }
+    } catch (err) {
+      // Log but don't fail the import for service creation errors
+      console.error(`Failed to create/link service "${categoryName}":`, err);
+    }
+  }
+
+  return { created, linked };
 }
 
 /**
@@ -115,6 +277,8 @@ export async function POST(request: NextRequest) {
         let successCount = 0;
         let skipCount = skipped.length;
         let errorCount = 0;
+        let totalServicesCreated = 0;
+        let totalServicesLinked = 0;
 
         // Log skipped rows
         for (const rowIndex of skipped) {
@@ -160,6 +324,8 @@ export async function POST(request: NextRequest) {
 
               if (result.status === "inserted" || result.status === "updated") {
                 successCount++;
+                totalServicesCreated += result.servicesCreated;
+                totalServicesLinked += result.servicesLinked;
               } else if (result.status === "skipped") {
                 skipCount++;
                 errors.push({
@@ -188,6 +354,8 @@ export async function POST(request: NextRequest) {
             successCount,
             errorCount,
             skipCount,
+            servicesCreated: totalServicesCreated,
+            servicesLinked: totalServicesLinked,
           });
         }
 
@@ -215,6 +383,8 @@ export async function POST(request: NextRequest) {
           successCount,
           errorCount,
           skipCount,
+          servicesCreated: totalServicesCreated,
+          servicesLinked: totalServicesLinked,
           errors: errors.slice(0, 50), // Limit errors in response
         });
       } catch (err) {
@@ -239,10 +409,11 @@ export async function POST(request: NextRequest) {
 
 /**
  * Insert or update a clinic record based on duplicate handling strategy
+ * Also creates services from categories and links them to the clinic
  */
 type InsertResult =
-  | { status: "inserted" }
-  | { status: "updated" }
+  | { status: "inserted"; clinicId: string; servicesCreated: number; servicesLinked: number }
+  | { status: "updated"; clinicId: string; servicesCreated: number; servicesLinked: number }
   | { status: "skipped"; reason: string };
 
 async function insertOrUpdateClinic(
@@ -268,6 +439,9 @@ async function insertOrUpdateClinic(
     if (existing) matchedBy = "permalink";
   }
 
+  // Get categories for service linking (stored in checkboxFeatures by transformer)
+  const categories = clinic.checkboxFeatures || [];
+
   if (existing) {
     switch (duplicateHandling) {
       case "skip":
@@ -290,16 +464,39 @@ async function insertOrUpdateClinic(
           .update(schema.clinics)
           .set({ ...updateData, importBatchId: batchId, updatedAt: new Date() })
           .where(eq(schema.clinics.id, existing.id));
-        return { status: "updated" };
+
+        // Link services from categories
+        const serviceResult = categories.length > 0
+          ? await linkServicesFromCategories(existing.id, categories)
+          : { created: 0, linked: 0 };
+
+        return {
+          status: "updated",
+          clinicId: existing.id,
+          servicesCreated: serviceResult.created,
+          servicesLinked: serviceResult.linked,
+        };
       }
 
-      case "overwrite":
+      case "overwrite": {
         // Overwrite entire record
         await db
           .update(schema.clinics)
           .set({ ...clinic, importBatchId: batchId, updatedAt: new Date() })
           .where(eq(schema.clinics.id, existing.id));
-        return { status: "updated" };
+
+        // Link services from categories
+        const serviceResult = categories.length > 0
+          ? await linkServicesFromCategories(existing.id, categories)
+          : { created: 0, linked: 0 };
+
+        return {
+          status: "updated",
+          clinicId: existing.id,
+          servicesCreated: serviceResult.created,
+          servicesLinked: serviceResult.linked,
+        };
+      }
 
       default:
         return { status: "skipped", reason: "Unknown duplicate handling mode" };
@@ -307,10 +504,28 @@ async function insertOrUpdateClinic(
   }
 
   // Insert new record
-  await db.insert(schema.clinics).values({
-    ...clinic,
-    importBatchId: batchId,
-  });
+  const insertResult = await db
+    .insert(schema.clinics)
+    .values({
+      ...clinic,
+      importBatchId: batchId,
+    })
+    .returning({ id: schema.clinics.id });
 
-  return { status: "inserted" };
+  const clinicId = insertResult[0]?.id;
+  if (!clinicId) {
+    throw new Error("Failed to get clinic ID after insert");
+  }
+
+  // Link services from categories
+  const serviceResult = categories.length > 0
+    ? await linkServicesFromCategories(clinicId, categories)
+    : { created: 0, linked: 0 };
+
+  return {
+    status: "inserted",
+    clinicId,
+    servicesCreated: serviceResult.created,
+    servicesLinked: serviceResult.linked,
+  };
 }

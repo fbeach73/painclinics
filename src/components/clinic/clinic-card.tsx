@@ -1,5 +1,6 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Phone, ImageIcon, BadgeCheck } from 'lucide-react';
+import { MapPin, Phone, BadgeCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -41,10 +42,16 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
         className
       )}
     >
-      {/* Image placeholder - featured variant only */}
+      {/* Image - featured variant only */}
       {isVariantFeatured && (
-        <div className="relative h-48 bg-muted flex items-center justify-center">
-          <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+        <div className="relative h-48 bg-muted overflow-hidden">
+          <Image
+            src={clinic.photos[0] || '/images/clinic-placeholder.png'}
+            alt={clinic.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
           <div className="absolute top-3 left-3 flex gap-2">
             <FeaturedBadge tier={featuredTier} size="sm" />
             <Badge variant="secondary">{clinic.distanceFormatted}</Badge>
