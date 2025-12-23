@@ -28,34 +28,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-
-interface ReviewKeyword {
-  keyword: string;
-  count: number;
-}
-
-interface FeaturedReview {
-  username: string | null;
-  url: string | null;
-  review: string | null;
-  date: string | null;
-  rating: number | null;
-}
-
-interface DetailedReview {
-  review_id?: string;
-  review_text?: string;
-  review_rating?: number;
-  author_title?: string;
-  author_link?: string;
-  review_datetime_utc?: string;
-  owner_answer?: string;
-  review_likes?: number;
-}
-
-interface ReviewsPerScore {
-  [score: string]: number;
-}
+import type {
+  DetailedReview,
+  FeaturedReview,
+  ReviewKeyword,
+  ReviewsPerScore,
+} from "@/lib/clinic-transformer";
 
 interface ClinicReviewsData {
   reviewKeywords: ReviewKeyword[] | null;

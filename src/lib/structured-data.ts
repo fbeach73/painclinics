@@ -1,21 +1,9 @@
+import type { ClinicHour, FeaturedReview } from "./clinic-transformer";
 import { stripHtmlTags } from "./html-utils";
 import { parseTimeRange } from "./time-utils";
 import type { clinics } from "./schema";
 
 type DbClinic = typeof clinics.$inferSelect;
-
-interface ClinicHour {
-  day: string;
-  hours: string;
-}
-
-interface FeaturedReview {
-  username: string | null;
-  url: string | null;
-  review: string | null;
-  date: string | null;
-  rating: number | null;
-}
 
 /**
  * Service mapping for pain management procedures.

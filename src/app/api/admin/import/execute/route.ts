@@ -10,6 +10,7 @@ import { parseCSV } from "@/lib/csv-parser";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 import type { serviceCategoryEnum } from "@/lib/schema";
+import { generateSlug } from "@/lib/slug";
 
 const BATCH_SIZE = 100;
 
@@ -23,18 +24,6 @@ interface ImportOptions {
 
 // Type for service category enum values
 type ServiceCategory = (typeof serviceCategoryEnum.enumValues)[number];
-
-/**
- * Generate a URL-safe slug from a category name
- */
-function generateServiceSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/-+/g, "-") // Collapse multiple hyphens
-    .replace(/^-|-$/g, ""); // Trim leading/trailing hyphens
-}
 
 /**
  * Map a Google Places category to our service category enum
@@ -125,7 +114,7 @@ async function linkServicesFromCategories(
   let linked = 0;
 
   for (const categoryName of categories) {
-    const slug = generateServiceSlug(categoryName);
+    const slug = generateSlug(categoryName);
     if (!slug) continue;
 
     try {

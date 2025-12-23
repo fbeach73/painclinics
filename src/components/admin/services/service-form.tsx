@@ -17,6 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { SERVICE_CATEGORIES, type Service, type ServiceCategory } from "@/types/service";
 import { ServiceIconPicker } from "./service-icon-picker";
+import { generateSlug } from "@/lib/slug";
 
 interface ServiceFormData {
   name: string;
@@ -32,15 +33,6 @@ interface ServiceFormProps {
   service?: Service;
   onSubmit: (data: ServiceFormData) => Promise<void>;
   isLoading?: boolean;
-}
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
 }
 
 export function ServiceForm({ service, onSubmit, isLoading }: ServiceFormProps) {

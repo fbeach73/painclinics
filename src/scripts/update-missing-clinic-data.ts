@@ -17,6 +17,12 @@ import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { parse } from "csv-parse/sync";
 import postgres from "postgres";
+import type {
+  ClinicHour,
+  FeaturedReview,
+  PopularTime,
+  ReviewKeyword,
+} from "@/lib/clinic-transformer";
 
 // Configuration
 const CSV_DIR = "specs/pain-clinic-directory/data/clinics";
@@ -28,33 +34,10 @@ const VERBOSE = args.includes("--verbose");
 const limitArg = args.find((a) => a.startsWith("--limit="));
 const LIMIT = limitArg ? parseInt(limitArg.split("=")[1] ?? "0", 10) : Infinity;
 
-// Type definitions
-interface ClinicHour {
-  day: string;
-  hours: string;
-}
-
-interface ReviewKeyword {
-  keyword: string;
-  count: number;
-}
-
+// Type definitions (use shared types from clinic-transformer for: ClinicHour, ReviewKeyword, FeaturedReview, PopularTime)
 interface ScoreCount {
   score: number;
   count: number;
-}
-
-interface FeaturedReview {
-  username: string;
-  review: string;
-  rating: number;
-  date: string;
-  profileUrl: string;
-}
-
-interface PopularTime {
-  hour: string;
-  popularity: number;
 }
 
 interface Question {
@@ -159,7 +142,7 @@ function parseFeaturedReviews(row: CSVRow): FeaturedReview[] | null {
       review: reviews[i]?.trim() || "",
       rating: parseInt(ratings[i]?.trim() || "0", 10) || 0,
       date: dates[i]?.trim() || "",
-      profileUrl: profileUrls[i]?.trim() || "",
+      url: profileUrls[i]?.trim() || "",
     }))
     .filter((r) => r.username && r.review);
 

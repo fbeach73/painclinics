@@ -21,10 +21,12 @@ export {
   fetchAllWPCategories,
   fetchAllWPTags,
   decodeHtmlEntities,
-  stripHtmlTags,
   getFeaturedImageFromPost,
   getAuthorFromPost,
 } from "./wordpress-api";
+
+// HTML utilities (re-export for backwards compatibility)
+export { stripHtmlTags } from "../html-utils";
 
 // Image migration
 export {

@@ -273,6 +273,7 @@ export const clinics = pgTable(
     index("clinics_owner_idx").on(table.ownerUserId),
     index("clinics_featured_idx").on(table.isFeatured),
     index("clinics_status_idx").on(table.status),
+    index("clinics_created_at_idx").on(table.createdAt),
   ]
 );
 

@@ -1,3 +1,5 @@
+import type { ReviewKeyword } from "@/lib/clinic-transformer";
+
 // Service types offered by pain clinics
 export type ServiceType =
   | 'injection-therapy'
@@ -60,13 +62,14 @@ export interface ClinicQuestion {
   answer: string;
 }
 
-// Featured review from patients (matches database schema)
+// Featured review from patients (UI layer type)
+// Note: For import/database layer, see FeaturedReview in @/lib/clinic-transformer
 export interface FeaturedReview {
   review: string;
   rating: number;
   username?: string;
   date?: string;
-  profileUrl?: string;
+  url?: string;
 }
 
 // Review score breakdown item
@@ -75,11 +78,8 @@ export interface ReviewScoreItem {
   count: number;
 }
 
-// Review keyword with count
-export interface ReviewKeywordItem {
-  keyword: string;
-  count: number;
-}
+// Re-export ReviewKeyword from clinic-transformer for backwards compatibility
+export type ReviewKeywordItem = ReviewKeyword;
 
 export interface Clinic {
   id: string;

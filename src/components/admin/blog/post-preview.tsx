@@ -4,6 +4,7 @@ import Image from "next/image";
 import { CalendarDays, Clock, User } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 
 interface PreviewCategory {
   id: string;
@@ -118,7 +119,7 @@ export function PostPreview({
         {content ? (
           <div
             className="prose max-w-none prose-img:rounded-lg prose-a:text-primary prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/90 prose-blockquote:border-primary prose-td:text-foreground prose-th:text-foreground prose-table:text-foreground"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
           />
         ) : (
           <div className="text-center py-12 text-muted-foreground">

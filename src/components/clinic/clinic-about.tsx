@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import { cn } from '@/lib/utils';
 
 interface ClinicAboutProps {
@@ -32,7 +33,7 @@ export function ClinicAbout({ about, enhancedAbout, className }: ClinicAboutProp
               'prose-li:my-1 prose-li:text-muted-foreground',
               'prose-a:text-primary prose-a:no-underline hover:prose-a:underline'
             )}
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
           />
         ) : (
           <p className={cn('text-muted-foreground leading-relaxed whitespace-pre-line')}>

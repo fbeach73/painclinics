@@ -12,8 +12,8 @@ import {
   decodeHtmlEntities,
   getFeaturedImageFromPost,
   getAuthorFromPost,
-  stripHtmlTags,
 } from "@/lib/blog/wordpress-api";
+import { stripHtmlTags } from "@/lib/html-utils";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 

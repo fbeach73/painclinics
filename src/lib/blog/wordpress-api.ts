@@ -185,16 +185,6 @@ export function decodeHtmlEntities(text: string): string {
 }
 
 /**
- * Strip HTML tags from text (for generating excerpts)
- */
-export function stripHtmlTags(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/**
  * Get the featured image URL from a WordPress post with embedded data
  */
 export function getFeaturedImageFromPost(post: WPPost): {

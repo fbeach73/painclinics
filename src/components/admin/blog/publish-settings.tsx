@@ -21,6 +21,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { generateSlug } from "@/lib/slug";
 
 export type PostStatus = "draft" | "published" | "archived";
 
@@ -33,14 +34,6 @@ interface PublishSettingsProps {
   onPublishedAtChange: (date: Date | null) => void;
   title: string; // For auto-generating slug
   isNewPost: boolean;
-}
-
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .substring(0, 100);
 }
 
 export function PublishSettings({
