@@ -74,7 +74,17 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/clinics/${clinicId}/enhance-about`);
+      const response = await fetch(`/api/admin/clinics/${clinicId}/enhance-about`, {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+      });
+
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        throw new Error("Unexpected response format");
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -86,6 +96,7 @@ export function ClinicContentTab({ clinicId, clinicName }: ClinicContentTabProps
       setEnhancedContent(data.enhancedContent || "");
       setHasUnsavedChanges(false);
     } catch (err) {
+      console.error("Content fetch error:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch content status");
     } finally {
       setIsLoading(false);

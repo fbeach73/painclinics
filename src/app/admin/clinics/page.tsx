@@ -27,6 +27,7 @@ export default async function ClinicsPage() {
     reviewCount: clinic.reviewCount,
     isFeatured: clinic.isFeatured,
     featuredTier: clinic.featuredTier,
+    status: clinic.status,
   }));
 
   return (

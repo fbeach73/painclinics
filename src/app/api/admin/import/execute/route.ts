@@ -158,10 +158,14 @@ export async function POST(request: NextRequest) {
                 duplicateHandling
               );
 
-              if (result === "inserted" || result === "updated") {
+              if (result.status === "inserted" || result.status === "updated") {
                 successCount++;
-              } else if (result === "skipped") {
+              } else if (result.status === "skipped") {
                 skipCount++;
+                errors.push({
+                  row: start + i + 2,
+                  error: `Skipped "${clinic.title}": ${result.reason}`,
+                });
               }
             } catch (err) {
               errorCount++;
@@ -236,30 +240,43 @@ export async function POST(request: NextRequest) {
 /**
  * Insert or update a clinic record based on duplicate handling strategy
  */
+type InsertResult =
+  | { status: "inserted" }
+  | { status: "updated" }
+  | { status: "skipped"; reason: string };
+
 async function insertOrUpdateClinic(
   clinic: TransformedClinic,
   batchId: string,
   duplicateHandling: DuplicateHandling
-): Promise<"inserted" | "updated" | "skipped"> {
+): Promise<InsertResult> {
   // Check for existing clinic by Place ID or permalink
   let existing = null;
+  let matchedBy: "placeId" | "permalink" | null = null;
 
   if (clinic.placeId) {
     existing = await db.query.clinics.findFirst({
       where: eq(schema.clinics.placeId, clinic.placeId),
     });
+    if (existing) matchedBy = "placeId";
   }
 
   if (!existing && clinic.permalink) {
     existing = await db.query.clinics.findFirst({
       where: eq(schema.clinics.permalink, clinic.permalink),
     });
+    if (existing) matchedBy = "permalink";
   }
 
   if (existing) {
     switch (duplicateHandling) {
       case "skip":
-        return "skipped";
+        return {
+          status: "skipped",
+          reason: matchedBy === "placeId"
+            ? `Duplicate place_id: ${clinic.placeId}`
+            : `Duplicate permalink: ${clinic.permalink}`
+        };
 
       case "update": {
         // Update only non-null fields
@@ -273,7 +290,7 @@ async function insertOrUpdateClinic(
           .update(schema.clinics)
           .set({ ...updateData, importBatchId: batchId, updatedAt: new Date() })
           .where(eq(schema.clinics.id, existing.id));
-        return "updated";
+        return { status: "updated" };
       }
 
       case "overwrite":
@@ -282,10 +299,10 @@ async function insertOrUpdateClinic(
           .update(schema.clinics)
           .set({ ...clinic, importBatchId: batchId, updatedAt: new Date() })
           .where(eq(schema.clinics.id, existing.id));
-        return "updated";
+        return { status: "updated" };
 
       default:
-        return "skipped";
+        return { status: "skipped", reason: "Unknown duplicate handling mode" };
     }
   }
 
@@ -295,5 +312,5 @@ async function insertOrUpdateClinic(
     importBatchId: batchId,
   });
 
-  return "inserted";
+  return { status: "inserted" };
 }

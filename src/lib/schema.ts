@@ -54,6 +54,12 @@ export const blogPostStatusEnum = pgEnum("blog_post_status", [
   "archived",
 ]);
 
+export const clinicStatusEnum = pgEnum("clinic_status", [
+  "draft",
+  "published",
+  "deleted",
+]);
+
 // ============================================
 // Google Places Sync Enums
 // ============================================
@@ -232,6 +238,7 @@ export const clinics = pgTable(
 
     // Metadata
     importBatchId: text("import_batch_id"),
+    status: clinicStatusEnum("status").default("published").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -258,6 +265,7 @@ export const clinics = pgTable(
     index("clinics_import_batch_idx").on(table.importBatchId),
     index("clinics_owner_idx").on(table.ownerUserId),
     index("clinics_featured_idx").on(table.isFeatured),
+    index("clinics_status_idx").on(table.status),
   ]
 );
 

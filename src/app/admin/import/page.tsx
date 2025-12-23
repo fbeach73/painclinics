@@ -111,7 +111,12 @@ export default function ImportPage() {
       }
 
       const data = await res.json();
-      setPreviewData(data);
+      // Map API response to expected shape
+      setPreviewData({
+        preview: data.preview || [],
+        columns: data.headers || [],
+        validationErrors: data.validation?.errors || [],
+      });
       setImportMode("preview");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to preview file");

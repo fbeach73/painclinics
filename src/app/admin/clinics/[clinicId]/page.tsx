@@ -6,6 +6,7 @@ import { ClinicDetailsTab } from "@/components/admin/clinics/clinic-details-tab"
 import { ClinicFAQTab } from "@/components/admin/clinics/clinic-faq-tab";
 import { ClinicFeaturedTab } from "@/components/admin/clinics/clinic-featured-tab";
 import { ClinicServicesTab } from "@/components/admin/clinics/clinic-services-tab";
+import { ClinicStatusCard } from "@/components/admin/clinics/clinic-status-card";
 import { ClinicSyncTab } from "@/components/admin/clinics/clinic-sync-tab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export default async function ClinicDetailPage({ params }: PageProps) {
       </div>
 
       {/* Quick Info Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-6">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Location</CardDescription>
@@ -168,6 +169,8 @@ export default async function ClinicDetailPage({ params }: PageProps) {
             </div>
           </CardContent>
         </Card>
+
+        <ClinicStatusCard clinicId={clinic.id} initialStatus={clinic.status} />
       </div>
 
       {/* Tabs */}
@@ -206,7 +209,7 @@ export default async function ClinicDetailPage({ params }: PageProps) {
           </Card>
         </TabsContent>
 
-        <TabsContent value="content" className="space-y-4">
+        <TabsContent value="content" className="space-y-4 data-[state=inactive]:hidden" forceMount>
           <ClinicContentTab clinicId={clinic.id} clinicName={clinic.title} />
         </TabsContent>
 

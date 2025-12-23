@@ -35,9 +35,9 @@ interface ImportPreviewProps {
 }
 
 export function ImportPreview({
-  preview,
-  columns,
-  validationErrors,
+  preview = [],
+  columns = [],
+  validationErrors = [],
   fileName,
   onStartImport,
   onCancel,

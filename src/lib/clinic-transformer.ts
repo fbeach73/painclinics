@@ -487,6 +487,29 @@ export function extractPermalinkPath(fullUrl: string | undefined): string {
 }
 
 /**
+ * Generate a unique permalink slug from title, state abbreviation, and zip code
+ * Format: {title-slug}-{state-abbr}-{zipcode}
+ * @example generatePermalinkSlug("Pain Care Centers", "WY", "82901") => "pain-care-centers-wy-82901"
+ */
+export function generatePermalinkSlug(
+  title: string,
+  stateAbbreviation: string,
+  postalCode: string
+): string {
+  const titleSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Collapse multiple hyphens
+    .replace(/^-|-$/g, ""); // Trim leading/trailing hyphens
+
+  const stateAbbr = stateAbbreviation.toLowerCase();
+  const zip = postalCode.replace(/\s+/g, ""); // Remove any spaces in zip
+
+  return `${titleSlug}-${stateAbbr}-${zip}`;
+}
+
+/**
  * Parse integer safely
  */
 function safeParseInt(value: string | undefined): number | null {
@@ -530,18 +553,20 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
     return null; // Skip rows missing required fields
   }
 
+  // Get state abbreviation for permalink generation
+  const stateAbbr = row["State Abbreviation"]?.trim() || getStateAbbreviation(state) || "";
+
   return {
     wpId: safeParseInt(row.ID),
     placeId: emptyToNull(row["Place ID"]),
     title,
-    permalink: extractPermalinkPath(row.Permalink) || `pain-management/${title.toLowerCase().replace(/\s+/g, "-")}`,
+    permalink: extractPermalinkPath(row.Permalink) || `pain-management/${generatePermalinkSlug(title, stateAbbr, postalCode)}`,
     postType: emptyToNull(row["Post Type"]),
     clinicType: emptyToNull(row["Clinic Type"]),
     streetAddress: emptyToNull(row["Street Address"]),
     city,
     state,
-    stateAbbreviation:
-      row["State Abbreviation"]?.trim() || getStateAbbreviation(state),
+    stateAbbreviation: stateAbbr || null,
     postalCode,
     mapLatitude: coordinates.lat,
     mapLongitude: coordinates.lng,

@@ -26,12 +26,12 @@ function buildEnhancementPrompt(clinic: ClinicRecord): string {
     ? (clinic.reviewKeywords as string[]).join(", ")
     : "Not available";
 
-  return `You are enhancing a pain management clinic's description. Create a clean, professional 2-3 paragraph description.
+  return `You are enhancing a pain management clinic's description. Create professional, well-formatted HTML content.
 
-RULES:
+CONTENT RULES:
 - Remove any addresses, phone numbers, or email addresses (displayed elsewhere on page)
 - Fix formatting, punctuation, and grammar issues
-- Keep it concise but informative (150-250 words)
+- Keep it informative (200-350 words total)
 - Naturally incorporate the clinic's services and amenities if provided
 - Mention positive themes from review keywords if available
 - Do NOT invent information not present in the data
@@ -39,7 +39,30 @@ RULES:
 - Do NOT use phrases like "this clinic" repeatedly - vary the language
 - Use the clinic name in the first sentence
 - Focus on what makes the clinic unique and valuable to patients
-- If the original content is very short or empty, create a brief professional description based on available data
+- If the original content is very short or empty, create content based on available data
+
+HTML FORMATTING REQUIREMENTS:
+- Use <h2> for main section headings (e.g., "About", "Our Approach", "Why Choose Us")
+- Use <h3> for subsection headings if needed
+- Use <p> tags for paragraphs
+- Use <strong> or <b> to emphasize key phrases (2-4 per section)
+- Use <ul> and <li> for listing services, specialties, or benefits (when appropriate)
+- Optionally use a simple <table> if comparing treatment options or listing structured info
+- Structure the content with 2-3 sections using headings
+- Do NOT include <html>, <head>, <body>, or <style> tags - just the content HTML
+
+EXAMPLE STRUCTURE:
+<h2>About [Clinic Name]</h2>
+<p>Opening paragraph with <strong>key highlights</strong>...</p>
+
+<h2>Our Services</h2>
+<ul>
+  <li><strong>Service 1</strong> - brief description</li>
+  <li><strong>Service 2</strong> - brief description</li>
+</ul>
+
+<h2>Why Patients Choose Us</h2>
+<p>Closing paragraph with patient-focused benefits...</p>
 
 CLINIC DATA:
 Name: ${clinic.title}
@@ -50,7 +73,7 @@ Review Keywords: ${reviewKeywords}
 Rating: ${clinic.rating ? `${clinic.rating}/5 stars` : "Not available"}
 Original Content: ${clinic.content || "No content available"}
 
-OUTPUT: A clean, SEO-friendly description without addresses, phone numbers, or emails. Output ONLY the description text, no headers or labels.`;
+OUTPUT: Well-formatted HTML content only. No markdown, no code blocks, no explanations - just clean HTML.`;
 }
 
 /**

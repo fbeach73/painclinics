@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get("state")?.trim().toUpperCase();
     const city = searchParams.get("city")?.trim();
     const featured = searchParams.get("featured");
+    const status = searchParams.get("status")?.trim();
     const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -53,6 +54,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Status filter
+    if (status && ["draft", "published", "deleted"].includes(status)) {
+      conditions.push(eq(clinics.status, status as "draft" | "published" | "deleted"));
+    }
+
     // Build the query
     const whereCondition =
       conditions.length > 0 ? and(...conditions) : undefined;
@@ -69,6 +75,7 @@ export async function GET(request: NextRequest) {
         reviewCount: clinics.reviewCount,
         isFeatured: clinics.isFeatured,
         featuredTier: clinics.featuredTier,
+        status: clinics.status,
       })
       .from(clinics)
       .where(whereCondition)

@@ -69,6 +69,7 @@ export function ClinicWysiwygEditor({
     ],
     content,
     editable: !disabled,
+    immediatelyRender: false, // Prevent SSR hydration mismatch
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

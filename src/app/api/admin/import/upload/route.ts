@@ -123,17 +123,14 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       totalRows,
       headers: allHeaders,
-      preview: preview.map((row) => ({
-        title: row.Title || "(No title)",
-        city: row.City || "(No city)",
-        state: row.State || "(No state)",
-        postalCode: row["Postal Code"] || "(No postal code)",
-        latitude: row["Map Latitude"] || "(No latitude)",
-        longitude: row["Map Longitude"] || "(No longitude)",
-        placeId: row["Place ID"] || null,
-        rating: row.Rating || null,
-        reviews: row.Reviews || null,
-      })),
+      // Return raw preview data with original column names for display
+      preview: preview.map((row) => {
+        const rawRow: Record<string, string> = {};
+        for (const header of allHeaders) {
+          rawRow[header] = row[header as keyof typeof row] as string || "";
+        }
+        return rawRow;
+      }),
       validation: {
         valid: headerValidation.valid && validationErrors.length === 0,
         errors: validationErrors,

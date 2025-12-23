@@ -1,0 +1,16 @@
+{
+  "name": "clinic-email-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "scrape": "npx tsx scrape-emails.ts",
+    "scrape:limit": "npx tsx scrape-emails-limited.ts"
+  },
+  "dependencies": {
+    "website-contacts-extractor": "^1.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

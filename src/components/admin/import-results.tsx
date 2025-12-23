@@ -30,7 +30,7 @@ interface ImportResultsProps {
 }
 
 export function ImportResults({ results, onClose, onViewDetails }: ImportResultsProps) {
-  const { status, totalRecords, successCount, errorCount, skipCount, errors } = results;
+  const { status, totalRecords, successCount, errorCount, skipCount, errors = [] } = results;
 
   const successPercentage = totalRecords > 0 ? Math.round((successCount / totalRecords) * 100) : 0;
   const errorPercentage = totalRecords > 0 ? Math.round((errorCount / totalRecords) * 100) : 0;

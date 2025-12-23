@@ -42,6 +42,7 @@ interface Clinic {
   reviewCount: number | null;
   isFeatured: boolean | null;
   featuredTier: string | null;
+  status: 'draft' | 'published' | 'deleted';
 }
 
 interface ClinicsTableProps {
@@ -61,6 +62,7 @@ export function ClinicsTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState<string>('');
   const [featuredFilter, setFeaturedFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
   const [offset, setOffset] = useState(0);
   const limit = 100;
 
@@ -115,6 +117,7 @@ export function ClinicsTable({
       if (searchQuery) params.set('q', searchQuery);
       if (selectedState) params.set('state', selectedState);
       if (featuredFilter) params.set('featured', featuredFilter);
+      if (statusFilter) params.set('status', statusFilter);
       params.set('limit', limit.toString());
       params.set('offset', offset.toString());
 
@@ -129,7 +132,7 @@ export function ClinicsTable({
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedState, featuredFilter, offset]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, offset]);
 
   // Debounced search
   useEffect(() => {
@@ -138,7 +141,7 @@ export function ClinicsTable({
       fetchClinics();
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedState, featuredFilter, fetchClinics]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, fetchClinics]);
 
   // Fetch on offset change (pagination)
   useEffect(() => {
@@ -151,10 +154,11 @@ export function ClinicsTable({
     setSearchQuery('');
     setSelectedState('');
     setFeaturedFilter('');
+    setStatusFilter('');
     setOffset(0);
   };
 
-  const hasFilters = searchQuery || selectedState || featuredFilter;
+  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter;
 
   return (
     <Card>
@@ -205,6 +209,19 @@ export function ClinicsTable({
               <SelectItem value="all">All Listings</SelectItem>
               <SelectItem value="true">Featured Only</SelectItem>
               <SelectItem value="false">Non-Featured</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="deleted">Deleted</SelectItem>
             </SelectContent>
           </Select>
 
@@ -320,13 +337,26 @@ export function ClinicsTable({
                       <Badge variant="secondary">{clinic.reviewCount ?? 0}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {clinic.isFeatured ? (
-                        <Badge variant="default" className="bg-yellow-500 text-yellow-950">
-                          {clinic.featuredTier || 'Featured'}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
+                      <div className="flex items-center justify-center gap-1.5">
+                        {clinic.status === 'published' ? (
+                          <Badge variant="default" className="bg-green-600 hover:bg-green-600">
+                            Published
+                          </Badge>
+                        ) : clinic.status === 'draft' ? (
+                          <Badge variant="secondary">
+                            Draft
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive">
+                            Deleted
+                          </Badge>
+                        )}
+                        {clinic.isFeatured && (
+                          <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                            {clinic.featuredTier || 'Featured'}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Link href={`/admin/clinics/${clinic.id}`}>

@@ -1,7 +1,13 @@
-import { sql, asc, desc, eq, or, ilike } from "drizzle-orm";
+import { sql, asc, desc, eq, or, ilike, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
 import { US_STATES_REVERSE } from "@/lib/us-states";
+
+/**
+ * SQL fragment to filter only published clinics.
+ * Used by all public-facing queries to ensure only published clinics are shown.
+ */
+const isPublishedSql = eq(clinics.status, "published");
 
 /**
  * SQL fragment to order by featured status.
@@ -29,7 +35,10 @@ export async function getClinicByPermalink(slug: string) {
   const results = await db
     .select()
     .from(clinics)
-    .where(sql`LOWER(${clinics.permalink}) = LOWER(${permalinkPath})`)
+    .where(and(
+      sql`LOWER(${clinics.permalink}) = LOWER(${permalinkPath})`,
+      isPublishedSql
+    ))
     .limit(1);
 
   return results[0] || null;
@@ -47,7 +56,8 @@ export async function getAllClinicPermalinks() {
       permalink: clinics.permalink,
       updatedAt: clinics.updatedAt,
     })
-    .from(clinics);
+    .from(clinics)
+    .where(isPublishedSql);
 }
 
 /**
@@ -62,7 +72,10 @@ export async function getClinicsByState(stateAbbrev: string) {
   return db
     .select()
     .from(clinics)
-    .where(sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`)
+    .where(and(
+      sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`,
+      isPublishedSql
+    ))
     .orderBy(desc(featuredOrderSql), asc(clinics.city), asc(clinics.title));
 }
 
@@ -75,7 +88,8 @@ export async function getClinicsByState(stateAbbrev: string) {
 export async function getAllStatesWithClinics() {
   const results = await db
     .selectDistinct({ stateAbbreviation: clinics.stateAbbreviation })
-    .from(clinics);
+    .from(clinics)
+    .where(isPublishedSql);
 
   return results
     .filter((r) => r.stateAbbreviation && r.stateAbbreviation in US_STATES_REVERSE)
@@ -95,6 +109,7 @@ export async function getClinicCountsByState() {
       count: sql<number>`COUNT(*)::int`,
     })
     .from(clinics)
+    .where(isPublishedSql)
     .groupBy(clinics.stateAbbreviation)
     .orderBy(asc(clinics.stateAbbreviation));
 
@@ -117,16 +132,20 @@ export async function getClinicsByCity(city: string, stateAbbrev?: string) {
     return db
       .select()
       .from(clinics)
-      .where(
-        sql`LOWER(${clinics.city}) = LOWER(${city}) AND UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`
-      )
+      .where(and(
+        sql`LOWER(${clinics.city}) = LOWER(${city}) AND UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`,
+        isPublishedSql
+      ))
       .orderBy(desc(featuredOrderSql), desc(clinics.rating), asc(clinics.title));
   }
 
   return db
     .select()
     .from(clinics)
-    .where(sql`LOWER(${clinics.city}) = LOWER(${city})`)
+    .where(and(
+      sql`LOWER(${clinics.city}) = LOWER(${city})`,
+      isPublishedSql
+    ))
     .orderBy(desc(featuredOrderSql), desc(clinics.rating), asc(clinics.title));
 }
 
@@ -140,7 +159,10 @@ export async function getCitiesForState(stateAbbrev: string) {
   const results = await db
     .selectDistinct({ city: clinics.city })
     .from(clinics)
-    .where(sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`)
+    .where(and(
+      sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`,
+      isPublishedSql
+    ))
     .orderBy(asc(clinics.city));
   return results.map((r) => r.city);
 }
@@ -159,6 +181,7 @@ export async function getAllCitiesWithClinics() {
       count: sql<number>`COUNT(*)::int`,
     })
     .from(clinics)
+    .where(isPublishedSql)
     .groupBy(clinics.city, clinics.stateAbbreviation)
     .orderBy(asc(clinics.stateAbbreviation), asc(clinics.city));
 }
@@ -198,7 +221,8 @@ export async function getClinicsWithImages() {
       imageUrl: clinics.imageUrl,
       featImage: clinics.featImage,
     })
-    .from(clinics);
+    .from(clinics)
+    .where(isPublishedSql);
 }
 
 export interface GetClinicByIdOptions {
@@ -265,6 +289,7 @@ export async function getClinicsForAdmin(limit = 100, offset = 0) {
       updatedAt: clinics.updatedAt,
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
+      status: clinics.status,
     })
     .from(clinics)
     .orderBy(desc(featuredOrderSql), asc(clinics.stateAbbreviation), asc(clinics.city), asc(clinics.title))
@@ -332,9 +357,10 @@ export async function getNearbyClinicsByCoordinates(
       distance: distanceSql,
     })
     .from(clinics)
-    .where(
-      sql`${clinics.mapLatitude} IS NOT NULL AND ${clinics.mapLongitude} IS NOT NULL AND ${distanceSql} <= ${radiusMiles}`
-    )
+    .where(and(
+      sql`${clinics.mapLatitude} IS NOT NULL AND ${clinics.mapLongitude} IS NOT NULL AND ${distanceSql} <= ${radiusMiles}`,
+      isPublishedSql
+    ))
     .orderBy(desc(featuredOrderSql), sql`${distanceSql}`)
     .limit(limit);
 }
@@ -373,13 +399,14 @@ export async function searchClinics(query: string, limit = 50) {
       isFeatured: clinics.isFeatured,
     })
     .from(clinics)
-    .where(
+    .where(and(
       or(
         ilike(clinics.title, searchPattern),
         ilike(clinics.city, searchPattern),
         ilike(clinics.stateAbbreviation, searchPattern)
-      )
-    )
+      ),
+      isPublishedSql
+    ))
     .orderBy(desc(featuredOrderSql), desc(clinics.rating))
     .limit(limit);
 }
@@ -449,7 +476,7 @@ export async function getFeaturedClinics(options: GetFeaturedClinicsOptions = {}
     : sql<number>`0`;
 
   // Build WHERE conditions
-  const whereConditions: ReturnType<typeof sql>[] = [isFeaturedActiveSql];
+  const whereConditions: ReturnType<typeof sql>[] = [isFeaturedActiveSql, isPublishedSql];
 
   // Exclude a specific clinic (for sidebar widget)
   if (excludeClinicId) {
@@ -559,11 +586,12 @@ export async function getClinicByLegacySlug(legacySlug: string) {
   const results = await db
     .select()
     .from(clinics)
-    .where(
+    .where(and(
       sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})
           AND (${clinics.postalCode} = ${zipCode} OR ${clinics.postalCode} = ${zipPadded})
-          AND LOWER(${clinics.title}) = LOWER(${titleFromSlug})`
-    )
+          AND LOWER(${clinics.title}) = LOWER(${titleFromSlug})`,
+      isPublishedSql
+    ))
     .limit(1);
 
   return results[0] || null;
