@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { PageTracker } from "@/components/analytics/page-tracker";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -125,6 +126,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             <SiteFooter />
           </div>
           <Toaster richColors position="top-right" />
+          <PageTracker />
         </ThemeProvider>
       </body>
     </html>

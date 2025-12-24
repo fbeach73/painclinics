@@ -666,6 +666,7 @@ export const clinicsRelations = relations(clinics, ({ one, many }) => ({
   claims: many(clinicClaims),
   featuredSubscription: one(featuredSubscriptions),
   clinicServices: many(clinicServices),
+  analyticsEvents: many(analyticsEvents),
 }));
 
 export const clinicClaimsRelations = relations(clinicClaims, ({ one }) => ({
@@ -928,6 +929,44 @@ export const syncLogsRelations = relations(syncLogs, ({ one }) => ({
 export const clinicSyncStatusRelations = relations(clinicSyncStatus, ({ one }) => ({
   clinic: one(clinics, {
     fields: [clinicSyncStatus.clinicId],
+    references: [clinics.id],
+  }),
+}));
+
+// ============================================
+// Analytics Events Table
+// ============================================
+
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    eventType: text("event_type").notNull(), // "pageview" | "clinic_view"
+    path: text("path").notNull(),
+    clinicId: text("clinic_id").references(() => clinics.id, { onDelete: "set null" }),
+    referrer: text("referrer"),
+    referrerSource: text("referrer_source"), // "google" | "direct" | "facebook" | etc.
+    referrerDomain: text("referrer_domain"),
+    sessionHash: text("session_hash").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    eventDate: text("event_date").notNull(), // YYYY-MM-DD for grouping
+  },
+  (table) => [
+    index("analytics_events_event_type_idx").on(table.eventType),
+    index("analytics_events_path_idx").on(table.path),
+    index("analytics_events_clinic_idx").on(table.clinicId),
+    index("analytics_events_referrer_source_idx").on(table.referrerSource),
+    index("analytics_events_session_hash_idx").on(table.sessionHash),
+    index("analytics_events_created_at_idx").on(table.createdAt),
+    index("analytics_events_event_date_idx").on(table.eventDate),
+  ]
+);
+
+export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => ({
+  clinic: one(clinics, {
+    fields: [analyticsEvents.clinicId],
     references: [clinics.id],
   }),
 }));

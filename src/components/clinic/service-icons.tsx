@@ -23,6 +23,10 @@ import {
   Briefcase,
   Spline,
   HelpCircle,
+  Building2,
+  HeartPulse,
+  Scissors,
+  Stethoscope,
   type LucideIcon,
 } from 'lucide-react';
 import { getServiceByType } from '@/data/services';
@@ -32,7 +36,9 @@ import type { Service, ClinicService } from '@/types/service';
 
 // Map of icon names to Lucide icon components
 // Supports all icons used in the services seed data
+// Includes both PascalCase and kebab-case/lowercase variants for flexibility
 const iconNameMap: Record<string, LucideIcon> = {
+  // PascalCase names (canonical)
   Syringe,
   Activity,
   Pill,
@@ -56,6 +62,20 @@ const iconNameMap: Record<string, LucideIcon> = {
   Moon,
   Briefcase,
   Spline,
+  Building2,
+  HeartPulse,
+  Scissors,
+  Stethoscope,
+  // lowercase/kebab-case aliases (for database compatibility)
+  activity: Activity,
+  bone: Bone,
+  brain: Brain,
+  hand: Hand,
+  target: Target,
+  'building-2': Building2,
+  'heart-pulse': HeartPulse,
+  scissors: Scissors,
+  stethoscope: Stethoscope,
 };
 
 // Legacy mapping for ServiceType (backward compatibility)

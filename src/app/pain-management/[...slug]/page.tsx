@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
+import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
 import { ClinicAmenities } from "@/components/clinic/clinic-amenities";
@@ -593,6 +594,9 @@ export default async function PainManagementClinicPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
         />
       )}
+
+      {/* Analytics tracking for clinic views */}
+      <PageTracker clinicId={clinic.id} />
 
       <main className="flex-1">
         <div className="container mx-auto py-8 md:py-12">

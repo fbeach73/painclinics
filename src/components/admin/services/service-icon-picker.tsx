@@ -23,6 +23,10 @@ import {
   Moon,
   Briefcase,
   Spline,
+  Building2,
+  HeartPulse,
+  Scissors,
+  Stethoscope,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -59,17 +63,21 @@ export const SERVICE_ICONS: Record<string, LucideIcon> = {
   Moon,
   Briefcase,
   Spline,
+  Building2,
+  HeartPulse,
+  Scissors,
+  Stethoscope,
 };
 
 // Grouped icons for better organization in the picker
 const ICON_GROUPS = [
   {
     label: "Medical",
-    icons: ["Syringe", "Pill", "Droplet", "Bone"],
+    icons: ["Syringe", "Pill", "Droplet", "Bone", "Stethoscope", "HeartPulse"],
   },
   {
     label: "Procedures",
-    icons: ["Zap", "Cpu", "Radio", "Monitor"],
+    icons: ["Zap", "Cpu", "Radio", "Monitor", "Scissors"],
   },
   {
     label: "Physical",
@@ -85,7 +93,7 @@ const ICON_GROUPS = [
   },
   {
     label: "Other",
-    icons: ["Leaf", "Circle"],
+    icons: ["Leaf", "Circle", "Building2"],
   },
 ];
 

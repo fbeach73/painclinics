@@ -1,0 +1,240 @@
+/**
+ * Analytics query functions for retrieving aggregated analytics data
+ */
+
+import { and, count, countDistinct, desc, eq, gte } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { analyticsEvents } from "@/lib/schema";
+
+export type DateRange = "today" | "7d" | "30d" | "all";
+
+/**
+ * Gets the start date for a given date range
+ */
+function getStartDate(range: DateRange): Date | null {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  switch (range) {
+    case "today":
+      return now;
+    case "7d":
+      now.setDate(now.getDate() - 7);
+      return now;
+    case "30d":
+      now.setDate(now.getDate() - 30);
+      return now;
+    case "all":
+      return null;
+  }
+}
+
+interface OverviewStats {
+  totalPageviews: number;
+  uniqueVisitors: number;
+  clinicViews: number;
+}
+
+/**
+ * Gets overview statistics for the analytics dashboard
+ */
+export async function getOverviewStats(
+  range: DateRange,
+  clinicId?: string
+): Promise<OverviewStats> {
+  const startDate = getStartDate(range);
+
+  const conditions = [];
+  if (startDate) {
+    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  }
+  if (clinicId) {
+    conditions.push(eq(analyticsEvents.clinicId, clinicId));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // Total pageviews
+  const [pageviewResult] = await db
+    .select({ count: count() })
+    .from(analyticsEvents)
+    .where(whereClause);
+
+  // Unique visitors (distinct session hashes)
+  const [visitorResult] = await db
+    .select({ count: countDistinct(analyticsEvents.sessionHash) })
+    .from(analyticsEvents)
+    .where(whereClause);
+
+  // Clinic views (event_type = "clinic_view")
+  const clinicViewConditions = [...conditions, eq(analyticsEvents.eventType, "clinic_view")];
+  const [clinicViewResult] = await db
+    .select({ count: count() })
+    .from(analyticsEvents)
+    .where(and(...clinicViewConditions));
+
+  return {
+    totalPageviews: pageviewResult?.count ?? 0,
+    uniqueVisitors: visitorResult?.count ?? 0,
+    clinicViews: clinicViewResult?.count ?? 0,
+  };
+}
+
+interface ReferrerStats {
+  source: string;
+  count: number;
+}
+
+/**
+ * Gets referrer source breakdown
+ */
+export async function getReferrerStats(
+  range: DateRange,
+  limit: number = 10,
+  clinicId?: string
+): Promise<ReferrerStats[]> {
+  const startDate = getStartDate(range);
+
+  const conditions = [];
+  if (startDate) {
+    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  }
+  if (clinicId) {
+    conditions.push(eq(analyticsEvents.clinicId, clinicId));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const results = await db
+    .select({
+      source: analyticsEvents.referrerSource,
+      count: count(),
+    })
+    .from(analyticsEvents)
+    .where(whereClause)
+    .groupBy(analyticsEvents.referrerSource)
+    .orderBy(desc(count()))
+    .limit(limit);
+
+  return results.map((r) => ({
+    source: r.source || "direct",
+    count: r.count,
+  }));
+}
+
+interface PageStats {
+  path: string;
+  views: number;
+  uniqueVisitors: number;
+}
+
+/**
+ * Gets top pages by views
+ */
+export async function getTopPages(
+  range: DateRange,
+  limit: number = 10,
+  clinicId?: string
+): Promise<PageStats[]> {
+  const startDate = getStartDate(range);
+
+  const conditions = [];
+  if (startDate) {
+    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  }
+  if (clinicId) {
+    conditions.push(eq(analyticsEvents.clinicId, clinicId));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const results = await db
+    .select({
+      path: analyticsEvents.path,
+      views: count(),
+      uniqueVisitors: countDistinct(analyticsEvents.sessionHash),
+    })
+    .from(analyticsEvents)
+    .where(whereClause)
+    .groupBy(analyticsEvents.path)
+    .orderBy(desc(count()))
+    .limit(limit);
+
+  return results;
+}
+
+interface TimeSeriesData {
+  date: string;
+  views: number;
+  uniqueVisitors: number;
+}
+
+/**
+ * Gets views over time for charting
+ */
+export async function getViewsOverTime(
+  range: DateRange,
+  clinicId?: string
+): Promise<TimeSeriesData[]> {
+  const startDate = getStartDate(range);
+
+  const conditions = [];
+  if (startDate) {
+    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  }
+  if (clinicId) {
+    conditions.push(eq(analyticsEvents.clinicId, clinicId));
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  const results = await db
+    .select({
+      date: analyticsEvents.eventDate,
+      views: count(),
+      uniqueVisitors: countDistinct(analyticsEvents.sessionHash),
+    })
+    .from(analyticsEvents)
+    .where(whereClause)
+    .groupBy(analyticsEvents.eventDate)
+    .orderBy(analyticsEvents.eventDate);
+
+  return results;
+}
+
+/**
+ * Gets views for a specific clinic (for owner dashboard)
+ */
+export async function getClinicAnalytics(clinicId: string) {
+  // Default to 30 days for clinic owner view
+  return {
+    overview: await getOverviewStats("30d", clinicId),
+    referrers: await getReferrerStats("30d", 5, clinicId),
+    viewsOverTime: await getViewsOverTime("30d", clinicId),
+  };
+}
+
+/**
+ * Inserts a new analytics event
+ */
+export async function insertAnalyticsEvent(event: {
+  eventType: string;
+  path: string;
+  clinicId?: string;
+  referrer?: string;
+  referrerSource?: string;
+  referrerDomain?: string;
+  sessionHash: string;
+  eventDate: string;
+}): Promise<void> {
+  await db.insert(analyticsEvents).values({
+    eventType: event.eventType,
+    path: event.path,
+    clinicId: event.clinicId || null,
+    referrer: event.referrer || null,
+    referrerSource: event.referrerSource || null,
+    referrerDomain: event.referrerDomain || null,
+    sessionHash: event.sessionHash,
+    eventDate: event.eventDate,
+  });
+}

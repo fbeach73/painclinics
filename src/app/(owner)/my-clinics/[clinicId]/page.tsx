@@ -17,6 +17,7 @@ import {
   Youtube,
   Linkedin,
 } from "lucide-react";
+import { ClinicAnalyticsWidget } from "@/components/owner/clinic-analytics-widget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,6 +131,9 @@ export default async function ClinicOverviewPage({
           </Link>
         </Card>
       </div>
+
+      {/* Analytics Widget */}
+      <ClinicAnalyticsWidget clinicId={clinicId} />
 
       {/* Clinic Details */}
       <div className="grid gap-6 md:grid-cols-2">
