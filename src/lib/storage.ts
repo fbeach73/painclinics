@@ -219,6 +219,31 @@ export async function deleteFile(url: string): Promise<void> {
   }
 }
 
+/**
+ * Fetch content from a Vercel Blob URL
+ *
+ * @param url - The Vercel Blob URL to fetch from
+ * @returns The text content of the blob
+ *
+ * @example
+ * ```ts
+ * const csvContent = await fetchFromBlob("https://xyz.blob.vercel-storage.com/file.csv");
+ * ```
+ */
+export async function fetchFromBlob(url: string): Promise<string> {
+  // Validate URL is from Vercel Blob
+  if (!url.includes("blob.vercel-storage.com")) {
+    throw new Error("Invalid blob URL");
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
+  }
+
+  return response.text();
+}
+
 
 
 

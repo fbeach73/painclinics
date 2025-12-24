@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkAdminApi } from "@/lib/admin-auth";
 import { type RawClinicCSVRow } from "@/lib/clinic-transformer";
 import { previewCSV, validateCSVHeaders } from "@/lib/csv-parser";
+import { fetchFromBlob } from "@/lib/storage";
 
 // Route segment config for larger uploads
 export const runtime = "nodejs";
@@ -36,7 +37,7 @@ const SCRAPER_HEADERS = [
 
 /**
  * POST /api/admin/import/upload
- * Upload a CSV file, validate headers, and return preview
+ * Accept a blob URL (from client-side Vercel Blob upload), validate headers, and return preview
  */
 export async function POST(request: NextRequest) {
   const adminCheck = await checkAdminApi();
@@ -48,34 +49,26 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File | null;
+    // Parse JSON body with blobUrl and fileName
+    const body = await request.json();
+    const { blobUrl, fileName } = body as { blobUrl: string; fileName: string };
 
-    if (!file) {
+    if (!blobUrl) {
       return NextResponse.json(
-        { error: "No file provided" },
+        { error: "No blob URL provided" },
         { status: 400 }
       );
     }
 
-    if (!file.name.endsWith(".csv")) {
+    if (!fileName?.endsWith(".csv")) {
       return NextResponse.json(
         { error: "File must be a CSV" },
         { status: 400 }
       );
     }
 
-    // Check file size (50MB limit)
-    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: "File too large. Maximum size is 50MB." },
-        { status: 400 }
-      );
-    }
-
-    // Read file content
-    const content = await file.text();
+    // Fetch content from Vercel Blob
+    const content = await fetchFromBlob(blobUrl);
 
     if (!content.trim()) {
       return NextResponse.json(
@@ -174,13 +167,8 @@ export async function POST(request: NextRequest) {
         ? "Outscraper/Google Places"
         : "WordPress";
 
-    // Store the file content temporarily using a hash or session
-    // For simplicity, we'll return the content back encoded
-    // In production, you might want to store this in a temp file or cache
-
     return NextResponse.json({
-      fileName: file.name,
-      fileSize: file.size,
+      fileName,
       totalRows,
       headers: allHeaders,
       format: formatInfo,
@@ -200,8 +188,8 @@ export async function POST(request: NextRequest) {
           ? []
           : [...wpValidation.missing, ...outsValidation.missing, ...scraperValidation.missing],
       },
-      // Include raw content (base64 encoded) for subsequent import
-      content: Buffer.from(content).toString("base64"),
+      // Include blob URL for subsequent import (replaces base64 content)
+      blobUrl,
     });
   } catch (error) {
     console.error("Upload error:", error);

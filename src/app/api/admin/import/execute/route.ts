@@ -11,13 +11,14 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 import type { serviceCategoryEnum } from "@/lib/schema";
 import { generateSlug } from "@/lib/slug";
+import { fetchFromBlob, deleteFile } from "@/lib/storage";
 
 const BATCH_SIZE = 100;
 
 type DuplicateHandling = "skip" | "update" | "overwrite";
 
 interface ImportOptions {
-  content: string; // Base64 encoded CSV content
+  blobUrl: string; // Vercel Blob URL for the CSV file
   fileName: string;
   duplicateHandling?: DuplicateHandling;
 }
@@ -196,9 +197,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!options.content) {
+  if (!options.blobUrl) {
     return new Response(
-      JSON.stringify({ error: "No content provided" }),
+      JSON.stringify({ error: "No blob URL provided" }),
       {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -207,6 +208,7 @@ export async function POST(request: NextRequest) {
   }
 
   const duplicateHandling = options.duplicateHandling || "update";
+  const blobUrl = options.blobUrl;
 
   // Create SSE stream
   const encoder = new TextEncoder();
@@ -219,10 +221,9 @@ export async function POST(request: NextRequest) {
       };
 
       try {
-        // Decode content
-        const csvContent = Buffer.from(options.content, "base64").toString(
-          "utf-8"
-        );
+        // Fetch content from Vercel Blob
+        sendEvent("status", { message: "Fetching CSV from storage..." });
+        const csvContent = await fetchFromBlob(blobUrl);
 
         // Parse CSV
         sendEvent("status", { message: "Parsing CSV data..." });
@@ -382,6 +383,12 @@ export async function POST(request: NextRequest) {
             err instanceof Error ? err.message : "Import failed unexpectedly",
         });
       } finally {
+        // Clean up the temporary blob file
+        try {
+          await deleteFile(blobUrl);
+        } catch (cleanupErr) {
+          console.error("Failed to clean up blob:", cleanupErr);
+        }
         controller.close();
       }
     },

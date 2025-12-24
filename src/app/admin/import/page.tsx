@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { upload } from "@vercel/blob/client";
 import { Upload, FolderOpen, RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { ImportPreview } from "@/components/admin/import-preview";
 import { ImportProgress } from "@/components/admin/import-progress";
@@ -50,6 +51,18 @@ export default function ImportPage() {
     preview: Record<string, string>[];
     columns: string[];
     validationErrors: string[];
+    blobUrl: string;
+  } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [importProgress, setImportProgress] = useState<{
+    currentRecord: number;
+    totalRecords: number;
+    currentBatch: number;
+    totalBatches: number;
+    successCount: number;
+    errorCount: number;
+    skipCount: number;
+    message?: string;
   } | null>(null);
   const [importResults, setImportResults] = useState<{
     batchId: string;
@@ -101,30 +114,33 @@ export default function ImportPage() {
 
     setSelectedFile(file);
     setError(null);
+    setUploadProgress(0);
 
-    // Get preview
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      // Step 1: Upload file directly to Vercel Blob
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/admin/import/upload-token",
+        onUploadProgress: (progress) => {
+          setUploadProgress(Math.round(progress.percentage));
+        },
+      });
 
+      setUploadProgress(null);
+
+      // Step 2: Call preview API with blob URL
       const res = await fetch("/api/admin/import/upload", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blobUrl: blob.url,
+          fileName: file.name,
+        }),
       });
 
       if (!res.ok) {
-        // Handle non-JSON error responses (e.g., "Request Entity Too Large")
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to preview file");
-        } else {
-          const text = await res.text();
-          if (res.status === 413 || text.includes("Request Entity Too Large")) {
-            throw new Error("File too large. Maximum size is 50MB.");
-          }
-          throw new Error(text || `Upload failed with status ${res.status}`);
-        }
+        const data = await res.json();
+        throw new Error(data.error || "Failed to preview file");
       }
 
       const data = await res.json();
@@ -133,11 +149,13 @@ export default function ImportPage() {
         preview: data.preview || [],
         columns: data.headers || [],
         validationErrors: data.validation?.errors || [],
+        blobUrl: data.blobUrl,
       });
       setImportMode("preview");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to preview file");
+      setError(err instanceof Error ? err.message : "Failed to upload file");
       setSelectedFile(null);
+      setUploadProgress(null);
     }
   };
 
@@ -169,30 +187,18 @@ export default function ImportPage() {
   };
 
   const handleStartFileImport = async (duplicateHandling: "skip" | "update" | "overwrite") => {
-    if (!selectedFile) return;
+    if (!selectedFile || !previewData?.blobUrl) return;
 
     setImportMode("progress");
     setError(null);
+    setImportProgress(null);
 
     try {
-      // Read file as base64
-      const content = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          // Remove data URL prefix and get base64
-          const base64 = result.split(",")[1];
-          resolve(base64 || "");
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(selectedFile);
-      });
-
       const res = await fetch("/api/admin/import/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content,
+          blobUrl: previewData.blobUrl,
           fileName: selectedFile.name,
           duplicateHandling,
         }),
@@ -211,25 +217,59 @@ export default function ImportPage() {
         throw new Error("No response body");
       }
 
+      let buffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const text = decoder.decode(value);
-        const lines = text.split("\n");
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
         for (const line of lines) {
-          if (line.startsWith("event: complete")) {
-            // Next line should be data
-            continue;
-          }
           if (line.startsWith("data: ")) {
             try {
               const data = JSON.parse(line.slice(6));
+
+              // Handle progress events
+              if (data.processed !== undefined && data.total !== undefined) {
+                setImportProgress({
+                  currentRecord: data.processed,
+                  totalRecords: data.total,
+                  currentBatch: data.currentBatch || 0,
+                  totalBatches: data.totalBatches || 0,
+                  successCount: data.successCount || 0,
+                  errorCount: data.errorCount || 0,
+                  skipCount: data.skipCount || 0,
+                });
+              }
+
+              // Handle status events
+              if (data.message && data.totalRows !== undefined) {
+                setImportProgress(prev => ({
+                  ...prev,
+                  currentRecord: 0,
+                  totalRecords: data.totalRows,
+                  currentBatch: 0,
+                  totalBatches: 0,
+                  successCount: 0,
+                  errorCount: 0,
+                  skipCount: 0,
+                  message: data.message,
+                }));
+              }
+
+              // Handle complete event
               if (data.batchId && data.status) {
                 setImportResults(data);
                 setImportMode("results");
+                setImportProgress(null);
                 fetchStatus();
+              }
+
+              // Handle error event
+              if (data.message && !data.totalRows && !data.batchId) {
+                setError(data.message);
               }
             } catch {
               // Ignore parse errors
@@ -240,6 +280,7 @@ export default function ImportPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed");
       setImportMode("idle");
+      setImportProgress(null);
     }
   };
 
@@ -353,7 +394,17 @@ export default function ImportPage() {
 
       {/* Import Progress */}
       {importMode === "progress" && (
-        <ImportProgress inProgress={batchImportInProgress} />
+        <ImportProgress
+          inProgress={batchImportInProgress || importProgress !== null}
+          currentRecord={importProgress?.currentRecord ?? 0}
+          totalRecords={importProgress?.totalRecords ?? 0}
+          currentBatch={importProgress?.currentBatch ?? 0}
+          totalBatches={importProgress?.totalBatches ?? 0}
+          successCount={importProgress?.successCount ?? 0}
+          errorCount={importProgress?.errorCount ?? 0}
+          skipCount={importProgress?.skipCount ?? 0}
+          {...(importProgress?.message && { message: importProgress.message })}
+        />
       )}
 
       {/* Import Results */}
@@ -458,21 +509,36 @@ export default function ImportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <label className="block">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mb-1">
-                  Drag and drop or click to upload
+            {uploadProgress !== null ? (
+              <div className="p-8 text-center">
+                <RefreshCw className="h-8 w-8 mx-auto mb-2 text-muted-foreground animate-spin" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  Uploading file... {uploadProgress}%
                 </p>
-                <p className="text-xs text-muted-foreground">CSV files only</p>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
               </div>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </label>
+            ) : (
+              <label className="block">
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer">
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Drag and drop or click to upload
+                  </p>
+                  <p className="text-xs text-muted-foreground">CSV files only (up to 50MB)</p>
+                </div>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </label>
+            )}
           </CardContent>
         </Card>
       </div>
