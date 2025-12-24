@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getClinicById } from "@/lib/clinic-queries";
 import { sendContactClinicInquiryEmail, sendInquiryConfirmationEmail } from "@/lib/email";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 /**
  * Zod validation schema for contact form data
@@ -19,6 +20,7 @@ const contactFormSchema = z.object({
     error: "Please select a preferred contact time",
   }),
   additionalInfo: z.string().optional(),
+  turnstileToken: z.string().optional(),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -31,6 +33,15 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json();
+
+    // Verify Turnstile token
+    const isValidCaptcha = await verifyTurnstile(body.turnstileToken);
+    if (!isValidCaptcha) {
+      return NextResponse.json(
+        { success: false, error: "Captcha verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     // Validate with Zod
     const validationResult = contactFormSchema.safeParse(body);

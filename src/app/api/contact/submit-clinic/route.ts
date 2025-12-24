@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { sendSubmitClinicEmail } from "@/lib/email";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 const submitClinicSchema = z.object({
   clinicName: z.string().min(1, "Clinic name is required"),
@@ -15,11 +16,21 @@ const submitClinicSchema = z.object({
   website: z.string().url("Please enter a valid website URL").optional().or(z.literal("")),
   services: z.string().optional(),
   additionalInfo: z.string().optional(),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Verify Turnstile token
+    const isValidCaptcha = await verifyTurnstile(body.turnstileToken);
+    if (!isValidCaptcha) {
+      return NextResponse.json(
+        { success: false, error: "Captcha verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     const validationResult = submitClinicSchema.safeParse(body);
     if (!validationResult.success) {

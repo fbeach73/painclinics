@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Turnstile } from '@/components/ui/turnstile';
 import { cn } from '@/lib/utils';
 
 type FormStep =
@@ -124,6 +125,7 @@ export function ContactClinicModal({
   const [currentStep, setCurrentStep] = useState<FormStep>('pain-type');
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const [painType, setPainType] = useState<string | null>(null);
   const [painDuration, setPainDuration] = useState<string | null>(null);
@@ -166,6 +168,7 @@ export function ContactClinicModal({
     setPainDuration(null);
     setPreviousTreatment(null);
     setInsurance(null);
+    setTurnstileToken(null);
     resetForm();
   };
 
@@ -268,6 +271,7 @@ export function ContactClinicModal({
             PREVIOUS_TREATMENT_OPTIONS
           ),
           insurance: getOptionLabel(insurance, INSURANCE_OPTIONS),
+          turnstileToken,
           ...data,
         }),
       });
@@ -419,6 +423,8 @@ export function ContactClinicModal({
           />
         </div>
 
+        <Turnstile onSuccess={setTurnstileToken} className="mt-4" />
+
         <div className="flex gap-3 pt-4">
           <Button
             type="button"
@@ -431,7 +437,7 @@ export function ContactClinicModal({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !turnstileToken}
             className="flex-1 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700"
           >
             {isSubmitting ? (

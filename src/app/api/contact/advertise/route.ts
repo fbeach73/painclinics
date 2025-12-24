@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { sendAdvertiseInquiryEmail } from "@/lib/email";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 const advertiseInquirySchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
@@ -12,11 +13,21 @@ const advertiseInquirySchema = z.object({
   interestArea: z.string().min(1, "Interest area is required"),
   budget: z.string().optional(),
   message: z.string().optional(),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Verify Turnstile token
+    const isValidCaptcha = await verifyTurnstile(body.turnstileToken);
+    if (!isValidCaptcha) {
+      return NextResponse.json(
+        { success: false, error: "Captcha verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     const validationResult = advertiseInquirySchema.safeParse(body);
     if (!validationResult.success) {

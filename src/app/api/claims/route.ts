@@ -11,6 +11,7 @@ import {
 import { db } from "@/lib/db";
 import { sendClaimSubmittedEmail } from "@/lib/email";
 import { clinics } from "@/lib/schema";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 const VALID_ROLES = ["owner", "manager", "authorized_representative"] as const;
 
@@ -66,7 +67,16 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body = await request.json();
-    const { clinicId, fullName, role, businessEmail, businessPhone, additionalNotes } = body;
+    const { clinicId, fullName, role, businessEmail, businessPhone, additionalNotes, turnstileToken } = body;
+
+    // Verify Turnstile token
+    const isValidCaptcha = await verifyTurnstile(turnstileToken);
+    if (!isValidCaptcha) {
+      return NextResponse.json(
+        { error: "Captcha verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!clinicId || typeof clinicId !== "string") {

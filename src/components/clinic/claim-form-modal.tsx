@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Turnstile } from '@/components/ui/turnstile';
 import { signIn } from '@/lib/auth-client';
 
 const roleValues = ['owner', 'manager', 'authorized_representative'] as const;
@@ -57,6 +58,7 @@ export function ClaimFormModal({
   isLoggedIn,
 }: ClaimFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const form = useForm<ClaimFormValues>({
     resolver: zodResolver(claimFormSchema),
@@ -89,6 +91,7 @@ export function ClaimFormModal({
         },
         body: JSON.stringify({
           clinicId,
+          turnstileToken,
           ...data,
         }),
       });
@@ -248,6 +251,8 @@ export function ClaimFormModal({
             />
           </div>
 
+          <Turnstile onSuccess={setTurnstileToken} className="mt-4" />
+
           <DialogFooter className="pt-4">
             <Button
               type="button"
@@ -257,7 +262,7 @@ export function ClaimFormModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !turnstileToken}>
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               Submit Claim
             </Button>

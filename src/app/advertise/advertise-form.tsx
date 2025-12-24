@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Turnstile } from "@/components/ui/turnstile";
 
 const companyTypes = [
   "Pain Management Clinic",
@@ -54,6 +55,7 @@ export function AdvertiseForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,6 +72,7 @@ export function AdvertiseForm() {
       interestArea: formData.get("interestArea") as string,
       budget: formData.get("budget") as string,
       message: formData.get("message") as string,
+      turnstileToken,
     };
 
     try {
@@ -224,7 +227,8 @@ export function AdvertiseForm() {
               {error}
             </p>
           )}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Turnstile onSuccess={setTurnstileToken} />
+          <Button type="submit" className="w-full" disabled={isSubmitting || !turnstileToken}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -14,11 +14,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Turnstile } from "@/components/ui/turnstile";
 
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,6 +34,7 @@ export function ContactForm() {
       email: formData.get("email") as string,
       subject: formData.get("subject") as string,
       message: formData.get("message") as string,
+      turnstileToken,
     };
 
     try {
@@ -139,7 +142,8 @@ export function ContactForm() {
               {error}
             </p>
           )}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Turnstile onSuccess={setTurnstileToken} />
+          <Button type="submit" className="w-full" disabled={isSubmitting || !turnstileToken}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

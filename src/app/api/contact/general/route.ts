@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { sendGeneralContactEmail } from "@/lib/email";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 const generalContactSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -9,11 +10,21 @@ const generalContactSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   subject: z.string().min(1, "Subject is required"),
   message: z.string().min(10, "Message must be at least 10 characters"),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Verify Turnstile token
+    const isValidCaptcha = await verifyTurnstile(body.turnstileToken);
+    if (!isValidCaptcha) {
+      return NextResponse.json(
+        { success: false, error: "Captcha verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
 
     const validationResult = generalContactSchema.safeParse(body);
     if (!validationResult.success) {
