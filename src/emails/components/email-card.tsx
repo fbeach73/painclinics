@@ -16,7 +16,7 @@ function getCardStyle(
   variant: "default" | "highlight" | "warning" | "success" | "info"
 ): React.CSSProperties {
   const baseStyle: React.CSSProperties = {
-    padding: "20px",
+    padding: "16px 12px", // Reduced padding for mobile
     borderRadius: "8px",
     marginBottom: "16px",
   };
@@ -112,11 +112,11 @@ const dataRowStyle: React.CSSProperties = {
 };
 
 const labelColumnStyle: React.CSSProperties = {
-  width: "40%",
+  width: "30%", // Narrower label for more value space on mobile
 };
 
 const valueColumnStyle: React.CSSProperties = {
-  width: "60%",
+  width: "70%", // More space for values/links on mobile
 };
 
 const labelStyle: React.CSSProperties = {

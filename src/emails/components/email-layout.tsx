@@ -76,12 +76,12 @@ const bodyStyle: React.CSSProperties = {
 const containerStyle: React.CSSProperties = {
   maxWidth: "600px",
   margin: "0 auto",
-  padding: "20px",
+  padding: "20px 8px", // Reduced horizontal padding for mobile
 };
 
 const headerStyle: React.CSSProperties = {
   backgroundColor: "#2563eb",
-  padding: "24px 20px",
+  padding: "24px 16px", // Reduced horizontal padding for mobile
   borderRadius: "8px 8px 0 0",
   textAlign: "center" as const,
 };
@@ -95,7 +95,7 @@ const logoStyle: React.CSSProperties = {
 
 const contentStyle: React.CSSProperties = {
   backgroundColor: "#ffffff",
-  padding: "32px 24px",
+  padding: "24px 16px", // Reduced padding for mobile
   borderRadius: "0 0 8px 8px",
 };
 
@@ -108,7 +108,7 @@ const hrStyle: React.CSSProperties = {
 
 const footerStyle: React.CSSProperties = {
   textAlign: "center" as const,
-  padding: "0 20px",
+  padding: "0 12px", // Reduced horizontal padding for mobile
 };
 
 const footerTextStyle: React.CSSProperties = {
