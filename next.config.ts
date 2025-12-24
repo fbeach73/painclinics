@@ -140,6 +140,13 @@ const blogRedirects = [
 }));
 
 const nextConfig: NextConfig = {
+  // Allow larger body sizes for file uploads (50MB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
+
   // Image optimization configuration
   images: {
     remotePatterns: [

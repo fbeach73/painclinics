@@ -3,6 +3,10 @@ import { checkAdminApi } from "@/lib/admin-auth";
 import { type RawClinicCSVRow } from "@/lib/clinic-transformer";
 import { previewCSV, validateCSVHeaders } from "@/lib/csv-parser";
 
+// Route segment config for larger uploads
+export const runtime = "nodejs";
+export const maxDuration = 60; // 60 second timeout
+
 /**
  * Required CSV headers for clinic data
  * Supports WordPress format, Outscraper/Google Places format, OR Scraper format
@@ -61,11 +65,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check file size (10MB limit)
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    // Check file size (50MB limit)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "File too large. Maximum size is 10MB." },
+        { error: "File too large. Maximum size is 50MB." },
         { status: 400 }
       );
     }

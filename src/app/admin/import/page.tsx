@@ -92,6 +92,13 @@ export default function ImportPage() {
       return;
     }
 
+    // Check file size (50MB limit)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      setError("File too large. Maximum size is 50MB.");
+      return;
+    }
+
     setSelectedFile(file);
     setError(null);
 
@@ -106,8 +113,18 @@ export default function ImportPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to preview file");
+        // Handle non-JSON error responses (e.g., "Request Entity Too Large")
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to preview file");
+        } else {
+          const text = await res.text();
+          if (res.status === 413 || text.includes("Request Entity Too Large")) {
+            throw new Error("File too large. Maximum size is 50MB.");
+          }
+          throw new Error(text || `Upload failed with status ${res.status}`);
+        }
       }
 
       const data = await res.json();
