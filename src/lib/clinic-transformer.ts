@@ -98,7 +98,7 @@ export interface RawClinicCSVRow {
   range?: string; // Price range from Outscraper (e.g., "$", "$$", "$$$")
   detailed_reviews?: string; // Full review objects JSON array from Outscraper
 
-  // Scraper format columns (no coordinates, has additional metadata)
+  // Scraper format columns (has additional metadata)
   is_spending_on_ads?: string;
   competitors?: string;
   can_claim?: string;
@@ -106,6 +106,10 @@ export interface RawClinicCSVRow {
   owner_profile_link?: string;
   is_temporarily_closed?: string;
   query?: string;
+  cid?: string;
+  data_id?: string;
+  kgmid?: string;
+  time_zone?: string;
 
   // Reviews Per Score - Legacy format (individual columns)
   "Reviews Per Score Rating_1"?: string;
@@ -791,6 +795,178 @@ function parseOutscraperFeaturedReviews(reviews: string | undefined): FeaturedRe
 }
 
 /**
+ * Parse scraper format featured_reviews JSON array
+ * @example '[{"review_id":"...","review_link":"https://...","name":"Carla","rating":4,"review_text":"Great care..."}]'
+ */
+function parseScraperFeaturedReviews(reviewsJson: string | undefined): FeaturedReview[] | null {
+  if (!reviewsJson) return null;
+
+  const parsed = safeParseJSON<Array<{
+    review_text?: string;
+    rating?: number;
+    name?: string;
+    review_link?: string;
+  }>>(reviewsJson);
+
+  if (!parsed || !Array.isArray(parsed)) return null;
+
+  const result: FeaturedReview[] = [];
+  for (const r of parsed) {
+    if (r.review_text) {
+      result.push({
+        review: r.review_text,
+        rating: r.rating ?? null,
+        username: r.name || null,
+        url: r.review_link || null,
+        date: null, // Scraper format doesn't include date in featured_reviews
+      });
+    }
+  }
+
+  return result.length > 0 ? result : null;
+}
+
+/**
+ * Parse scraper format images from images and featured_images JSON arrays
+ * Extracts URLs from both fields, deduplicating between them
+ * @example images: '["https://example.com/image1.jpg"]'
+ * @example featured_images: '[{"link":"https://example.com/image2.jpg"}]'
+ */
+function parseScraperImages(
+  imagesJson: string | undefined,
+  featuredImagesJson: string | undefined
+): string[] | null {
+  const urls: string[] = [];
+
+  // Parse images array (can be array of strings or objects with url property)
+  if (imagesJson) {
+    const images = safeParseJSON<Array<string | { url?: string; link?: string }>>(imagesJson);
+    if (images && Array.isArray(images)) {
+      for (const img of images) {
+        if (typeof img === 'string' && img.startsWith('http')) {
+          urls.push(img);
+        } else if (typeof img === 'object') {
+          const url = img.url || img.link;
+          if (url && url.startsWith('http')) {
+            urls.push(url);
+          }
+        }
+      }
+    }
+  }
+
+  // Parse featured_images array (can be array of strings or objects with link property)
+  if (featuredImagesJson) {
+    const featured = safeParseJSON<Array<string | { url?: string; link?: string }>>(featuredImagesJson);
+    if (featured && Array.isArray(featured)) {
+      for (const img of featured) {
+        let url: string | undefined;
+        if (typeof img === 'string' && img.startsWith('http')) {
+          url = img;
+        } else if (typeof img === 'object') {
+          url = img.url || img.link;
+        }
+        // Add if valid URL and not already in list
+        if (url && url.startsWith('http') && !urls.includes(url)) {
+          urls.push(url);
+        }
+      }
+    }
+  }
+
+  return urls.length > 0 ? urls : null;
+}
+
+/**
+ * Input data structure for building aggregated review text
+ */
+interface AllReviewsTextInput {
+  featuredReviews?: string | undefined;
+  detailedReviews?: string | undefined;
+  competitors?: string | undefined;
+  about?: string | undefined;
+  reviewKeywords?: string | undefined;
+  cid?: string | undefined;
+  kgmid?: string | undefined;
+  timeZone?: string | undefined;
+}
+
+/**
+ * Build aggregated text from reviews and metadata for AI processing
+ * Combines featured reviews, detailed reviews, competitors, about, and metadata
+ * into a single text block that can be used for AI content generation
+ */
+function buildAllReviewsText(data: AllReviewsTextInput): string | null {
+  const parts: string[] = [];
+
+  // Extract featured review texts
+  if (data.featuredReviews) {
+    const reviews = safeParseJSON<Array<{ review_text?: string }>>(data.featuredReviews);
+    if (reviews && Array.isArray(reviews)) {
+      const texts = reviews
+        .map(r => r.review_text?.replace(/<[^>]*>/g, '').trim())
+        .filter((text): text is string => Boolean(text));
+      if (texts.length) {
+        parts.push(`FEATURED REVIEWS:\n${texts.join('\n\n')}`);
+      }
+    }
+  }
+
+  // Extract detailed review texts
+  if (data.detailedReviews) {
+    const reviews = safeParseJSON<Array<{ review_text?: string }>>(data.detailedReviews);
+    if (reviews && Array.isArray(reviews)) {
+      const texts = reviews
+        .map(r => r.review_text?.replace(/<[^>]*>/g, '').trim())
+        .filter((text): text is string => Boolean(text));
+      if (texts.length) {
+        parts.push(`DETAILED REVIEWS:\n${texts.join('\n\n')}`);
+      }
+    }
+  }
+
+  // Add competitors context
+  if (data.competitors) {
+    const competitors = safeParseJSON<Array<{ name?: string; main_category?: string }>>(data.competitors);
+    if (competitors && Array.isArray(competitors)) {
+      const names = competitors
+        .map(c => c.name ? (c.main_category ? `${c.name} (${c.main_category})` : c.name) : null)
+        .filter((name): name is string => Boolean(name));
+      if (names.length) {
+        parts.push(`COMPETITORS:\n${names.join(', ')}`);
+      }
+    }
+  }
+
+  // Add about section
+  if (data.about) {
+    const aboutText = data.about.replace(/<[^>]*>/g, '').trim();
+    if (aboutText) {
+      parts.push(`ABOUT:\n${aboutText}`);
+    }
+  }
+
+  // Add review keywords
+  if (data.reviewKeywords) {
+    const keywords = data.reviewKeywords.replace(/<[^>]*>/g, '').trim();
+    if (keywords) {
+      parts.push(`REVIEW KEYWORDS:\n${keywords}`);
+    }
+  }
+
+  // Add metadata
+  const metadata: string[] = [];
+  if (data.cid) metadata.push(`CID: ${data.cid}`);
+  if (data.kgmid) metadata.push(`KGMID: ${data.kgmid}`);
+  if (data.timeZone) metadata.push(`Timezone: ${data.timeZone}`);
+  if (metadata.length) {
+    parts.push(`METADATA:\n${metadata.join(', ')}`);
+  }
+
+  return parts.length ? parts.join('\n\n---\n\n') : null;
+}
+
+/**
  * Parse Outscraper closed_on JSON array
  * @example '["Saturday","Sunday"]'
  */
@@ -974,21 +1150,38 @@ function emptyToNull(value: string | undefined): string | null {
  */
 export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | null {
   // Detect format by checking distinctive column combinations:
-  // - Outscraper: has 'name' AND 'coordinates' (JSON object with lat/lng)
-  // - Scraper: has 'name', 'place_id', 'main_category' but NO 'coordinates' (address string only)
+  // - Scraper: has 'place_id' + 'main_category' (unique identifiers for scraper format)
+  // - Outscraper: has 'coordinates' but NOT scraper identifiers
   // - WordPress: has 'Title' and 'Map Latitude' (explicit columns)
-  const isOutscraperFormat = !!row.name && !!row.coordinates;
-  const isScraperFormat =
-    !isOutscraperFormat && !!row.name && !!row.place_id && !!row.main_category;
+  // NOTE: Scraper format is checked FIRST because it may also have coordinates field
+  const isScraperFormat = !!row.name && !!row.place_id && !!row.main_category;
+  const isOutscraperFormat = !!row.name && !!row.coordinates && !isScraperFormat;
 
   // ========== SCRAPER FORMAT ==========
-  // Handle scraper format first (early return) - no coordinates available
+  // Handle scraper format first (early return)
   if (isScraperFormat) {
     const scraperTitle = row.name?.trim();
     if (!scraperTitle) return null;
 
+    // Parse coordinates (now available in scraper format)
+    const coords = parseOutscraperCoordinates(row.coordinates);
+
     // Parse address components from "Street, City, ST ZIP, Country" format
     const addr = parseScraperAddress(row.address);
+
+    // Try to get structured address data from detailed_address JSON
+    const detailedAddr = parseOutscraperDetailedAddress(row.detailed_address);
+    if (detailedAddr) {
+      // Use structured address if available, keeping fallback to parsed string
+      addr.streetAddress = detailedAddr.street || addr.streetAddress;
+      addr.city = detailedAddr.city || addr.city;
+      addr.state = detailedAddr.state || addr.state;
+      addr.postalCode = detailedAddr.postal_code || addr.postalCode;
+      // Update state abbreviation if we got full state name from detailed_address
+      if (detailedAddr.state && !addr.stateAbbreviation) {
+        addr.stateAbbreviation = getStateAbbreviation(detailedAddr.state) || null;
+      }
+    }
 
     // Validate we have minimal location data
     if (!addr.city && !addr.postalCode && !row.address) {
@@ -1021,8 +1214,8 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       state: addr.state || "",
       stateAbbreviation: scraperStateAbbr || null,
       postalCode: addr.postalCode || "",
-      mapLatitude: 0, // Not provided in scraper format - would need geocoding
-      mapLongitude: 0,
+      mapLatitude: coords?.lat ?? 0,
+      mapLongitude: coords?.lng ?? 0,
       detailedAddress: emptyToNull(row.address),
       phone: emptyToNull(row.phone),
       phones: null,
@@ -1030,14 +1223,23 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       emails: null,
       reviewCount: safeParseInt(row.reviews) || 0,
       rating: safeParseFloat(row.rating),
-      reviewsPerScore: null,
+      reviewsPerScore: parseOutscraperReviewsPerRating(row.reviews_per_rating),
       reviewKeywords: parseScraperKeywords(row.review_keywords),
       detailedReviews: null,
-      allReviewsText: null,
+      allReviewsText: buildAllReviewsText({
+        featuredReviews: row.featured_reviews,
+        detailedReviews: row.detailed_reviews,
+        competitors: row.competitors,
+        about: row.about,
+        reviewKeywords: row.review_keywords,
+        cid: row.cid,
+        kgmid: row.kgmid,
+        timeZone: row.time_zone,
+      }),
       clinicHours: parseScraperHours(row.workday_timing, row.closed_on),
       closedOn: emptyToNull(row.closed_on),
       popularTimes: null,
-      featuredReviews: null,
+      featuredReviews: parseScraperFeaturedReviews(row.featured_reviews),
       priceRange: null,
       businessDescription: emptyToNull(row.description),
       content: null,
@@ -1045,7 +1247,7 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       imageUrl: emptyToNull(row.featured_image),
       imageFeatured: emptyToNull(row.featured_image),
       featImage: null,
-      clinicImageUrls: null,
+      clinicImageUrls: parseScraperImages(row.images, row.featured_images),
       clinicImageMedia: null,
       qrCode: null,
       amenities: null,

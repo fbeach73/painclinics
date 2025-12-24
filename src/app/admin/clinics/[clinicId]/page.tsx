@@ -277,6 +277,7 @@ export default async function ClinicDetailPage({ params }: PageProps) {
               closedOn: clinic.closedOn,
               rating: clinic.rating,
               reviewCount: clinic.reviewCount,
+              amenities: clinic.amenities as string[] | null,
             }}
           />
         </TabsContent>

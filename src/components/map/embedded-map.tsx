@@ -19,11 +19,18 @@ export function EmbeddedMap({
 }: EmbeddedMapProps) {
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(clinic.address.formatted);
 
-  if (!MAPBOX_TOKEN) {
+  // Check for valid coordinates (not 0,0 or missing)
+  const hasValidCoordinates =
+    clinic.coordinates.lat !== 0 &&
+    clinic.coordinates.lng !== 0 &&
+    clinic.coordinates.lat !== null &&
+    clinic.coordinates.lng !== null;
+
+  if (!MAPBOX_TOKEN || !hasValidCoordinates) {
     return (
       <div className={`${className} flex flex-col items-center justify-center bg-muted rounded-lg gap-4`}>
         <p className="text-muted-foreground text-center text-sm px-4">
-          Map unavailable
+          {!hasValidCoordinates ? 'Map coordinates not available' : 'Map unavailable'}
         </p>
         <Button asChild variant="outline" size="sm">
           <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">

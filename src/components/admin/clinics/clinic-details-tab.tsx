@@ -9,8 +9,11 @@ import {
   Loader2,
   MapPin,
   Phone,
+  Plus,
   Save,
   Share2,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -133,6 +136,8 @@ interface ClinicData {
   // Rating (for display/override)
   rating: number | null;
   reviewCount: number | null;
+  // Amenities
+  amenities: string[] | null;
 }
 
 interface ClinicDetailsTabProps {
@@ -148,6 +153,10 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
 
   // Form state
   const [formData, setFormData] = useState<ClinicData>(initialData);
+
+  // Amenities state
+  const [isAutomating, setIsAutomating] = useState(false);
+  const [newAmenity, setNewAmenity] = useState("");
 
   // Reset form when initial data changes
   useEffect(() => {
@@ -192,6 +201,8 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
         // Hours
         clinicHours: formData.clinicHours,
         closedOn: formData.closedOn || null,
+        // Amenities
+        amenities: formData.amenities || null,
       };
 
       const response = await fetch(`/api/admin/clinics/${clinicId}`, {
@@ -238,6 +249,53 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
     }
   };
 
+  // Amenities handlers
+  const handleAutomateAmenities = async () => {
+    setIsAutomating(true);
+    try {
+      const response = await fetch(`/api/admin/clinics/${clinicId}/automate-amenities`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFormData((prev) => ({ ...prev, amenities: data.amenities }));
+        setHasUnsavedChanges(true);
+        toast.success(`Found ${data.amenities.length} amenities`);
+      } else {
+        toast.error(data.error || "Failed to automate amenities");
+      }
+    } catch {
+      toast.error("Failed to automate amenities");
+    } finally {
+      setIsAutomating(false);
+    }
+  };
+
+  const removeAmenity = (index: number) => {
+    const newAmenities = [...(formData.amenities || [])];
+    newAmenities.splice(index, 1);
+    setFormData((prev) => ({ ...prev, amenities: newAmenities.length > 0 ? newAmenities : null }));
+    setHasUnsavedChanges(true);
+  };
+
+  const addAmenity = () => {
+    const trimmed = newAmenity.trim();
+    if (!trimmed) return;
+
+    const current = formData.amenities || [];
+    if (current.includes(trimmed)) {
+      toast.error("Amenity already exists");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      amenities: [...current, trimmed],
+    }));
+    setNewAmenity("");
+    setHasUnsavedChanges(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Save Bar */}
@@ -281,7 +339,7 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
 
       {/* Tabs for different sections */}
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Basic Info
@@ -297,6 +355,10 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
           <TabsTrigger value="hours" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Hours
+          </TabsTrigger>
+          <TabsTrigger value="amenities" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Amenities
           </TabsTrigger>
         </TabsList>
 
@@ -638,6 +700,102 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
                 <p className="text-xs text-muted-foreground">
                   Enter hours as JSON. Format varies by source - use the Sync tab to pull from Google Places.
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Amenities Tab */}
+        <TabsContent value="amenities" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Amenities</CardTitle>
+              <CardDescription>
+                Facility features and conveniences extracted from reviews and descriptions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* AI Automate Button */}
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={handleAutomateAmenities}
+                  disabled={isAutomating}
+                  variant="outline"
+                >
+                  {isAutomating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Automate Amenities
+                    </>
+                  )}
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  AI will extract amenities from reviews and description
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Current Amenities */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Current Amenities</h4>
+                {formData.amenities && formData.amenities.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.amenities.map((amenity, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1 pr-1"
+                      >
+                        {amenity}
+                        <button
+                          type="button"
+                          onClick={() => removeAmenity(index)}
+                          className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No amenities set. Click &quot;Automate Amenities&quot; to extract from reviews.
+                  </p>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Manual Add */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Add Manually</h4>
+                <div className="flex gap-2">
+                  <Input
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    placeholder="Enter amenity (e.g., Free WiFi)"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addAmenity();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addAmenity}
+                    disabled={!newAmenity.trim()}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

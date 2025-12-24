@@ -5,7 +5,7 @@ import { previewCSV, validateCSVHeaders } from "@/lib/csv-parser";
 
 /**
  * Required CSV headers for clinic data
- * Supports WordPress format OR Outscraper/Google Places format
+ * Supports WordPress format, Outscraper/Google Places format, OR Scraper format
  */
 const WORDPRESS_HEADERS = [
   "Title",
@@ -20,6 +20,14 @@ const OUTSCRAPER_HEADERS = [
   "name",
   "coordinates",
   "detailed_address",
+];
+
+// Scraper format: has name, place_id, main_category, address (coordinates now available too)
+const SCRAPER_HEADERS = [
+  "name",
+  "place_id",
+  "main_category",
+  "address",
 ];
 
 /**
@@ -72,18 +80,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate headers - accept either WordPress OR Outscraper format
+    // Validate headers - accept WordPress, Outscraper, OR Scraper format
     const wpValidation = validateCSVHeaders(content, WORDPRESS_HEADERS);
     const outsValidation = validateCSVHeaders(content, OUTSCRAPER_HEADERS);
+    const scraperValidation = validateCSVHeaders(content, SCRAPER_HEADERS);
 
     const validationErrors: string[] = [];
     const isWordPressFormat = wpValidation.valid;
-    const isOutscraperFormat = outsValidation.valid;
+    // Scraper format: check FIRST because it has unique identifiers (place_id, main_category)
+    // Scraper format may also have coordinates, so check for unique identifiers first
+    const isScraperFormat = scraperValidation.valid;
+    // Outscraper format: has coordinates but NOT scraper identifiers
+    const isOutscraperFormat = outsValidation.valid && !isScraperFormat;
 
-    if (!isWordPressFormat && !isOutscraperFormat) {
+    if (!isWordPressFormat && !isOutscraperFormat && !isScraperFormat) {
       validationErrors.push(
-        `CSV must have either WordPress headers (${WORDPRESS_HEADERS.join(", ")}) ` +
-        `OR Outscraper headers (${OUTSCRAPER_HEADERS.join(", ")})`
+        `CSV must have WordPress headers (${WORDPRESS_HEADERS.join(", ")}), ` +
+        `Outscraper headers (${OUTSCRAPER_HEADERS.join(", ")}), ` +
+        `OR Scraper headers (${SCRAPER_HEADERS.join(", ")})`
       );
     }
 
@@ -100,7 +114,16 @@ export async function POST(request: NextRequest) {
     let missingAddressCount = 0;
 
     for (const row of preview) {
-      if (isOutscraperFormat) {
+      if (isScraperFormat) {
+        // Scraper format validation - coordinates are parsed from address, not a separate field
+        if (!row.name) {
+          missingTitleCount++;
+        }
+        if (!row.address) {
+          missingAddressCount++;
+        }
+        // No coordinates field in scraper format - this is expected
+      } else if (isOutscraperFormat) {
         // Outscraper format validation
         if (!row.coordinates) {
           missingCoordinatesCount++;
@@ -125,7 +148,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (missingCoordinatesCount > 0) {
+    // Only warn about missing coordinates for formats that require them
+    if (missingCoordinatesCount > 0 && !isScraperFormat) {
       dataWarnings.push(
         `${missingCoordinatesCount} rows in preview missing coordinates`
       );
@@ -140,7 +164,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Add format detection info
-    const formatInfo = isOutscraperFormat ? "Outscraper/Google Places" : "WordPress";
+    const formatInfo = isScraperFormat
+      ? "Scraper"
+      : isOutscraperFormat
+        ? "Outscraper/Google Places"
+        : "WordPress";
 
     // Store the file content temporarily using a hash or session
     // For simplicity, we'll return the content back encoded
@@ -161,10 +189,12 @@ export async function POST(request: NextRequest) {
         return rawRow;
       }),
       validation: {
-        valid: (isWordPressFormat || isOutscraperFormat) && validationErrors.length === 0,
+        valid: (isWordPressFormat || isOutscraperFormat || isScraperFormat) && validationErrors.length === 0,
         errors: validationErrors,
         warnings: dataWarnings,
-        missingHeaders: isWordPressFormat ? [] : (isOutscraperFormat ? [] : [...wpValidation.missing, ...outsValidation.missing]),
+        missingHeaders: isWordPressFormat || isOutscraperFormat || isScraperFormat
+          ? []
+          : [...wpValidation.missing, ...outsValidation.missing, ...scraperValidation.missing],
       },
       // Include raw content (base64 encoded) for subsequent import
       content: Buffer.from(content).toString("base64"),

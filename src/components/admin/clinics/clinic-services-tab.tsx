@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { ClinicServiceSelector } from "@/components/admin/services/clinic-service-selector";
+import { ServiceEnhanceModal } from "@/components/admin/services/service-enhance-modal";
 import type { Service, ClinicService, SetServiceInput } from "@/types/service";
 
 interface ClinicServicesTabProps {
@@ -20,6 +23,7 @@ export function ClinicServicesTab({
   availableServices,
 }: ClinicServicesTabProps) {
   const router = useRouter();
+  const [showEnhanceModal, setShowEnhanceModal] = useState(false);
 
   const handleSave = async (services: SetServiceInput[]) => {
     try {
@@ -62,13 +66,36 @@ export function ClinicServicesTab({
     }
   };
 
+  const handleApplySuggestions = async (services: SetServiceInput[]) => {
+    await handleSave(services);
+    setShowEnhanceModal(false);
+  };
+
   return (
-    <ClinicServiceSelector
-      clinicId={clinicId}
-      initialServices={initialServices}
-      availableServices={availableServices}
-      onSave={handleSave}
-    />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={() => setShowEnhanceModal(true)}>
+          <Sparkles className="mr-2 h-4 w-4" />
+          AI Enhance
+        </Button>
+      </div>
+
+      <ClinicServiceSelector
+        clinicId={clinicId}
+        initialServices={initialServices}
+        availableServices={availableServices}
+        onSave={handleSave}
+      />
+
+      <ServiceEnhanceModal
+        open={showEnhanceModal}
+        onOpenChange={setShowEnhanceModal}
+        clinicId={clinicId}
+        clinicName={clinicName}
+        currentServices={initialServices}
+        onApply={handleApplySuggestions}
+      />
+    </div>
   );
 }
 
