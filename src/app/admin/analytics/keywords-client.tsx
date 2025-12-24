@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -34,28 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface KeywordAggregation {
-  keyword: string;
-  totalCount: number;
-  clinicCount: number;
-  avgPerClinic: number;
-  sentiment: "positive" | "neutral" | "negative";
-}
-
-interface KeywordsResponse {
-  keywords: KeywordAggregation[];
-  summary: {
-    totalKeywords: number;
-    clinicsAnalyzed: number;
-    sentiment: { positive: number; neutral: number; negative: number };
-  };
-  filters: {
-    state: string | null;
-    city: string | null;
-    limit: number;
-  };
-}
+import { useKeywordsAnalytics } from "@/lib/analytics/hooks";
 
 // US State abbreviations for the filter dropdown
 const US_STATES = [
@@ -67,37 +46,8 @@ const US_STATES = [
 ];
 
 export function KeywordsAnalyticsClient() {
-  const [data, setData] = useState<KeywordsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [stateFilter, setStateFilter] = useState<string>("all");
-
-  const fetchKeywords = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const params = new URLSearchParams();
-      if (stateFilter && stateFilter !== "all") {
-        params.set("state", stateFilter);
-      }
-      params.set("limit", "50");
-
-      const response = await fetch(`/api/admin/analytics/keywords?${params}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch keywords data");
-      }
-      const result = await response.json();
-      setData(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, [stateFilter]);
-
-  useEffect(() => {
-    fetchKeywords();
-  }, [fetchKeywords]);
+  const { data, isLoading, isError, refresh } = useKeywordsAnalytics(stateFilter);
 
   const getSentimentBadge = (sentiment: "positive" | "neutral" | "negative") => {
     switch (sentiment) {
@@ -126,7 +76,7 @@ export function KeywordsAnalyticsClient() {
     }
   };
 
-  if (loading && !data) {
+  if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -134,12 +84,12 @@ export function KeywordsAnalyticsClient() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <Card className="border-destructive">
         <CardContent className="pt-6">
-          <p className="text-destructive">{error}</p>
-          <Button onClick={fetchKeywords} className="mt-4">
+          <p className="text-destructive">Failed to load keywords data</p>
+          <Button onClick={() => refresh()} className="mt-4">
             Retry
           </Button>
         </CardContent>
@@ -175,10 +125,10 @@ export function KeywordsAnalyticsClient() {
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchKeywords}
-              disabled={loading}
+              onClick={() => refresh()}
+              disabled={isLoading}
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
           </div>

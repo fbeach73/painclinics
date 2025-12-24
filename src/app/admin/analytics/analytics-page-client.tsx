@@ -1,7 +1,6 @@
 "use client";
 
 import { TrendingUp, MessageSquare } from "lucide-react";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KeywordsAnalyticsClient } from "./keywords-client";
 import { TrafficAnalyticsClient } from "./traffic-analytics-client";

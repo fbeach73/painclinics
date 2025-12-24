@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import {
   Eye,
   Users,
@@ -17,7 +17,6 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,38 +41,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-type DateRange = "today" | "7d" | "30d" | "all";
-
-interface OverviewStats {
-  totalPageviews: number;
-  uniqueVisitors: number;
-  clinicViews: number;
-}
-
-interface ReferrerStats {
-  source: string;
-  count: number;
-}
-
-interface PageStats {
-  path: string;
-  views: number;
-  uniqueVisitors: number;
-}
-
-interface TimeSeriesData {
-  date: string;
-  views: number;
-  uniqueVisitors: number;
-}
-
-interface AnalyticsData {
-  overview: OverviewStats;
-  referrers: ReferrerStats[];
-  topPages: PageStats[];
-  viewsOverTime: TimeSeriesData[];
-}
+import { REFERRER_COLORS } from "@/lib/analytics/constants";
+import { useTrafficAnalytics } from "@/lib/analytics/hooks";
+import { getReferrerLabel } from "@/lib/analytics/referrer-utils";
+import type { DateRange } from "@/types/analytics";
 
 const chartConfig = {
   views: {
@@ -86,45 +57,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const REFERRER_COLORS: Record<string, string> = {
-  google: "bg-blue-500",
-  direct: "bg-gray-500",
-  bing: "bg-teal-500",
-  facebook: "bg-indigo-500",
-  twitter: "bg-sky-500",
-  linkedin: "bg-blue-700",
-  instagram: "bg-pink-500",
-  pinterest: "bg-red-500",
-  reddit: "bg-orange-500",
-  tiktok: "bg-black",
-  youtube: "bg-red-600",
-  internal: "bg-green-500",
-  referral: "bg-purple-500",
-};
-
 export function TrafficAnalyticsClient() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<DateRange>("30d");
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/admin/analytics?range=${range}`);
-      if (response.ok) {
-        const result = await response.json();
-        setData(result);
-      }
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [range]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const { data, isLoading, refresh } = useTrafficAnalytics(range);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString + "T00:00:00");
@@ -141,7 +76,7 @@ export function TrafficAnalyticsClient() {
     return path;
   };
 
-  if (loading && !data) {
+  if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center py-12">
         <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -177,10 +112,10 @@ export function TrafficAnalyticsClient() {
         <Button
           variant="outline"
           size="sm"
-          onClick={fetchData}
-          disabled={loading}
+          onClick={() => refresh()}
+          disabled={isLoading}
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
@@ -326,9 +261,7 @@ export function TrafficAnalyticsClient() {
                             }`}
                           />
                           <span className="capitalize">
-                            {referrer.source === "direct"
-                              ? "Direct / None"
-                              : referrer.source}
+                            {getReferrerLabel(referrer.source)}
                           </span>
                         </div>
                       </TableCell>

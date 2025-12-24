@@ -3,10 +3,19 @@
  */
 
 import { and, count, countDistinct, desc, eq, gte } from "drizzle-orm";
+
 import { db } from "@/lib/db";
 import { analyticsEvents } from "@/lib/schema";
+import type {
+  DateRange,
+  OverviewStats,
+  ReferrerStats,
+  PageStats,
+  TimeSeriesData,
+} from "@/types/analytics";
 
-export type DateRange = "today" | "7d" | "30d" | "all";
+// Re-export types for backward compatibility
+export type { DateRange } from "@/types/analytics";
 
 /**
  * Gets the start date for a given date range
@@ -27,12 +36,6 @@ function getStartDate(range: DateRange): Date | null {
     case "all":
       return null;
   }
-}
-
-interface OverviewStats {
-  totalPageviews: number;
-  uniqueVisitors: number;
-  clinicViews: number;
 }
 
 /**
@@ -80,11 +83,6 @@ export async function getOverviewStats(
   };
 }
 
-interface ReferrerStats {
-  source: string;
-  count: number;
-}
-
 /**
  * Gets referrer source breakdown
  */
@@ -122,12 +120,6 @@ export async function getReferrerStats(
   }));
 }
 
-interface PageStats {
-  path: string;
-  views: number;
-  uniqueVisitors: number;
-}
-
 /**
  * Gets top pages by views
  */
@@ -161,12 +153,6 @@ export async function getTopPages(
     .limit(limit);
 
   return results;
-}
-
-interface TimeSeriesData {
-  date: string;
-  views: number;
-  uniqueVisitors: number;
 }
 
 /**
