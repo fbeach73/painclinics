@@ -16,6 +16,10 @@ function formatHours(dayHours: DayHours): string {
   if (dayHours.closed) {
     return 'Closed';
   }
+  // Check if this is a 24-hour day (open: "00:00", close: "23:59")
+  if (dayHours.open === '00:00' && dayHours.close === '23:59') {
+    return 'Open 24 Hours';
+  }
   return `${formatTime(dayHours.open)} - ${formatTime(dayHours.close)}`;
 }
 
@@ -65,20 +69,20 @@ export function ClinicHours({ hours, className }: ClinicHoursProps) {
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-full",
               isOpen
-                ? "bg-green-100 dark:bg-green-950/50"
-                : "bg-red-100 dark:bg-red-950/50"
+                ? "bg-green-900 dark:bg-green-950/50"
+                : "bg-gray-800 dark:bg-gray-900/50"
             )}
           >
             <span
               className={cn(
                 "h-2.5 w-2.5 rounded-full flex-shrink-0",
-                isOpen ? "bg-green-500" : "bg-red-500"
+                isOpen ? "bg-green-400" : "bg-gray-400"
               )}
             />
             <span
               className={cn(
                 "text-sm font-medium",
-                isOpen ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                isOpen ? "text-green-400" : "text-gray-200"
               )}
             >
               {isOpen ? "Open" : "Closed"}

@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
@@ -31,9 +32,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if clinic exists
+    // Check if clinic exists and get permalink for revalidation
     const existing = await db
-      .select({ id: clinics.id })
+      .select({ id: clinics.id, permalink: clinics.permalink })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
@@ -51,6 +52,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .set({ status: status as "draft" | "published" | "deleted" })
       .where(eq(clinics.id, clinicId))
       .returning({ id: clinics.id, status: clinics.status });
+
+    // Revalidate the clinic page when status changes
+    // This ensures the page is regenerated with the new status
+    const permalink = existing[0]?.permalink;
+    if (permalink) {
+      // Revalidate the clinic page path (e.g., /pain-management/clinic-slug)
+      revalidatePath(`/${permalink}`);
+    }
 
     return NextResponse.json({
       success: true,
