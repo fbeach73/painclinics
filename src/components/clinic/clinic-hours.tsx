@@ -68,21 +68,19 @@ export function ClinicHours({ hours, className }: ClinicHoursProps) {
           <div
             className={cn(
               "flex items-center gap-2 px-3 py-1.5 rounded-full",
-              isOpen
-                ? "bg-green-900 dark:bg-green-950/50"
-                : "bg-gray-800 dark:bg-gray-900/50"
+              "bg-[color-mix(in_oklab,lab(0_0_0)_70%,transparent)] dark:bg-green-950/50"
             )}
           >
             <span
               className={cn(
                 "h-2.5 w-2.5 rounded-full flex-shrink-0",
-                isOpen ? "bg-green-400" : "bg-gray-400"
+                isOpen ? "bg-green-400" : "bg-red-500"
               )}
             />
             <span
               className={cn(
                 "text-sm font-medium",
-                isOpen ? "text-green-400" : "text-gray-200"
+                isOpen ? "text-green-400" : "text-white"
               )}
             >
               {isOpen ? "Open" : "Closed"}
