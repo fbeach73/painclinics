@@ -1,4 +1,4 @@
-import { eq, desc, sql, and, inArray } from "drizzle-orm";
+import { eq, desc, sql, and, inArray, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 import type {
@@ -414,6 +414,39 @@ export async function getLatestBlogImportBatch() {
   return db.query.blogImportBatches.findFirst({
     orderBy: desc(schema.blogImportBatches.createdAt),
   });
+}
+
+/**
+ * Get minimal post data for interlinking
+ * Returns published posts with their category IDs for the internal linking system
+ */
+export async function getPostsForInterlinking(): Promise<
+  {
+    id: string;
+    title: string;
+    slug: string;
+    categoryIds: string[];
+  }[]
+> {
+  const posts = await db.query.blogPosts.findMany({
+    where: and(
+      eq(schema.blogPosts.status, "published"),
+      lte(schema.blogPosts.publishedAt, new Date())
+    ),
+    columns: { id: true, title: true, slug: true },
+    with: {
+      postCategories: {
+        columns: { categoryId: true },
+      },
+    },
+  });
+
+  return posts.map((p) => ({
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    categoryIds: p.postCategories.map((pc) => pc.categoryId),
+  }));
 }
 
 // ============================================

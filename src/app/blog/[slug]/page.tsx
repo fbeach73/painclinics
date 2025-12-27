@@ -5,6 +5,8 @@ import {
   getAllPublishedPostSlugs,
   getRelatedPosts,
 } from "@/lib/blog/blog-queries";
+import { extractFAQsFromContent } from "@/lib/blog/seo/faq-extractor";
+import { generateFAQStructuredData } from "@/lib/structured-data";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
 import type { Metadata } from "next";
 
@@ -107,12 +109,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         : undefined,
   };
 
+  // Extract FAQs from post content for FAQ schema
+  const extractedFAQs = post.content ? extractFAQsFromContent(post.content) : [];
+  const faqJsonLd = extractedFAQs.length > 0 ? generateFAQStructuredData(extractedFAQs) : null;
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <main className="container mx-auto py-8 px-4">
         <article className="max-w-4xl mx-auto">
           <BlogPostContent post={post as BlogPostWithRelations} />

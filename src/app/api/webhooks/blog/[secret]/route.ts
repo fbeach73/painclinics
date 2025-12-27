@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBlogPost, isSlugAvailable } from "@/lib/blog/blog-mutations";
+import { processBlogSEO } from "@/lib/blog/seo-processor";
 import { generateSlug } from "@/lib/slug";
 import { upload } from "@/lib/storage";
 
@@ -139,13 +140,33 @@ export async function POST(
     // Extract excerpt from markdown
     const excerpt = extractExcerpt(payload.markdown || payload.html);
 
-    // Create draft blog post
+    // Process SEO enhancements (internal linking + alt text)
+    const seoOptions: Parameters<typeof processBlogSEO>[0] = {
+      html: payload.html,
+      title: payload.title,
+      excerpt,
+      categoryIds: [], // New posts don't have categories yet
+    };
+    // Only include imageBase64 when it has a value
+    if (payload.image_base64) {
+      seoOptions.imageBase64 = payload.image_base64;
+    }
+    const seoResult = await processBlogSEO(seoOptions);
+
+    if (seoResult.errors.length > 0) {
+      console.warn("SEO processing warnings:", seoResult.errors);
+    }
+
+    // Create draft blog post with enhanced content
     const postId = await createBlogPost({
       title: payload.title,
       slug,
-      content: payload.html,
+      content: seoResult.content,
       excerpt,
       ...(featuredImageUrl && { featuredImageUrl }),
+      ...(seoResult.featuredImageAlt && {
+        featuredImageAlt: seoResult.featuredImageAlt,
+      }),
       status: "draft",
     });
 
@@ -153,6 +174,12 @@ export async function POST(
       success: true,
       postId,
       slug,
+      seo: {
+        linksAdded: seoResult.interlinking.linksAdded,
+        linkedSlugs: seoResult.interlinking.linkedSlugs,
+        altTextGenerated: !!seoResult.featuredImageAlt,
+        warnings: seoResult.errors,
+      },
     });
   } catch (error) {
     console.error("Webhook processing failed:", error);
