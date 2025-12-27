@@ -4,6 +4,7 @@ import {
   processContentImages,
   classifyAndAssignToPost,
   formatOverviewParagraph,
+  processSubheadingImages,
 } from "@/lib/blog/seo";
 import { processBlogSEO } from "@/lib/blog/seo-processor";
 import { generateSlug } from "@/lib/slug";
@@ -18,6 +19,7 @@ interface ZimmWriterPayload {
   markdown: string;
   html: string;
   image_base64: string;
+  subheading_images?: string[]; // Array of base64-encoded subheading images
 }
 
 /**
@@ -151,8 +153,19 @@ export async function POST(
       console.warn("Content image processing warnings:", contentImageResult.errors);
     }
 
+    // Process subheading images (insert after H2 tags based on markdown markers)
+    const subheadingImageResult = await processSubheadingImages(
+      contentImageResult.modifiedHtml,
+      payload.markdown || "",
+      payload.subheading_images || [],
+      slug
+    );
+    if (subheadingImageResult.errors.length > 0) {
+      console.warn("Subheading image warnings:", subheadingImageResult.errors);
+    }
+
     // Format overview paragraph as blockquote
-    const overviewResult = formatOverviewParagraph(contentImageResult.modifiedHtml);
+    const overviewResult = formatOverviewParagraph(subheadingImageResult.modifiedHtml);
 
     // Process SEO enhancements (internal linking + alt text)
     const seoOptions: Parameters<typeof processBlogSEO>[0] = {
@@ -203,6 +216,7 @@ export async function POST(
       images: {
         contentImagesProcessed: contentImageResult.imagesProcessed,
         contentImagesFailed: contentImageResult.imagesFailed,
+        subheadingImagesInserted: subheadingImageResult.imagesInserted,
       },
       seo: {
         linksAdded: seoResult.interlinking.linksAdded,
@@ -210,6 +224,7 @@ export async function POST(
         altTextGenerated: !!seoResult.featuredImageAlt,
         warnings: [
           ...contentImageResult.errors,
+          ...subheadingImageResult.errors,
           ...seoResult.errors,
         ],
       },

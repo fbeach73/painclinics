@@ -50,3 +50,10 @@ export {
   formatOverviewWithLabel,
   type OverviewFormatterResult,
 } from "./overview-formatter";
+
+// Subheading Image Processing
+export {
+  processSubheadingImages,
+  findH2sWithImages,
+  type SubheadingImageResult,
+} from "./subheading-image-processor";
