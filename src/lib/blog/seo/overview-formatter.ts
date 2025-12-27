@@ -28,9 +28,10 @@ export function formatOverviewParagraph(html: string): OverviewFormatterResult {
   }
 
   // Match the first <p> tag and its content
-  // This regex captures the full <p>...</p> including any attributes
+  // This regex matches everything before the first <p> tag (including h1, etc.)
+  // then captures the paragraph
   const firstParagraphMatch = html.match(
-    /^(\s*(?:<[^>]+>\s*)*?)(<p[^>]*>)([\s\S]*?)(<\/p>)/i
+    /([\s\S]*?)(<p[^>]*>)([\s\S]*?)(<\/p>)/i
   );
 
   if (!firstParagraphMatch) {
@@ -79,7 +80,7 @@ export function formatOverviewWithLabel(html: string): OverviewFormatterResult {
   }
 
   const firstParagraphMatch = html.match(
-    /^(\s*(?:<[^>]+>\s*)*?)(<p[^>]*>)([\s\S]*?)(<\/p>)/i
+    /([\s\S]*?)(<p[^>]*>)([\s\S]*?)(<\/p>)/i
   );
 
   if (!firstParagraphMatch) {
