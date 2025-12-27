@@ -36,3 +36,17 @@ export {
   processContentImages,
   type ContentImageResult,
 } from "./content-image-processor";
+
+// Category & Tag Classification
+export {
+  classifyBlogPost,
+  classifyAndAssignToPost,
+  type CategoryClassifierResult,
+} from "./category-classifier";
+
+// Overview Formatting
+export {
+  formatOverviewParagraph,
+  formatOverviewWithLabel,
+  type OverviewFormatterResult,
+} from "./overview-formatter";

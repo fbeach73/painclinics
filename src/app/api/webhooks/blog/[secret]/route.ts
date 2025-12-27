@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBlogPost, isSlugAvailable } from "@/lib/blog/blog-mutations";
-import { processContentImages } from "@/lib/blog/seo";
+import {
+  processContentImages,
+  classifyAndAssignToPost,
+  formatOverviewParagraph,
+} from "@/lib/blog/seo";
 import { processBlogSEO } from "@/lib/blog/seo-processor";
 import { generateSlug } from "@/lib/slug";
 import { upload } from "@/lib/storage";
@@ -147,9 +151,12 @@ export async function POST(
       console.warn("Content image processing warnings:", contentImageResult.errors);
     }
 
+    // Format overview paragraph as blockquote
+    const overviewResult = formatOverviewParagraph(contentImageResult.modifiedHtml);
+
     // Process SEO enhancements (internal linking + alt text)
     const seoOptions: Parameters<typeof processBlogSEO>[0] = {
-      html: contentImageResult.modifiedHtml,
+      html: overviewResult.html,
       title: payload.title,
       excerpt,
       categoryIds: [], // New posts don't have categories yet
@@ -177,6 +184,18 @@ export async function POST(
       status: "draft",
     });
 
+    // AI-powered category and tag classification
+    const classificationResult = await classifyAndAssignToPost(
+      postId,
+      payload.title,
+      excerpt,
+      seoResult.content
+    );
+
+    if (!classificationResult.success) {
+      console.warn("Classification warning:", classificationResult.error);
+    }
+
     return NextResponse.json({
       success: true,
       postId,
@@ -193,6 +212,16 @@ export async function POST(
           ...contentImageResult.errors,
           ...seoResult.errors,
         ],
+      },
+      classification: {
+        success: classificationResult.success,
+        category: classificationResult.categoryName,
+        tags: classificationResult.tagNames,
+        newTagsCreated: classificationResult.newTagsCreated,
+        ...(classificationResult.error && { error: classificationResult.error }),
+      },
+      formatting: {
+        overviewBlockquote: overviewResult.formatted,
       },
     });
   } catch (error) {
