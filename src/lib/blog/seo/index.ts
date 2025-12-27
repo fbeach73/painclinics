@@ -30,3 +30,9 @@ export {
   type AltTextResult,
   type AltTextContext,
 } from "./alt-text-generator";
+
+// Content Image Processing
+export {
+  processContentImages,
+  type ContentImageResult,
+} from "./content-image-processor";

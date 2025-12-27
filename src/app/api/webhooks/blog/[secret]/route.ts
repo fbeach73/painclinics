@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBlogPost, isSlugAvailable } from "@/lib/blog/blog-mutations";
+import { processContentImages } from "@/lib/blog/seo";
 import { processBlogSEO } from "@/lib/blog/seo-processor";
 import { generateSlug } from "@/lib/slug";
 import { upload } from "@/lib/storage";
@@ -140,9 +141,15 @@ export async function POST(
     // Extract excerpt from markdown
     const excerpt = extractExcerpt(payload.markdown || payload.html);
 
+    // Process inline content images (download external URLs to blob storage)
+    const contentImageResult = await processContentImages(payload.html, slug);
+    if (contentImageResult.errors.length > 0) {
+      console.warn("Content image processing warnings:", contentImageResult.errors);
+    }
+
     // Process SEO enhancements (internal linking + alt text)
     const seoOptions: Parameters<typeof processBlogSEO>[0] = {
-      html: payload.html,
+      html: contentImageResult.modifiedHtml,
       title: payload.title,
       excerpt,
       categoryIds: [], // New posts don't have categories yet
@@ -174,11 +181,18 @@ export async function POST(
       success: true,
       postId,
       slug,
+      images: {
+        contentImagesProcessed: contentImageResult.imagesProcessed,
+        contentImagesFailed: contentImageResult.imagesFailed,
+      },
       seo: {
         linksAdded: seoResult.interlinking.linksAdded,
         linkedSlugs: seoResult.interlinking.linkedSlugs,
         altTextGenerated: !!seoResult.featuredImageAlt,
-        warnings: seoResult.errors,
+        warnings: [
+          ...contentImageResult.errors,
+          ...seoResult.errors,
+        ],
       },
     });
   } catch (error) {
