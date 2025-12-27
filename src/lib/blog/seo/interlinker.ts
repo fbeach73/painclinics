@@ -131,6 +131,48 @@ export function extractKeywordsFromTitle(title: string): string[] {
 }
 
 /**
+ * Extract meaningful multi-word phrases from a title.
+ * Returns phrases in order of preference: 3-word, 2-word phrases.
+ * Preserves the original title casing for natural linking.
+ *
+ * @param title - The blog post title
+ * @returns Array of phrases (longest first)
+ */
+function extractPhrasesFromTitle(title: string): string[] {
+  // Clean the title but preserve case
+  const cleanTitle = title.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+  const words = cleanTitle.split(/\s+/).filter((w) => w.length > 0);
+
+  const phrases: string[] = [];
+
+  // Generate 3-word phrases
+  for (let i = 0; i <= words.length - 3; i++) {
+    const phrase = words.slice(i, i + 3).join(" ");
+    // Only add if at least one word is meaningful (not a stop word)
+    const hasKeyword = words
+      .slice(i, i + 3)
+      .some((w) => w.length > 3 && !STOP_WORDS.has(w.toLowerCase()));
+    if (hasKeyword) {
+      phrases.push(phrase);
+    }
+  }
+
+  // Generate 2-word phrases
+  for (let i = 0; i <= words.length - 2; i++) {
+    const phrase = words.slice(i, i + 2).join(" ");
+    // Only add if at least one word is meaningful
+    const hasKeyword = words
+      .slice(i, i + 2)
+      .some((w) => w.length > 3 && !STOP_WORDS.has(w.toLowerCase()));
+    if (hasKeyword) {
+      phrases.push(phrase);
+    }
+  }
+
+  return phrases;
+}
+
+/**
  * Score a link candidate based on relevance to the source content.
  *
  * Scoring:
@@ -168,15 +210,9 @@ export function scoreLinkCandidate(
 }
 
 /**
- * Escape special regex characters in a string.
- */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/**
- * Find link text to use - either the full title or a matching keyword phrase.
+ * Find link text to use - prioritizing multi-word phrases for better SEO.
  * Returns both the text to find and the anchor text to use.
+ * Preserves original capitalization from the content.
  */
 function findLinkableText(
   content: string,
@@ -185,35 +221,63 @@ function findLinkableText(
   const contentLower = content.toLowerCase();
 
   // First, try to find the full title (most natural)
-  const titleLower = candidate.title.toLowerCase();
+  const titleClean = candidate.title.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+  const titleLower = titleClean.toLowerCase();
   if (contentLower.includes(titleLower)) {
-    // Find the original casing
+    // Find the original casing from content
     const idx = contentLower.indexOf(titleLower);
-    const originalText = content.slice(idx, idx + candidate.title.length);
+    const originalText = content.slice(idx, idx + titleClean.length);
     return { searchText: originalText, anchorText: originalText };
   }
 
-  // Try to find 2-3 word phrases from keywords
-  const keywords = candidate.keywords;
-  for (let len = 3; len >= 2; len--) {
-    for (let i = 0; i <= keywords.length - len; i++) {
-      const phrase = keywords.slice(i, i + len).join(" ");
-      if (contentLower.includes(phrase)) {
-        const idx = contentLower.indexOf(phrase);
-        const originalText = content.slice(idx, idx + phrase.length);
-        return { searchText: originalText, anchorText: originalText };
+  // Extract multi-word phrases from the title (3-word, then 2-word)
+  const phrases = extractPhrasesFromTitle(candidate.title);
+
+  // Try each phrase, looking for case-insensitive match in content
+  for (const phrase of phrases) {
+    const phraseLower = phrase.toLowerCase();
+    const idx = contentLower.indexOf(phraseLower);
+    if (idx !== -1) {
+      // Extract the original casing from the content
+      const originalText = content.slice(idx, idx + phrase.length);
+      return { searchText: originalText, anchorText: originalText };
+    }
+  }
+
+  // Try 2-word combinations of significant keywords (non-consecutive)
+  // but require at least 8 total characters for meaningful anchor text
+  const keywords = candidate.keywords.filter((k) => k.length >= 4);
+  for (let i = 0; i < keywords.length - 1; i++) {
+    for (let j = i + 1; j < keywords.length; j++) {
+      // Try both orders
+      const phrases2 = [
+        `${keywords[i]} ${keywords[j]}`,
+        `${keywords[j]} ${keywords[i]}`,
+      ];
+      for (const phrase of phrases2) {
+        if (phrase.length >= 8 && contentLower.includes(phrase)) {
+          const idx = contentLower.indexOf(phrase);
+          const originalText = content.slice(idx, idx + phrase.length);
+          return { searchText: originalText, anchorText: originalText };
+        }
       }
     }
   }
 
-  // Try individual keywords (at least 5 characters for meaningful links)
-  for (const keyword of keywords) {
-    if (keyword.length >= 5 && contentLower.includes(keyword)) {
-      // Find word boundaries to get the full word in original casing
-      const wordPattern = new RegExp(`\\b${escapeRegex(keyword)}\\b`, "i");
-      const match = content.match(wordPattern);
+  // Last resort: single significant keyword (6+ chars) for medical/technical terms
+  // These are often meaningful on their own (e.g., "neuropathy", "fibromyalgia")
+  for (const keyword of candidate.keywords) {
+    if (keyword.length >= 6) {
+      // Use word boundary matching to find the word in original case
+      const regex = new RegExp(`\\b(${keyword})\\b`, "gi");
+      const match = content.match(regex);
       if (match) {
-        return { searchText: match[0], anchorText: match[0] };
+        // Find position to get original casing
+        const idx = contentLower.indexOf(keyword);
+        if (idx !== -1) {
+          const originalText = content.slice(idx, idx + keyword.length);
+          return { searchText: originalText, anchorText: originalText };
+        }
       }
     }
   }
