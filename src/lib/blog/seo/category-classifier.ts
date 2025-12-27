@@ -7,8 +7,7 @@
  */
 
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { generateObject } from "ai";
-import { z } from "zod";
+import { generateText } from "ai";
 import { getAllCategories, getAllTags } from "../blog-queries";
 import {
   createTag,
@@ -18,7 +17,8 @@ import {
 } from "../blog-mutations";
 import { generateSlug } from "@/lib/slug";
 
-const AI_MODEL = "anthropic/claude-sonnet-4";
+// Use Claude 3.5 Sonnet which is reliable for structured output
+const AI_MODEL = "anthropic/claude-3.5-sonnet";
 
 export interface CategoryClassifierResult {
   success: boolean;
@@ -93,40 +93,61 @@ Title: "${title}"
 Summary: "${excerpt}"
 Content preview: "${plainContent}"
 
-Return the best category slug and 1-3 relevant tags.`;
+Return your answer as JSON with this exact format:
+{"categorySlug": "the-category-slug", "tags": ["tag1", "tag2"]}
 
-    const result = await generateObject({
+Only output the JSON, nothing else.`;
+
+    const result = await generateText({
       model: openrouter(AI_MODEL),
-      schema: z.object({
-        categorySlug: z
-          .string()
-          .describe("The slug of the best matching category"),
-        tags: z
-          .array(z.string())
-          .min(1)
-          .max(3)
-          .describe("1-3 relevant tags for this post"),
-      }),
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
     });
 
-    const { categorySlug, tags } = result.object;
+    // Parse the JSON response
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+    const uncategorized = categories.find((c) => c.slug === "uncategorized");
+
+    if (!jsonMatch) {
+      console.error("No JSON found in response:", result.text);
+      // Fallback to uncategorized
+      return {
+        success: true,
+        ...(uncategorized && { categoryId: uncategorized.id }),
+        categoryName: uncategorized?.name ?? "Uncategorized",
+        tagIds: [],
+        tagNames: [],
+        newTagsCreated: [],
+      };
+    }
+
+    let parsed: { categorySlug: string; tags: string[] };
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      console.error("Failed to parse JSON:", jsonMatch[0]);
+      return {
+        success: true,
+        ...(uncategorized && { categoryId: uncategorized.id }),
+        categoryName: uncategorized?.name ?? "Uncategorized",
+        tagIds: [],
+        tagNames: [],
+        newTagsCreated: [],
+      };
+    }
+
+    const { categorySlug, tags } = parsed;
 
     // Find the category ID
     const selectedCategory = categories.find((c) => c.slug === categorySlug);
     if (!selectedCategory) {
       // Fallback to Uncategorized if AI suggests invalid category
-      const uncategorized = categories.find((c) => c.slug === "uncategorized");
-      if (!uncategorized) {
-        return { success: false, error: `Category not found: ${categorySlug}` };
-      }
       return {
         success: true,
-        categoryId: uncategorized.id,
-        categoryName: uncategorized.name,
+        ...(uncategorized && { categoryId: uncategorized.id }),
+        categoryName: uncategorized?.name ?? "Uncategorized",
         tagIds: [],
         tagNames: [],
         newTagsCreated: [],
@@ -138,7 +159,10 @@ Return the best category slug and 1-3 relevant tags.`;
     const tagNames: string[] = [];
     const newTagsCreated: string[] = [];
 
-    for (const tagName of tags) {
+    // Ensure tags is an array
+    const tagList = Array.isArray(tags) ? tags : [];
+
+    for (const tagName of tagList) {
       const normalizedName = tagName.toLowerCase().trim();
       if (!normalizedName) continue;
 
