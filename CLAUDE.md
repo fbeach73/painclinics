@@ -1,246 +1,169 @@
-# Agentic Coding Boilerplate - AI Assistant Guidelines
+# Pain Clinics Directory - AI Assistant Guidelines
 
 ## Project Overview
 
-This is a Next.js 16 boilerplate for building AI-powered applications with authentication, database, and modern UI components.
+Pain Clinics Directory is a comprehensive medical directory site for finding pain management specialists across the United States. Features 5,000+ clinic listings with SEO optimization, admin tools, blog CMS, and business owner portals.
+
+**Live Site**: https://painclinics.com
 
 ### Tech Stack
 
 - **Framework**: Next.js 16 with App Router, React 19, TypeScript
-- **AI Integration**: Vercel AI SDK 5 + OpenRouter (access to 100+ AI models)
-- **Authentication**: BetterAuth with Google OAuth
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: PostgreSQL (Neon) with Drizzle ORM
+- **Authentication**: Better Auth with Google OAuth
 - **UI**: shadcn/ui components with Tailwind CSS 4
-- **Styling**: Tailwind CSS with dark mode support (next-themes)
-
-## AI Integration with OpenRouter
-
-### Key Points
-
-- This project uses **OpenRouter** as the AI provider, NOT direct OpenAI
-- OpenRouter provides access to 100+ AI models through a single unified API
-- Default model: `openai/gpt-5-mini` (configurable via `OPENROUTER_MODEL` env var)
-- Users browse models at: https://openrouter.ai/models
-- Users get API keys from: https://openrouter.ai/settings/keys
-
-### AI Implementation Files
-
-- `src/app/api/chat/route.ts` - Chat API endpoint using OpenRouter
-- Package: `@openrouter/ai-sdk-provider` (not `@ai-sdk/openai`)
-- Import: `import { openrouter } from "@openrouter/ai-sdk-provider"`
+- **Email**: Mailgun for transactional emails
+- **Maps**: Mapbox GL for clinic maps
+- **Hosting**: Vercel
+- **Analytics**: Custom privacy-first analytics (UTC-04 timezone)
 
 ## Project Structure
 
 ```
 src/
-├── app/                          # Next.js App Router
+├── app/
+│   ├── admin/                    # Admin dashboard
+│   │   ├── analytics/           # Traffic analytics
+│   │   ├── blog/                # Blog management
+│   │   ├── clinics/             # Clinic CRUD
+│   │   ├── google-sync/         # Google Places sync
+│   │   └── stats/               # Database stats
 │   ├── api/
-│   │   ├── auth/[...all]/       # Better Auth catch-all route
-│   │   ├── chat/route.ts        # AI chat endpoint (OpenRouter)
-│   │   └── diagnostics/         # System diagnostics
-│   ├── chat/page.tsx            # AI chat interface (protected)
-│   ├── dashboard/page.tsx       # User dashboard (protected)
-│   ├── profile/page.tsx         # User profile (protected)
-│   ├── page.tsx                 # Home/landing page
-│   └── layout.tsx               # Root layout
+│   │   ├── auth/[...all]/       # Better Auth routes
+│   │   ├── analytics/           # Analytics tracking
+│   │   ├── admin/               # Admin API endpoints
+│   │   └── webhooks/            # External webhooks
+│   ├── blog/                    # Blog pages
+│   │   ├── [slug]/              # Individual posts
+│   │   ├── category/[slug]/     # Category pages
+│   │   └── tag/[slug]/          # Tag pages
+│   ├── pain-management/         # Directory pages
+│   │   ├── [state]/             # State listing
+│   │   ├── [state]/[city]/      # City listing
+│   │   └── [slug]/              # Individual clinic
+│   ├── (owner)/                 # Business owner portal
+│   │   └── my-clinics/          # Claimed clinics
+│   └── [static pages]           # About, FAQ, etc.
 ├── components/
-│   ├── auth/                    # Authentication components
-│   │   ├── sign-in-button.tsx
-│   │   ├── sign-out-button.tsx
-│   │   └── user-profile.tsx
-│   ├── ui/                      # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── dialog.tsx
-│   │   ├── dropdown-menu.tsx
-│   │   ├── avatar.tsx
-│   │   ├── badge.tsx
-│   │   ├── separator.tsx
-│   │   ├── mode-toggle.tsx      # Dark/light mode toggle
-│   │   └── github-stars.tsx
-│   ├── site-header.tsx          # Main navigation header
-│   ├── site-footer.tsx          # Footer component
-│   ├── theme-provider.tsx       # Dark mode provider
-│   ├── setup-checklist.tsx      # Setup guide component
-│   └── starter-prompt-modal.tsx # Starter prompts modal
-└── lib/
-    ├── auth.ts                  # Better Auth server config
-    ├── auth-client.ts           # Better Auth client hooks
-    ├── db.ts                    # Database connection
-    ├── schema.ts                # Drizzle schema (users, sessions, etc.)
-    ├── storage.ts               # File storage abstraction (Vercel Blob / local)
-    └── utils.ts                 # Utility functions (cn, etc.)
+│   ├── admin/                   # Admin components
+│   ├── blog/                    # Blog components
+│   ├── clinics/                 # Clinic display
+│   ├── auth/                    # Auth components
+│   └── ui/                      # shadcn/ui components
+├── lib/
+│   ├── analytics/               # Analytics utilities
+│   ├── blog/                    # Blog queries & utils
+│   ├── auth.ts                  # Better Auth config
+│   ├── db.ts                    # Database connection
+│   ├── schema.ts                # Drizzle schema
+│   ├── structured-data.ts       # JSON-LD schemas
+│   └── email/                   # Email templates
+└── types/                       # TypeScript types
 ```
+
+## Key Database Tables
+
+- `clinics` - Main clinic listings (5,000+ records)
+- `blog_posts`, `blog_categories`, `blog_tags` - Blog CMS
+- `analytics_events` - Privacy-first pageview tracking
+- `clinic_claims` - Ownership claim requests
+- `not_found_logs` - 404 error tracking
+- `sync_schedules`, `sync_logs` - Google Places sync
 
 ## Environment Variables
 
-Required environment variables (see `env.example`):
+Required (see `.env.example`):
 
 ```env
-# Database
-POSTGRES_URL=postgresql://user:password@localhost:5432/db_name
-
-# Better Auth
-BETTER_AUTH_SECRET=32-char-random-string
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# AI via OpenRouter
-OPENROUTER_API_KEY=sk-or-v1-your-key
-OPENROUTER_MODEL=openai/gpt-5-mini  # or any model from openrouter.ai/models
-
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# File Storage (optional)
-BLOB_READ_WRITE_TOKEN=  # Leave empty for local dev, set for Vercel Blob in production
+POSTGRES_URL=              # Neon PostgreSQL connection
+BETTER_AUTH_SECRET=        # Auth secret (32+ chars)
+GOOGLE_CLIENT_ID=          # OAuth client ID
+GOOGLE_CLIENT_SECRET=      # OAuth client secret
+GOOGLE_PLACES_API_KEY=     # Google Places API
+MAILGUN_API_KEY=           # Mailgun API key
+MAILGUN_DOMAIN=            # Mailgun sending domain
+NEXT_PUBLIC_APP_URL=       # https://painclinics.com
+NEXT_PUBLIC_MAPBOX_TOKEN=  # Mapbox public token
 ```
 
 ## Available Scripts
 
 ```bash
-npm run dev          # Start dev server (DON'T run this yourself - ask user)
-npm run build        # Build for production (runs db:migrate first)
-npm run build:ci     # Build without database (for CI/CD pipelines)
-npm run start        # Start production server
-npm run lint         # Run ESLint (ALWAYS run after changes)
-npm run typecheck    # TypeScript type checking (ALWAYS run after changes)
-npm run db:generate  # Generate database migrations
-npm run db:migrate   # Run database migrations
-npm run db:push      # Push schema changes to database
-npm run db:studio    # Open Drizzle Studio (database GUI)
-npm run db:dev       # Push schema for development
-npm run db:reset     # Reset database (drop all tables)
+pnpm dev          # Start dev server (user runs this)
+pnpm build        # Production build
+pnpm lint         # Run ESLint (ALWAYS run after changes)
+pnpm typecheck    # TypeScript check (ALWAYS run after changes)
+pnpm db:push      # Push schema to database
+pnpm db:studio    # Open Drizzle Studio GUI
+pnpm db:generate  # Generate migrations
 ```
-
-## Documentation Files
-
-The project includes technical documentation in `docs/`:
-
-- `docs/technical/ai/streaming.md` - AI streaming implementation guide
-- `docs/technical/ai/structured-data.md` - Structured data extraction
-- `docs/technical/react-markdown.md` - Markdown rendering guide
-- `docs/technical/betterauth/polar.md` - Polar payment integration
-- `docs/business/starter-prompt.md` - Business context for AI prompts
 
 ## Guidelines for AI Assistants
 
-### CRITICAL RULES
+### Critical Rules
 
-1. **ALWAYS run lint and typecheck** after completing changes:
-
+1. **ALWAYS run lint and typecheck** after changes:
    ```bash
-   npm run lint && npm run typecheck
+   pnpm lint && pnpm typecheck
    ```
 
-2. **NEVER start the dev server yourself**
+2. **NEVER start the dev server yourself** - ask user if needed
 
-   - If you need dev server output, ask the user to provide it
-   - Don't run `npm run dev` or `pnpm dev`
+3. **Database**:
+   - Use Drizzle ORM from `@/lib/db`
+   - Schema in `@/lib/schema.ts`
+   - PostgreSQL syntax (not SQLite/MySQL)
 
-3. **Use OpenRouter, NOT OpenAI directly**
+4. **Styling**:
+   - Use shadcn/ui components
+   - Tailwind utility classes
+   - Support dark mode (`dark:` variants)
 
-   - Import from `@openrouter/ai-sdk-provider`
-   - Use `openrouter()` function, not `openai()`
-   - Model names follow OpenRouter format: `provider/model-name`
+5. **SEO**:
+   - Use structured data from `@/lib/structured-data.ts`
+   - Maintain redirects in `next.config.ts`
+   - Check 404 logs for broken links
 
-4. **Styling Guidelines**
-
-   - Stick to standard Tailwind CSS utility classes
-   - Use shadcn/ui color tokens (e.g., `bg-background`, `text-foreground`)
-   - Avoid custom colors unless explicitly requested
-   - Support dark mode with appropriate Tailwind classes
-
-5. **Authentication**
-
-   - Server-side: Import from `@/lib/auth` (Better Auth instance)
-   - Client-side: Import hooks from `@/lib/auth-client`
-   - Protected routes should check session in Server Components
-   - Use existing auth components from `src/components/auth/`
-
-6. **Database Operations**
-
-   - Use Drizzle ORM (imported from `@/lib/db`)
-   - Schema is defined in `@/lib/schema`
-   - Always run migrations after schema changes
-   - PostgreSQL is the database (not SQLite, MySQL, etc.)
-
-7. **File Storage**
-
-   - Use the storage abstraction from `@/lib/storage`
-   - Automatically uses local storage (dev) or Vercel Blob (production)
-   - Import: `import { upload, deleteFile } from "@/lib/storage"`
-   - Example: `const result = await upload(buffer, "avatar.png", "avatars")`
-   - Storage switches based on `BLOB_READ_WRITE_TOKEN` environment variable
-
-8. **Component Creation**
-
-   - Use existing shadcn/ui components when possible
-   - Follow the established patterns in `src/components/ui/`
-   - Support both light and dark modes
-   - Use TypeScript with proper types
-
-9. **API Routes**
-   - Follow Next.js 16 App Router conventions
-   - Use Route Handlers (route.ts files)
-   - Return Response objects
-   - Handle errors appropriately
-
-### Best Practices
-
-- Read existing code patterns before creating new features
-- Maintain consistency with established file structure
-- Use the documentation files when implementing related features
-- Test changes with lint and typecheck before considering complete
-- When modifying AI functionality, refer to `docs/technical/ai/` guides
+6. **Authentication**:
+   - Server: `import { auth } from "@/lib/auth"`
+   - Client: `import { useSession } from "@/lib/auth-client"`
+   - Admin routes require `role === "admin"`
 
 ### Common Tasks
 
-**Adding a new page:**
+**Adding a clinic page feature:**
+1. Update component in `src/components/clinics/`
+2. Modify page in `src/app/pain-management/[slug]/`
+3. Test with `pnpm lint && pnpm typecheck`
 
-1. Create in `src/app/[route]/page.tsx`
-2. Use Server Components by default
-3. Add to navigation if needed
+**Adding structured data:**
+1. Add generator in `src/lib/structured-data.ts`
+2. Import and use in page component
+3. Test with Google Rich Results Test
 
-**Adding a new API route:**
+**Blog operations:**
+1. Blog queries in `src/lib/blog/blog-queries.ts`
+2. Components in `src/components/blog/`
+3. Admin management in `src/app/admin/blog/`
 
-1. Create in `src/app/api/[route]/route.ts`
-2. Export HTTP method handlers (GET, POST, etc.)
-3. Use proper TypeScript types
+**Analytics:**
+1. Tracking in `src/lib/analytics/`
+2. Bot filtering in `src/lib/analytics/bot-filter.ts`
+3. Uses UTC-04 (AST) for date boundaries
 
-**Adding authentication to a page:**
+**Redirects:**
+1. Add to `next.config.ts` redirects array
+2. Use permanent: true for 301 redirects
+3. Check 404 logs in admin for patterns
 
-1. Import auth instance: `import { auth } from "@/lib/auth"`
-2. Get session: `const session = await auth.api.getSession({ headers: await headers() })`
-3. Check session and redirect if needed
+### Directory-Specific Patterns
 
-**Working with the database:**
-
-1. Update schema in `src/lib/schema.ts`
-2. Generate migration: `npm run db:generate`
-3. Apply migration: `npm run db:migrate`
-4. Import `db` from `@/lib/db` to query
-
-**Modifying AI chat:**
-
-1. Backend: `src/app/api/chat/route.ts`
-2. Frontend: `src/app/chat/page.tsx`
-3. Reference streaming docs: `docs/technical/ai/streaming.md`
-4. Remember to use OpenRouter, not direct OpenAI
-
-**Working with file storage:**
-
-1. Import storage functions: `import { upload, deleteFile } from "@/lib/storage"`
-2. Upload files: `const result = await upload(fileBuffer, "filename.png", "folder")`
-3. Delete files: `await deleteFile(result.url)`
-4. Storage automatically uses local filesystem in dev, Vercel Blob in production
-5. Local files are saved to `public/uploads/` and served at `/uploads/`
+- Clinic URLs: `/pain-management/[clinic-slug]`
+- State URLs: `/pain-management/[state-abbrev]`
+- City URLs: `/pain-management/[state-abbrev]/[city-slug]`
+- Blog URLs: `/blog/[post-slug]`
+- Sitemap: Dynamic generation in `src/app/sitemap.ts`
 
 ## Package Manager
 
-This project uses **pnpm** (see `pnpm-lock.yaml`). When running commands:
-
-- Use `pnpm` instead of `npm` when possible
-- Scripts defined in package.json work with `pnpm run [script]`
+This project uses **pnpm**. Always use `pnpm` commands, not `npm`.
