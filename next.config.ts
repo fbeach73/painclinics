@@ -218,7 +218,15 @@ const nextConfig: NextConfig = {
 
   // 301 redirects from old WordPress blog URLs to new /blog/ paths
   async redirects() {
-    return blogRedirects;
+    return [
+      ...blogRedirects,
+      // Redirect old overview page to homepage
+      {
+        source: "/pain-clinics-the-complete-overview",
+        destination: "/",
+        permanent: true,
+      },
+    ];
   },
 };
 
