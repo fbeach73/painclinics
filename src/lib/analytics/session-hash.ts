@@ -42,11 +42,22 @@ export async function generateSessionHash(
 }
 
 /**
- * Gets today's date in YYYY-MM-DD format (UTC)
+ * Gets today's date in YYYY-MM-DD format
+ * Uses UTC-04 (AST - Atlantic Standard Time) for consistent date boundaries
  * @returns Date string for event grouping
  */
 export function getEventDate(date?: Date): string {
   const d = date || new Date();
-  const parts = d.toISOString().split("T");
-  return parts[0] ?? d.toISOString().slice(0, 10);
+
+  // Convert to UTC-04 (AST)
+  // Subtract 4 hours from UTC to get AST time
+  const AST_OFFSET_MS = -4 * 60 * 60 * 1000;
+  const astDate = new Date(d.getTime() + AST_OFFSET_MS);
+
+  // Extract YYYY-MM-DD from the adjusted date
+  const year = astDate.getUTCFullYear();
+  const month = String(astDate.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(astDate.getUTCDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }

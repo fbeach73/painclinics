@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { analyticsEvents } from "@/lib/schema";
-import { isBot } from "@/lib/analytics/bot-filter";
+import { isBot, isRateLimited } from "@/lib/analytics/bot-filter";
 import { categorizeReferrer } from "@/lib/analytics/referrer-utils";
 import { generateSessionHash, getEventDate } from "@/lib/analytics/session-hash";
 
@@ -66,6 +66,11 @@ export async function POST(request: Request) {
 
     // Generate privacy-preserving session hash
     const sessionHash = await generateSessionHash(body.fingerprint, ipAddress);
+
+    // Check rate limiting (silently ignore high-frequency sessions - likely bots)
+    if (isRateLimited(sessionHash)) {
+      return NextResponse.json({ success: true });
+    }
 
     // Get event date for grouping
     const eventDate = getEventDate();
