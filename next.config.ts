@@ -220,9 +220,102 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       ...blogRedirects,
-      // Redirect old overview page to homepage
+
+      // ===========================================
+      // Old WordPress URL structure redirects
+      // ===========================================
+
+      // Old overview page to homepage
       {
         source: "/pain-clinics-the-complete-overview",
+        destination: "/",
+        permanent: true,
+      },
+
+      // Old /pain-management root (no state) to homepage
+      {
+        source: "/pain-management",
+        destination: "/",
+        permanent: true,
+      },
+
+      // Old /managing-pain page to treatment options
+      {
+        source: "/managing-pain",
+        destination: "/treatment-options",
+        permanent: true,
+      },
+
+      // Old /state/{abbrev} URLs to new /pain-management/{abbrev}
+      {
+        source: "/state/:state",
+        destination: "/pain-management/:state",
+        permanent: true,
+      },
+      {
+        source: "/state/:state/",
+        destination: "/pain-management/:state",
+        permanent: true,
+      },
+
+      // Old /city-name/{city} URLs - redirect to homepage (can't map without state)
+      {
+        source: "/city-name/:path*",
+        destination: "/",
+        permanent: true,
+      },
+
+      // Old /clinic-type/{type} URLs - redirect to homepage
+      {
+        source: "/clinic-type/:path*",
+        destination: "/",
+        permanent: true,
+      },
+
+      // Old /tag/{tag}/ URLs (with trailing slash) to /blog/tag/{tag}
+      {
+        source: "/tag/:tag/",
+        destination: "/blog/tag/:tag",
+        permanent: true,
+      },
+      {
+        source: "/tag/:tag",
+        destination: "/blog/tag/:tag",
+        permanent: true,
+      },
+
+      // Old /glossary/ and /glossary-cat/ pages - redirect to homepage
+      {
+        source: "/glossary/:path*",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/glossary-cat/:path*",
+        destination: "/",
+        permanent: true,
+      },
+
+      // Old /painful-conditions/ pages to treatment options
+      {
+        source: "/painful-conditions/:path*",
+        destination: "/treatment-options",
+        permanent: true,
+      },
+
+      // Old static pages
+      {
+        source: "/contact-us",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/cbd-pain-relief-education",
+        destination: "/blog",
+        permanent: true,
+      },
+      {
+        source: "/paid-clinical-trials",
         destination: "/",
         permanent: true,
       },
