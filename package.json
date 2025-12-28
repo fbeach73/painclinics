@@ -61,6 +61,7 @@
     "@tiptap/pm": "^3.13.0",
     "@tiptap/react": "^3.13.0",
     "@tiptap/starter-kit": "^3.13.0",
+    "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.0.0",
     "ai": "^5.0.106",
     "better-auth": "^1.4.5",

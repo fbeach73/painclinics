@@ -73,7 +73,13 @@
       "mcp__playwright__browser_run_code",
       "Bash(pnpm tsc:*)",
       "Bash(xxd:*)",
-      "Bash(pnpm why:*)"
+      "Bash(pnpm why:*)",
+      "Bash(openssl rand:*)",
+      "Bash(node -e:*)",
+      "Bash(node /tmp/test-webhook.mjs:*)",
+      "WebFetch(domain:www.painclinics.com)",
+      "WebFetch(domain:lombers.com)",
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx tsx:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
