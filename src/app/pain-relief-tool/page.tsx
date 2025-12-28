@@ -128,7 +128,7 @@ export default function PainReliefToolPage() {
 
           <Alert className="mb-8 border-yellow-500 bg-yellow-500/10">
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-200">
+            <AlertDescription className="text-yellow-700 dark:text-yellow-200">
               This tool is for educational purposes only. Always consult a healthcare provider for
               persistent or severe pain. Do not exceed recommended dosages for medications.
             </AlertDescription>
