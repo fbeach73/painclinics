@@ -19,7 +19,7 @@ export default function TreatmentOptionsPage() {
 
         <Alert className="not-prose my-6 border-yellow-500 bg-yellow-500/10">
           <AlertTriangle className="h-4 w-4 text-yellow-500" />
-          <AlertDescription className="text-yellow-700 dark:text-yellow-200">
+          <AlertDescription className="text-foreground dark:text-yellow-200">
             This information is for educational purposes only. Treatment
             decisions should be made in consultation with a qualified healthcare
             provider based on your individual condition and medical history.

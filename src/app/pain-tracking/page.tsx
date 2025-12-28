@@ -201,7 +201,7 @@ export default function PainTrackingPage() {
 
           <Alert className="not-prose my-6 border-yellow-500 bg-yellow-500/10">
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-700 dark:text-yellow-200">
+            <AlertDescription className="text-foreground dark:text-yellow-200">
               These templates are for informational and personal tracking purposes
               only. They do not constitute medical advice. Always consult with a
               qualified healthcare professional for diagnosis and treatment of
