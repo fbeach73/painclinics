@@ -59,7 +59,7 @@ const chartConfig = {
 
 export function TrafficAnalyticsClient() {
   const [range, setRange] = useState<DateRange>("30d");
-  const { data, isLoading, refresh } = useTrafficAnalytics(range);
+  const { data, isLoading, isError, refresh } = useTrafficAnalytics(range);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString + "T00:00:00");
@@ -84,6 +84,18 @@ export function TrafficAnalyticsClient() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-destructive mb-4">Failed to load analytics data</p>
+        <Button variant="outline" size="sm" onClick={() => refresh()}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   const overview = data?.overview || {
     totalPageviews: 0,
     uniqueVisitors: 0,
@@ -92,6 +104,11 @@ export function TrafficAnalyticsClient() {
   const referrers = data?.referrers || [];
   const topPages = data?.topPages || [];
   const viewsOverTime = data?.viewsOverTime || [];
+
+  // Debug: Log what we received
+  if (process.env.NODE_ENV === "development") {
+    console.log("Analytics data:", { overview, referrersCount: referrers.length, topPagesCount: topPages.length, viewsOverTimeCount: viewsOverTime.length, viewsOverTime });
+  }
 
   return (
     <div className="space-y-6">
