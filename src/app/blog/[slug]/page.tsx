@@ -6,7 +6,7 @@ import {
   getRelatedPosts,
 } from "@/lib/blog/blog-queries";
 import { extractFAQsFromContent } from "@/lib/blog/seo/faq-extractor";
-import { generateFAQStructuredData } from "@/lib/structured-data";
+import { generateFAQStructuredData, generateBlogBreadcrumbSchema } from "@/lib/structured-data";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
 import type { Metadata } from "next";
 
@@ -113,11 +113,26 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const extractedFAQs = post.content ? extractFAQsFromContent(post.content) : [];
   const faqJsonLd = extractedFAQs.length > 0 ? generateFAQStructuredData(extractedFAQs) : null;
 
+  // Generate breadcrumb schema
+  const primaryCategory = categories[0];
+  const breadcrumbJsonLd = generateBlogBreadcrumbSchema({
+    postTitle: post.title,
+    postSlug: post.slug,
+    ...(primaryCategory && {
+      categoryName: primaryCategory.name,
+      categorySlug: primaryCategory.slug,
+    }),
+  });
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       {faqJsonLd && (
         <script

@@ -569,3 +569,67 @@ export function generateResourceBreadcrumbSchema(data: {
     ],
   };
 }
+
+/**
+ * Generates BreadcrumbList structured data for blog posts.
+ * Creates a 3-4 level hierarchy: Home → Blog → [Category] → Post Title
+ */
+export function generateBlogBreadcrumbSchema(data: {
+  postTitle: string;
+  postSlug: string;
+  categoryName?: string;
+  categorySlug?: string;
+  baseUrl?: string;
+}) {
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+  const itemListElement: Array<{
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    item: string;
+  }> = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: baseUrl,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Blog",
+      item: `${baseUrl}/blog`,
+    },
+  ];
+
+  // Add category level if provided
+  if (data.categoryName && data.categorySlug) {
+    itemListElement.push({
+      "@type": "ListItem",
+      position: 3,
+      name: data.categoryName,
+      item: `${baseUrl}/blog/category/${data.categorySlug}`,
+    });
+    itemListElement.push({
+      "@type": "ListItem",
+      position: 4,
+      name: data.postTitle,
+      item: `${baseUrl}/blog/${data.postSlug}`,
+    });
+  } else {
+    // No category - just Blog → Post
+    itemListElement.push({
+      "@type": "ListItem",
+      position: 3,
+      name: data.postTitle,
+      item: `${baseUrl}/blog/${data.postSlug}`,
+    });
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement,
+  };
+}

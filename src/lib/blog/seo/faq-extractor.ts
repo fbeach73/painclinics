@@ -1,7 +1,7 @@
 /**
  * FAQ Extractor for Blog Posts
  *
- * Detects FAQ-style content from HTML by identifying H2 headings that end with "?"
+ * Detects FAQ-style content from HTML by identifying H2 or H3 headings that end with "?"
  * and extracting the content that follows until the next heading.
  */
 
@@ -33,8 +33,8 @@ function stripHtmlTags(html: string): string {
  * Extract FAQs from HTML content.
  *
  * Detection logic:
- * 1. Find H2 headings that end with "?"
- * 2. Extract content between that H2 and the next H2 or H3 heading (or end of content)
+ * 1. Find H2 or H3 headings that end with "?"
+ * 2. Extract content between that heading and the next H2/H3/H4 heading (or end of content)
  * 3. Strip HTML tags from the answer and limit to 500 characters
  *
  * @param html - The HTML content of the blog post
@@ -43,44 +43,43 @@ function stripHtmlTags(html: string): string {
 export function extractFAQsFromContent(html: string): ExtractedFAQ[] {
   const faqs: ExtractedFAQ[] = [];
 
-  // Regex to find H2 tags ending with "?" and capture content until next H2/H3 or end
-  // Using a more flexible approach: find all H2s, then extract content between them
-  const h2Pattern = /<h2[^>]*>(.*?)<\/h2>/gi;
-  const headingPattern = /<h[23][^>]*>/i;
+  // Regex to find H2 or H3 tags ending with "?" and capture content until next heading
+  const faqHeadingPattern = /<h[23][^>]*>(.*?)<\/h[23]>/gi;
+  const nextHeadingPattern = /<h[234][^>]*>/i;
 
-  const h2Matches: Array<{ question: string; startIndex: number; endIndex: number }> = [];
+  const faqMatches: Array<{ question: string; startIndex: number; endIndex: number }> = [];
   let match: RegExpExecArray | null;
 
-  // Find all H2 headings
-  while ((match = h2Pattern.exec(html)) !== null) {
+  // Find all H2 and H3 headings
+  while ((match = faqHeadingPattern.exec(html)) !== null) {
     const questionHtml = match[1] ?? "";
     const questionText = stripHtmlTags(questionHtml).trim();
 
-    // Only include H2s that end with "?"
+    // Only include headings that end with "?"
     if (questionText.endsWith("?")) {
-      h2Matches.push({
+      faqMatches.push({
         question: questionText,
-        startIndex: match.index + match[0].length, // Start after the closing </h2>
+        startIndex: match.index + match[0].length, // Start after the closing tag
         endIndex: html.length, // Will be updated to next heading
       });
     }
   }
 
   // Update endIndex for each match to be the start of the next heading
-  for (let i = 0; i < h2Matches.length; i++) {
-    const currentMatch = h2Matches[i]!;
-    const contentAfterH2 = html.slice(currentMatch.startIndex);
+  for (let i = 0; i < faqMatches.length; i++) {
+    const currentMatch = faqMatches[i]!;
+    const contentAfterHeading = html.slice(currentMatch.startIndex);
 
-    // Find the next H2 or H3 heading
-    const nextHeadingMatch = contentAfterH2.match(headingPattern);
+    // Find the next H2, H3, or H4 heading
+    const nextHeadingMatch = contentAfterHeading.match(nextHeadingPattern);
     if (nextHeadingMatch && nextHeadingMatch.index !== undefined) {
       currentMatch.endIndex = currentMatch.startIndex + nextHeadingMatch.index;
     }
   }
 
   // Extract answers
-  for (const h2Match of h2Matches) {
-    const answerHtml = html.slice(h2Match.startIndex, h2Match.endIndex);
+  for (const faqMatch of faqMatches) {
+    const answerHtml = html.slice(faqMatch.startIndex, faqMatch.endIndex);
     let answerText = stripHtmlTags(answerHtml).trim();
 
     // Limit answer to 500 characters
@@ -97,7 +96,7 @@ export function extractFAQsFromContent(html: string): ExtractedFAQ[] {
     // Only add if we have a meaningful answer (at least 20 characters)
     if (answerText.length >= 20) {
       faqs.push({
-        question: h2Match.question,
+        question: faqMatch.question,
         answer: answerText,
       });
     }
@@ -113,12 +112,12 @@ export function extractFAQsFromContent(html: string): ExtractedFAQ[] {
  * @returns True if at least one FAQ can be extracted
  */
 export function hasFAQContent(html: string): boolean {
-  // Quick check: look for H2 tags ending with "?"
-  const quickPattern = /<h2[^>]*>[^<]*\?<\/h2>/i;
+  // Quick check: look for H2 or H3 tags ending with "?"
+  const quickPattern = /<h[23][^>]*>[^<]*\?<\/h[23]>/i;
   if (!quickPattern.test(html)) {
-    // Also check for H2s with inline tags (like <strong>)
-    const h2Pattern = /<h2[^>]*>.*?\?.*?<\/h2>/gi;
-    if (!h2Pattern.test(html)) {
+    // Also check for H2s/H3s with inline tags (like <strong>)
+    const headingPattern = /<h[23][^>]*>.*?\?.*?<\/h[23]>/gi;
+    if (!headingPattern.test(html)) {
       return false;
     }
   }
