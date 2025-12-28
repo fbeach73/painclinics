@@ -49,11 +49,11 @@ import type { DateRange } from "@/types/analytics";
 const chartConfig = {
   views: {
     label: "Page Views",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(210 100% 60%)", // Bright blue - visible on both light/dark
   },
   uniqueVisitors: {
     label: "Unique Visitors",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(150 80% 50%)", // Bright green - visible on both light/dark
   },
 } satisfies ChartConfig;
 
@@ -223,16 +223,18 @@ export function TrafficAnalyticsClient() {
                   type="monotone"
                   dataKey="views"
                   stroke="var(--color-views)"
-                  strokeWidth={2}
-                  dot={false}
+                  strokeWidth={3}
+                  dot={{ fill: "var(--color-views)", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 2 }}
                   name="Page Views"
                 />
                 <Line
                   type="monotone"
                   dataKey="uniqueVisitors"
                   stroke="var(--color-uniqueVisitors)"
-                  strokeWidth={2}
-                  dot={false}
+                  strokeWidth={3}
+                  dot={{ fill: "var(--color-uniqueVisitors)", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 2 }}
                   name="Unique Visitors"
                 />
               </LineChart>
