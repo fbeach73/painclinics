@@ -1,5 +1,6 @@
 /**
  * Analytics query functions for retrieving aggregated analytics data
+ * Uses UTC-04 (AST - Atlantic Standard Time) for all date calculations
  */
 
 import { and, count, countDistinct, desc, eq, gte } from "drizzle-orm";
@@ -18,21 +19,40 @@ import type {
 export type { DateRange } from "@/types/analytics";
 
 /**
- * Gets the start date for a given date range
+ * Gets today's date in YYYY-MM-DD format using AST (UTC-04)
  */
-function getStartDate(range: DateRange): Date | null {
+function getASTDate(date?: Date): string {
+  const d = date || new Date();
+  // Convert to UTC-04 (AST) - subtract 4 hours from UTC
+  const AST_OFFSET_MS = -4 * 60 * 60 * 1000;
+  const astDate = new Date(d.getTime() + AST_OFFSET_MS);
+
+  const year = astDate.getUTCFullYear();
+  const month = String(astDate.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(astDate.getUTCDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Gets the start date string (YYYY-MM-DD) for a given date range in AST
+ */
+function getStartDateString(range: DateRange): string | null {
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
+
+  // Convert to AST first
+  const AST_OFFSET_MS = -4 * 60 * 60 * 1000;
+  const astNow = new Date(now.getTime() + AST_OFFSET_MS);
 
   switch (range) {
     case "today":
-      return now;
+      return getASTDate(now);
     case "7d":
-      now.setDate(now.getDate() - 7);
-      return now;
+      astNow.setUTCDate(astNow.getUTCDate() - 7);
+      return getASTDate(new Date(astNow.getTime() - AST_OFFSET_MS));
     case "30d":
-      now.setDate(now.getDate() - 30);
-      return now;
+      astNow.setUTCDate(astNow.getUTCDate() - 30);
+      return getASTDate(new Date(astNow.getTime() - AST_OFFSET_MS));
     case "all":
       return null;
   }
@@ -45,11 +65,11 @@ export async function getOverviewStats(
   range: DateRange,
   clinicId?: string
 ): Promise<OverviewStats> {
-  const startDate = getStartDate(range);
+  const startDateStr = getStartDateString(range);
 
   const conditions = [];
-  if (startDate) {
-    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  if (startDateStr) {
+    conditions.push(gte(analyticsEvents.eventDate, startDateStr));
   }
   if (clinicId) {
     conditions.push(eq(analyticsEvents.clinicId, clinicId));
@@ -91,11 +111,11 @@ export async function getReferrerStats(
   limit: number = 10,
   clinicId?: string
 ): Promise<ReferrerStats[]> {
-  const startDate = getStartDate(range);
+  const startDateStr = getStartDateString(range);
 
   const conditions = [];
-  if (startDate) {
-    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  if (startDateStr) {
+    conditions.push(gte(analyticsEvents.eventDate, startDateStr));
   }
   if (clinicId) {
     conditions.push(eq(analyticsEvents.clinicId, clinicId));
@@ -128,11 +148,11 @@ export async function getTopPages(
   limit: number = 10,
   clinicId?: string
 ): Promise<PageStats[]> {
-  const startDate = getStartDate(range);
+  const startDateStr = getStartDateString(range);
 
   const conditions = [];
-  if (startDate) {
-    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  if (startDateStr) {
+    conditions.push(gte(analyticsEvents.eventDate, startDateStr));
   }
   if (clinicId) {
     conditions.push(eq(analyticsEvents.clinicId, clinicId));
@@ -162,11 +182,11 @@ export async function getViewsOverTime(
   range: DateRange,
   clinicId?: string
 ): Promise<TimeSeriesData[]> {
-  const startDate = getStartDate(range);
+  const startDateStr = getStartDateString(range);
 
   const conditions = [];
-  if (startDate) {
-    conditions.push(gte(analyticsEvents.createdAt, startDate));
+  if (startDateStr) {
+    conditions.push(gte(analyticsEvents.eventDate, startDateStr));
   }
   if (clinicId) {
     conditions.push(eq(analyticsEvents.clinicId, clinicId));
