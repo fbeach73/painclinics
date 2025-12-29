@@ -16,7 +16,6 @@ import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { ContactClinicButton } from "@/components/clinic/contact-clinic-button";
 import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
-import { InPageAd, AdPlacement } from "@/components/ads";
 import { EmbeddedMap } from "@/components/map/embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -678,11 +677,6 @@ export default async function PainManagementClinicPage({ params }: Props) {
             </div>
           </div>
 
-          {/* In-Page Ad - Above fold for better viewability */}
-          <AdPlacement className="mb-8">
-            <InPageAd />
-          </AdPlacement>
-
           {/* Main Content Grid */}
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Left Column - Main Content */}
@@ -694,11 +688,6 @@ export default async function PainManagementClinicPage({ params }: Props) {
                   enhancedAbout={clinic.enhancedAbout}
                 />
               )}
-
-              {/* In-Page Ad - Content break */}
-              <AdPlacement>
-                <InPageAd />
-              </AdPlacement>
 
               {/* FAQ Section */}
               {clinic.questions && clinic.questions.length > 0 && (

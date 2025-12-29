@@ -79,7 +79,14 @@
       "Bash(node /tmp/test-webhook.mjs:*)",
       "WebFetch(domain:www.painclinics.com)",
       "WebFetch(domain:lombers.com)",
-      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx tsx:*)"
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx tsx:*)",
+      "Bash(pnpm build:*)",
+      "WebFetch(domain:docs.google.com)",
+      "WebFetch(domain:doc-14-54-sheets.googleusercontent.com)",
+      "WebFetch(domain:doc-0g-54-sheets.googleusercontent.com)",
+      "WebFetch(domain:doc-0s-54-sheets.googleusercontent.com)",
+      "WebFetch(domain:doc-08-54-sheets.googleusercontent.com)",
+      "WebFetch(domain:doc-00-54-sheets.googleusercontent.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
