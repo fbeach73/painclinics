@@ -12,6 +12,7 @@ interface FeaturedCheckoutProps {
   tier?: "basic" | "premium";
   currentTier?: "basic" | "premium" | null;
   mode: "subscribe" | "manage";
+  isPromo?: boolean;
 }
 
 export default function FeaturedCheckout({
@@ -20,6 +21,7 @@ export default function FeaturedCheckout({
   tier,
   currentTier,
   mode,
+  isPromo = false,
 }: FeaturedCheckoutProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,13 +30,20 @@ export default function FeaturedCheckout({
 
     setIsLoading(true);
     try {
-      const slug = tier === "basic" ? "featured-basic" : "featured-premium";
+      // Use promo slugs during promotional period
+      let slug: string;
+      if (isPromo) {
+        slug = tier === "basic" ? "featured-basic-promo" : "featured-premium-promo";
+      } else {
+        slug = tier === "basic" ? "featured-basic" : "featured-premium";
+      }
 
       await checkout({
         slug,
         metadata: {
           clinicId,
           clinicName,
+          isPromo: isPromo ? "true" : "false",
         },
       });
     } catch (error) {

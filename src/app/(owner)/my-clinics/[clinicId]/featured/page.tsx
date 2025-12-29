@@ -7,6 +7,7 @@ import {
   TrendingUp,
   MapPin,
   ArrowLeft,
+  PartyPopper,
 } from "lucide-react";
 import FeaturedCheckout from "@/components/owner/featured-checkout";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,23 @@ const PRICING = {
     savings: 398,
   },
 };
+
+// Early Adopter New Year's Promo: Dec 29, 2025 - Jan 31, 2026
+const PROMO_CONFIG = {
+  startDate: new Date("2025-12-29T00:00:00"),
+  endDate: new Date("2026-02-01T00:00:00"), // End of Jan 31
+  discount: 0.5, // 50% off
+  name: "Early Adopter New Year's Special",
+};
+
+function isPromoActive(): boolean {
+  const now = new Date();
+  return now >= PROMO_CONFIG.startDate && now < PROMO_CONFIG.endDate;
+}
+
+function getPromoPrice(originalPrice: number): number {
+  return Math.round(originalPrice * (1 - PROMO_CONFIG.discount) * 100) / 100;
+}
 
 const BASIC_FEATURES = [
   "Featured badge on listing",
@@ -62,6 +80,7 @@ export default async function FeaturedPage({
 
   const subscriptionData = await getClinicWithSubscription(clinicId, session.user.id);
   const hasActiveSubscription = subscriptionData?.subscription?.status === "active";
+  const promoActive = isPromoActive();
 
   return (
     <div className="space-y-6">
@@ -74,6 +93,41 @@ export default async function FeaturedPage({
           </Link>
         </Button>
       </div>
+
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2">
+          <Star className="h-6 w-6 text-amber-500" />
+          <h1 className="text-3xl font-bold tracking-tight">Featured Listing</h1>
+        </div>
+        <p className="text-muted-foreground mt-1">
+          Boost your visibility and attract more patients with a featured listing.
+        </p>
+      </div>
+
+      {/* Promo Banner */}
+      {promoActive && !hasActiveSubscription && (
+        <Card className="border-fuchsia-400 bg-gradient-to-r from-fuchsia-600 to-pink-600 dark:from-fuchsia-700 dark:to-pink-700 dark:border-fuchsia-500 shadow-lg">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm text-white">
+              <PartyPopper className="h-6 w-6" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-white">
+                  {PROMO_CONFIG.name}
+                </h3>
+                <Badge className="bg-yellow-400 text-yellow-900 font-bold hover:bg-yellow-400">
+                  50% OFF
+                </Badge>
+              </div>
+              <p className="text-sm text-white/90">
+                Limited time offer for new subscribers. Lock in 50% off for an entire year!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Success Message */}
       {success === "true" && (
@@ -93,17 +147,6 @@ export default async function FeaturedPage({
           </CardContent>
         </Card>
       )}
-
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <Star className="h-6 w-6 text-amber-500" />
-          <h1 className="text-3xl font-bold tracking-tight">Featured Listing</h1>
-        </div>
-        <p className="text-muted-foreground mt-1">
-          Boost your visibility and attract more patients with a featured listing.
-        </p>
-      </div>
 
       {/* Current Subscription */}
       {hasActiveSubscription && subscriptionData?.subscription && (
@@ -207,7 +250,14 @@ export default async function FeaturedPage({
       {/* Pricing Cards */}
       <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
         {/* Basic Plan */}
-        <Card className={hasActiveSubscription && subscriptionData?.subscription?.tier === "basic" ? "ring-2 ring-amber-400" : ""}>
+        <Card className={`relative ${hasActiveSubscription && subscriptionData?.subscription?.tier === "basic" ? "ring-2 ring-amber-400" : ""}`}>
+          {promoActive && !hasActiveSubscription && (
+            <div className="absolute -top-3 right-4">
+              <Badge className="bg-emerald-500 text-white font-bold shadow-md hover:bg-emerald-500">
+                50% OFF
+              </Badge>
+            </div>
+          )}
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
@@ -219,13 +269,28 @@ export default async function FeaturedPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">${PRICING.basic.monthly}</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                or ${PRICING.basic.annual}/year (save ${PRICING.basic.savings})
-              </p>
+              {promoActive && !hasActiveSubscription ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">${getPromoPrice(PRICING.basic.monthly)}</span>
+                    <span className="text-lg text-muted-foreground line-through">${PRICING.basic.monthly}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300 font-semibold">
+                    Locked in for a full year!
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold">${PRICING.basic.monthly}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    or ${PRICING.basic.annual}/year (save ${PRICING.basic.savings})
+                  </p>
+                </>
+              )}
             </div>
             <Separator />
             <ul className="space-y-2">
@@ -249,17 +314,23 @@ export default async function FeaturedPage({
                 tier="basic"
                 currentTier={subscriptionData?.subscription?.tier as "basic" | "premium" | null}
                 mode="subscribe"
+                isPromo={promoActive}
               />
             )}
           </CardFooter>
         </Card>
 
         {/* Premium Plan */}
-        <Card className={`relative ${hasActiveSubscription && subscriptionData?.subscription?.tier === "premium" ? "ring-2 ring-amber-400" : "border-amber-200"}`}>
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+        <Card className={`relative ${hasActiveSubscription && subscriptionData?.subscription?.tier === "premium" ? "ring-2 ring-amber-400" : "border-amber-200 dark:border-amber-700"}`}>
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-2">
+            <Badge className="bg-amber-500 text-white font-bold shadow-md hover:bg-amber-500">
               Most Popular
             </Badge>
+            {promoActive && !hasActiveSubscription && (
+              <Badge className="bg-emerald-500 text-white font-bold shadow-md hover:bg-emerald-500">
+                50% OFF
+              </Badge>
+            )}
           </div>
           <CardHeader className="pt-6">
             <CardTitle className="flex items-center gap-2">
@@ -272,13 +343,28 @@ export default async function FeaturedPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">${PRICING.premium.monthly}</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                or ${PRICING.premium.annual}/year (save ${PRICING.premium.savings})
-              </p>
+              {promoActive && !hasActiveSubscription ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">${getPromoPrice(PRICING.premium.monthly)}</span>
+                    <span className="text-lg text-muted-foreground line-through">${PRICING.premium.monthly}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-300 font-semibold">
+                    Locked in for a full year!
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold">${PRICING.premium.monthly}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    or ${PRICING.premium.annual}/year (save ${PRICING.premium.savings})
+                  </p>
+                </>
+              )}
             </div>
             <Separator />
             <ul className="space-y-2">
@@ -302,6 +388,7 @@ export default async function FeaturedPage({
                 tier="premium"
                 currentTier={subscriptionData?.subscription?.tier as "basic" | "premium" | null}
                 mode="subscribe"
+                isPromo={promoActive}
               />
             )}
           </CardFooter>
