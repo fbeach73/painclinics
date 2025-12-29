@@ -166,8 +166,15 @@
   * {
     @apply border-border;
   }
+  /* Prevent horizontal scrolling on iOS Safari */
+  html {
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    /* Ensure proper mobile viewport behavior */
+    -webkit-overflow-scrolling: touch;
   }
 }
 
