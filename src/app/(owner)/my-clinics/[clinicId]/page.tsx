@@ -201,12 +201,12 @@ export default async function ClinicOverviewPage({
             <CardTitle className="text-lg">Business Hours</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {clinic.clinicHours ? (
+            {clinic.clinicHours && Array.isArray(clinic.clinicHours) && clinic.clinicHours.length > 0 ? (
               <div className="space-y-2">
-                {Object.entries(clinic.clinicHours as Record<string, string>).map(([day, hoursValue]) => (
-                  <div key={day} className="flex justify-between text-sm">
-                    <span className="font-medium capitalize">{day}</span>
-                    <span className="text-muted-foreground">{String(hoursValue)}</span>
+                {(clinic.clinicHours as Array<{ day: string; hours: string }>).map((item, idx) => (
+                  <div key={idx} className="flex justify-between text-sm">
+                    <span className="font-medium capitalize">{item.day}</span>
+                    <span className="text-muted-foreground">{item.hours}</span>
                   </div>
                 ))}
               </div>
@@ -245,27 +245,33 @@ export default async function ClinicOverviewPage({
                 {clinic.reviewCount || 0} reviews
               </div>
             </div>
-            {Boolean(clinic.reviewsPerScore) && typeof clinic.reviewsPerScore === "object" && (
+            {Boolean(clinic.reviewsPerScore) && Array.isArray(clinic.reviewsPerScore) && clinic.reviewsPerScore.length > 0 && (
               <div className="space-y-2">
-                {[5, 4, 3, 2, 1].map((score) => {
-                  const reviewScores = clinic.reviewsPerScore as Record<string, number>;
-                  const count = reviewScores?.[score.toString()] || 0;
-                  const total = clinic.reviewCount || 1;
-                  const percentage = (count / total) * 100;
-                  return (
-                    <div key={score} className="flex items-center gap-2 text-sm">
-                      <span className="w-3">{score}</span>
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-amber-400"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-muted-foreground w-8">{count}</span>
-                    </div>
+                {(() => {
+                  const scoreMap = new Map(
+                    (clinic.reviewsPerScore as Array<{ score: number; count: number }>).map(
+                      (item) => [item.score, item.count]
+                    )
                   );
-                })}
+                  const total = clinic.reviewCount || 1;
+                  return [5, 4, 3, 2, 1].map((score) => {
+                    const count = scoreMap.get(score) || 0;
+                    const percentage = (count / total) * 100;
+                    return (
+                      <div key={score} className="flex items-center gap-2 text-sm">
+                        <span className="w-3">{score}</span>
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-amber-400"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-muted-foreground w-8">{count}</span>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </CardContent>
