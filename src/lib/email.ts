@@ -5,6 +5,7 @@ import {
   renderAdvertiseInquiryEmail,
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
+  renderClaimPendingAdminEmail,
   renderClaimRejectedEmail,
   renderContactClinicInquiryEmail,
   renderFeaturedWelcomeEmail,
@@ -20,6 +21,7 @@ import {
   type AdvertiseInquiryProps,
   type ClaimVerificationProps,
   type ClaimApprovedProps,
+  type ClaimPendingAdminProps,
   type ClaimRejectedProps,
   type ContactClinicInquiryProps,
   type FeaturedWelcomeProps,
@@ -526,6 +528,52 @@ export async function sendPasswordResetEmail(
 // Admin emails that receive all contact form submissions
 const ADMIN_EMAILS = ["kyle@freddybeach.com", "hello@painclinics.com"] as const;
 const PRIMARY_ADMIN_EMAIL: string = ADMIN_EMAILS[0];
+
+export async function sendClaimPendingAdminNotificationEmail(
+  clinicName: string,
+  claimantName: string,
+  claimantEmail: string,
+  claimantRole: string,
+  options?: {
+    clinicId?: string | undefined;
+    claimId?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const reviewUrl = `${baseUrl}/admin/claims`;
+  const submittedAt = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const subject = `New Claim Pending Review - ${clinicName}`;
+  const props: ClaimPendingAdminProps = {
+    clinicName,
+    claimantName,
+    claimantEmail,
+    claimantRole,
+    submittedAt,
+    reviewUrl,
+  };
+
+  const html = await renderClaimPendingAdminEmail(props);
+
+  return sendEmail({
+    to: PRIMARY_ADMIN_EMAIL,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.CLAIM_PENDING_ADMIN,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.claimId && { claimId: options.claimId }),
+      claimantEmail,
+    },
+    ...(ADMIN_EMAILS.length > 1 && { bcc: ADMIN_EMAILS.slice(1).join(",") }),
+  });
+}
 
 export async function sendContactClinicInquiryEmail(
   clinicEmail: string | null,

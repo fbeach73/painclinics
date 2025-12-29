@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   Building2,
+  CheckCircle2,
   Clock,
   Loader2,
   MapPin,
@@ -12,11 +13,26 @@ import {
   Plus,
   Save,
   Share2,
+  ShieldCheck,
   Sparkles,
+  Trash2,
+  UserX,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,12 +156,27 @@ interface ClinicData {
   amenities: string[] | null;
 }
 
+interface OwnerInfo {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+}
+
+interface OwnershipData {
+  ownerUserId: string | null;
+  isVerified: boolean;
+  claimedAt: Date | null;
+  owner: OwnerInfo | null;
+}
+
 interface ClinicDetailsTabProps {
   clinicId: string;
   initialData: ClinicData;
+  ownershipData?: OwnershipData;
 }
 
-export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProps) {
+export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: ClinicDetailsTabProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +188,9 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
   // Amenities state
   const [isAutomating, setIsAutomating] = useState(false);
   const [newAmenity, setNewAmenity] = useState("");
+
+  // Ownership removal state
+  const [isRemovingOwnership, setIsRemovingOwnership] = useState(false);
 
   // Reset form when initial data changes
   useEffect(() => {
@@ -296,8 +330,140 @@ export function ClinicDetailsTab({ clinicId, initialData }: ClinicDetailsTabProp
     setHasUnsavedChanges(true);
   };
 
+  // Handle ownership removal
+  const handleRemoveOwnership = async () => {
+    setIsRemovingOwnership(true);
+    try {
+      const response = await fetch(`/api/admin/clinics/${clinicId}/ownership`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to remove ownership");
+      }
+
+      toast.success("Ownership removed successfully");
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to remove ownership";
+      toast.error("Failed to remove ownership", { description: message });
+    } finally {
+      setIsRemovingOwnership(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Ownership Section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            Clinic Ownership
+          </CardTitle>
+          <CardDescription>
+            Manage clinic ownership and verification status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {ownershipData?.owner ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={ownershipData.owner.image ?? undefined} />
+                  <AvatarFallback>
+                    {ownershipData.owner.name
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-medium">
+                    {ownershipData.owner.name || "Unknown"}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {ownershipData.owner.email}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    {ownershipData.isVerified ? (
+                      <Badge variant="default" className="bg-green-600 text-xs">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Pending Verification
+                      </Badge>
+                    )}
+                    {ownershipData.claimedAt && (
+                      <span className="text-xs text-muted-foreground">
+                        Claimed {new Date(ownershipData.claimedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={isRemovingOwnership}
+                  >
+                    {isRemovingOwnership ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Removing...
+                      </>
+                    ) : (
+                      <>
+                        <UserX className="mr-2 h-4 w-4" />
+                        Remove Ownership
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Remove Clinic Ownership</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove <strong>{ownershipData.owner.name || ownershipData.owner.email}</strong> as the owner of this clinic.
+                      The clinic will become unclaimed and verification status will be reset.
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleRemoveOwnership}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Ownership
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Building2 className="h-6 w-6" />
+              </div>
+              <div>
+                <Badge variant="outline" className="mb-1">Unclaimed</Badge>
+                <p className="text-sm">
+                  This clinic has no owner. Business owners can claim it through the public listing page.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Save Bar */}
       <Card>
         <CardContent className="py-4">

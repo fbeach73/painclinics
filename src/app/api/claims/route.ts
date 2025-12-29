@@ -9,7 +9,7 @@ import {
   canUserClaimClinic,
 } from "@/lib/claim-rate-limit";
 import { db } from "@/lib/db";
-import { sendClaimSubmittedEmail } from "@/lib/email";
+import { sendClaimSubmittedEmail, sendClaimPendingAdminNotificationEmail } from "@/lib/email";
 import { clinics } from "@/lib/schema";
 import { verifyTurnstile } from "@/lib/turnstile";
 
@@ -182,6 +182,23 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       // Log but don't fail the request if email fails
       console.error("Failed to send claim confirmation email:", emailError);
+    }
+
+    // Send admin notification email
+    try {
+      await sendClaimPendingAdminNotificationEmail(
+        clinic?.title || "Unknown Clinic",
+        fullName.trim(),
+        businessEmail.trim().toLowerCase(),
+        role,
+        {
+          clinicId,
+          claimId: createdClaim.id,
+        }
+      );
+    } catch (emailError) {
+      // Log but don't fail the request if admin email fails
+      console.error("Failed to send admin claim notification email:", emailError);
     }
 
     return NextResponse.json(

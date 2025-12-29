@@ -598,3 +598,23 @@ export async function getClinicByLegacySlug(legacySlug: string) {
 
   return results[0] || null;
 }
+
+/**
+ * Remove ownership from a clinic.
+ * Clears ownerUserId, isVerified, and claimedAt fields.
+ *
+ * @param clinicId - The clinic ID to remove ownership from
+ * @returns The updated clinic record
+ */
+export async function removeClinicOwnership(clinicId: string) {
+  return db
+    .update(clinics)
+    .set({
+      ownerUserId: null,
+      isVerified: false,
+      claimedAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(clinics.id, clinicId))
+    .returning();
+}

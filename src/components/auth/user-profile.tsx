@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut, Settings, Building2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -20,14 +20,22 @@ export function UserProfile() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isClinicOwner, setIsClinicOwner] = useState(false);
 
   useEffect(() => {
     if (session?.user?.id) {
-      // Check if user is admin
-      fetch("/api/admin/check")
-        .then((res) => res.ok ? res.json() : null)
-        .then((data) => setIsAdmin(data?.isAdmin ?? false))
-        .catch(() => setIsAdmin(false));
+      // Fetch user role from database
+      fetch("/api/user/me")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          const role = data?.user?.role;
+          setIsAdmin(role === "admin");
+          setIsClinicOwner(role === "clinic_owner" || role === "admin");
+        })
+        .catch(() => {
+          setIsAdmin(false);
+          setIsClinicOwner(false);
+        });
     }
   }, [session?.user?.id]);
 
@@ -85,6 +93,14 @@ export function UserProfile() {
             Your Profile
           </Link>
         </DropdownMenuItem>
+        {isClinicOwner && (
+          <DropdownMenuItem asChild>
+            <Link href="/my-clinics" className="flex items-center">
+              <Building2 className="mr-2 h-4 w-4" />
+              My Clinics
+            </Link>
+          </DropdownMenuItem>
+        )}
         {isAdmin && (
           <>
             <DropdownMenuSeparator />

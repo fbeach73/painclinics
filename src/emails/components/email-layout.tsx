@@ -30,7 +30,7 @@ export function EmailLayout({
         <Container style={containerStyle}>
           {/* Header */}
           <Section style={headerStyle}>
-            <Text style={logoStyle}>Pain Clinics Directory</Text>
+            <Text style={logoStyle}>Painclinics.com</Text>
           </Section>
 
           {/* Main Content */}

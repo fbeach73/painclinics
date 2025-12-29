@@ -25,9 +25,9 @@ interface PageProps {
 export default async function ClinicDetailPage({ params }: PageProps) {
   const { clinicId } = await params;
 
-  // Fetch clinic, services, and featured data in parallel
+  // Fetch clinic with relations, services, and featured data in parallel
   const [clinic, clinicServices, allServices, featuredInfo] = await Promise.all([
-    getClinicById(clinicId),
+    getClinicById(clinicId, { includeRelations: true }),
     getClinicServices(clinicId),
     getAllServices(true), // only active services
     getClinicFeaturedInfo(clinicId),
@@ -36,6 +36,20 @@ export default async function ClinicDetailPage({ params }: PageProps) {
   if (!clinic) {
     notFound();
   }
+
+  // Extract owner info from the clinic relations
+  // Use type assertion since includeRelations: true includes the owner relation
+  const clinicWithOwner = clinic as typeof clinic & {
+    owner?: { id: string; name: string | null; email: string; image: string | null } | null;
+  };
+  const ownerInfo = clinicWithOwner.owner
+    ? {
+        id: clinicWithOwner.owner.id,
+        name: clinicWithOwner.owner.name,
+        email: clinicWithOwner.owner.email,
+        image: clinicWithOwner.owner.image,
+      }
+    : null;
 
   // Calculate available services (those not already assigned)
   const assignedServiceIds = new Set(clinicServices.map((cs) => cs.serviceId));
@@ -278,6 +292,12 @@ export default async function ClinicDetailPage({ params }: PageProps) {
               rating: clinic.rating,
               reviewCount: clinic.reviewCount,
               amenities: clinic.amenities as string[] | null,
+            }}
+            ownershipData={{
+              ownerUserId: clinic.ownerUserId,
+              isVerified: clinic.isVerified,
+              claimedAt: clinic.claimedAt,
+              owner: ownerInfo,
             }}
           />
         </TabsContent>
