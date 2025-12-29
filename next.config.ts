@@ -232,13 +232,6 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
 
-      // Old /pain-management root (no state) to homepage
-      {
-        source: "/pain-management",
-        destination: "/",
-        permanent: true,
-      },
-
       // Old /managing-pain page to treatment options
       {
         source: "/managing-pain",
