@@ -262,14 +262,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${clinic.title} - Pain Management in ${clinic.city}, ${clinic.stateAbbreviation || clinic.state}`;
+  const stateName = getStateName(clinic.stateAbbreviation || clinic.state);
+  const title = `${clinic.title} - Pain Management in ${clinic.city}, ${stateName}`;
 
   // Clean description - remove HTML tags
   const cleanContent = clinic.content ? stripHtmlTags(clinic.content) : null;
 
   const description =
     cleanContent?.substring(0, 160) ||
-    `${clinic.title} provides pain management services in ${clinic.city}, ${clinic.stateAbbreviation || clinic.state}. Call ${clinic.phone} for appointments.`;
+    `${clinic.title} provides pain management services in ${clinic.city}, ${stateName}. Call ${clinic.phone} for appointments.`;
 
   const canonicalUrl = `${baseUrl}/${clinic.permalink}/`;
 

@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Pain Clinics Directory - Find Pain Management Near You",
+    default: "Pain Management Near You: Painclinics.com - \u2695\uFE0F Local Pain Clinics",
     template: "%s | Pain Clinics Directory",
   },
   description:
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Pain Clinics Directory",
-    title: "Pain Clinics Directory - Find Pain Management Near You",
+    title: "Pain Management Near You: Painclinics.com - \u2695\uFE0F Local Pain Clinics",
     description:
       "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pain Clinics Directory - Find Pain Management Near You",
+    title: "Pain Management Near You: Painclinics.com - \u2695\uFE0F Local Pain Clinics",
     description:
       "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
   },

@@ -7,6 +7,7 @@ import { useSession } from '@/lib/auth-client';
 import { type DayName, WEEKDAY_INDEX_TO_NAME, DAY_LABELS } from '@/lib/day-constants';
 import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import { formatTime } from '@/lib/time-utils';
+import { getStateName } from '@/lib/us-states';
 import { cn } from '@/lib/utils';
 import type { Clinic } from '@/types/clinic';
 import { ClaimListingButton } from './claim-listing-button';
@@ -91,7 +92,9 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
       {/* Title and badges */}
       <div className="space-y-3">
         <div className="flex items-start gap-3 flex-wrap">
-          <h1 className="text-3xl font-bold tracking-tight">{clinic.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {clinic.name} - Pain Management in {clinic.address.city}, {getStateName(clinic.address.state)}
+          </h1>
           <FeaturedBadge tier={featuredTier} size="md" className="mt-1" />
           {clinic.isVerified && (
             <Badge className="gap-1 mt-1">
