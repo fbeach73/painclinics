@@ -33,11 +33,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json().catch(() => ({}));
     const { adminNotes } = body;
 
+    console.log("[API] Claim approval initiated", {
+      claimId,
+      adminId: adminCheck.user.id,
+      hasAdminNotes: !!adminNotes,
+    });
+
     const result = await approveClaim(
       claimId,
       adminCheck.user.id,
       adminNotes
     );
+
+    console.log("[API] Claim approval completed", {
+      claimId,
+      clinicId: result.clinicId,
+      userId: result.userId,
+      emailSent: result.emailSent,
+    });
 
     return NextResponse.json({
       success: true,
@@ -45,11 +58,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       claimId: result.claimId,
       clinicId: result.clinicId,
       userId: result.userId,
+      emailSent: result.emailSent,
     });
   } catch (error) {
-    console.error("Error approving claim:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
 
-    // Check for specific error messages
+    // Structured logging with full context
+    console.error("[API] Claim approval failed", {
+      claimId,
+      adminId: adminCheck.user.id,
+      error: errorMessage,
+      stack: errorStack,
+    });
+
+    // Return specific error messages based on failure type
     if (error instanceof Error) {
       if (error.message === "Claim not found") {
         return NextResponse.json({ error: "Claim not found" }, { status: 404 });
@@ -60,6 +83,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           { status: 400 }
         );
       }
+      // Pass through specific error messages for debugging
+      return NextResponse.json(
+        { error: errorMessage, details: "Check server logs for full stack trace" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(

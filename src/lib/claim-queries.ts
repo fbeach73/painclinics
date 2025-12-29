@@ -300,94 +300,141 @@ export async function getClaims(options: GetClaimsOptions = {}) {
 
 /**
  * Approve a claim - transfers ownership to the claimant
+ * Uses a database transaction for atomicity - all DB operations succeed or none do
  */
 export async function approveClaim(
   claimId: string,
   reviewerId: string,
   adminNotes?: string
 ) {
-  // Get the claim first
+  console.log("[Claim Approval] Starting approval process", { claimId, reviewerId });
+
+  // Get the claim first (outside transaction for read)
   const claim = await getClaimById(claimId);
 
   if (!claim) {
+    console.error("[Claim Approval] Claim not found", { claimId });
     throw new Error("Claim not found");
   }
 
   if (claim.status !== "pending") {
+    console.error("[Claim Approval] Claim already reviewed", { claimId, status: claim.status });
     throw new Error("Claim has already been reviewed");
   }
 
-  // Start a transaction-like flow
   const now = new Date();
 
-  // 1. Update the claim status
-  await db
-    .update(clinicClaims)
-    .set({
-      status: "approved",
-      reviewedAt: now,
-      reviewedBy: reviewerId,
-      adminNotes: adminNotes,
-    })
-    .where(eq(clinicClaims.id, claimId));
+  // All DB writes in transaction for atomicity
+  const result = await db.transaction(async (tx) => {
+    // Step 1: Update claim status
+    console.log("[Claim Approval] Step 1: Updating claim status", { claimId });
+    await tx
+      .update(clinicClaims)
+      .set({
+        status: "approved",
+        reviewedAt: now,
+        reviewedBy: reviewerId,
+        adminNotes: adminNotes,
+      })
+      .where(eq(clinicClaims.id, claimId));
+    console.log("[Claim Approval] Step 1: Complete");
 
-  // 2. Update the clinic with ownership
-  await db
-    .update(clinics)
-    .set({
-      ownerUserId: claim.userId,
-      isVerified: true,
-      claimedAt: now,
-    })
-    .where(eq(clinics.id, claim.clinicId));
+    // Step 2: Update clinic ownership
+    console.log("[Claim Approval] Step 2: Transferring clinic ownership", {
+      clinicId: claim.clinicId,
+      userId: claim.userId,
+    });
+    await tx
+      .update(clinics)
+      .set({
+        ownerUserId: claim.userId,
+        isVerified: true,
+        claimedAt: now,
+      })
+      .where(eq(clinics.id, claim.clinicId));
+    console.log("[Claim Approval] Step 2: Complete");
 
-  // 3. Update user role to clinic_owner if not already admin
-  const [claimantUser] = await db
-    .select({ role: user.role })
-    .from(user)
-    .where(eq(user.id, claim.userId))
-    .limit(1);
+    // Step 3: Update user role to clinic_owner if not already admin
+    const [claimantUser] = await tx
+      .select({ role: user.role })
+      .from(user)
+      .where(eq(user.id, claim.userId))
+      .limit(1);
 
-  if (claimantUser && claimantUser.role !== "admin") {
-    await db
-      .update(user)
-      .set({ role: "clinic_owner" })
-      .where(eq(user.id, claim.userId));
+    if (claimantUser && claimantUser.role !== "admin") {
+      console.log("[Claim Approval] Step 3: Updating user role", { userId: claim.userId });
+      await tx
+        .update(user)
+        .set({ role: "clinic_owner" })
+        .where(eq(user.id, claim.userId));
+      console.log("[Claim Approval] Step 3: Complete");
+    } else {
+      console.log("[Claim Approval] Step 3: Skipped (user is admin)", { userId: claim.userId });
+    }
+
+    // Step 4: Expire other pending claims for this clinic
+    console.log("[Claim Approval] Step 4: Expiring other pending claims", {
+      clinicId: claim.clinicId,
+    });
+    await tx
+      .update(clinicClaims)
+      .set({
+        status: "expired",
+        adminNotes: "Claim expired - clinic was claimed by another user",
+      })
+      .where(
+        and(
+          eq(clinicClaims.clinicId, claim.clinicId),
+          eq(clinicClaims.status, "pending"),
+          sql`${clinicClaims.id} != ${claimId}`
+        )
+      );
+    console.log("[Claim Approval] Step 4: Complete");
+
+    return { claimId, clinicId: claim.clinicId, userId: claim.userId };
+  });
+
+  console.log("[Claim Approval] Transaction committed successfully", result);
+
+  // Email sending AFTER transaction commits (failures won't rollback DB)
+  console.log("[Claim Approval] Step 5: Sending approval email", { email: claim.businessEmail });
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics/${claim.clinicId}`;
+
+  let emailSent = false;
+  try {
+    const emailResult = await sendClaimApprovedEmail(
+      claim.businessEmail,
+      claim.clinic.title,
+      dashboardUrl,
+      {
+        userId: claim.userId,
+        clinicId: claim.clinicId,
+        claimId,
+      }
+    );
+    emailSent = emailResult.success;
+
+    if (!emailResult.success) {
+      console.error("[Claim Approval] Email failed but approval succeeded", {
+        claimId,
+        error: emailResult.error,
+      });
+    } else {
+      console.log("[Claim Approval] Step 5: Complete");
+    }
+  } catch (emailError) {
+    console.error("[Claim Approval] Email threw error but approval succeeded", {
+      claimId,
+      error: emailError instanceof Error ? emailError.message : "Unknown error",
+    });
   }
 
-  // 4. Mark any other pending claims for this clinic as expired
-  await db
-    .update(clinicClaims)
-    .set({
-      status: "expired",
-      adminNotes: "Claim expired - clinic was claimed by another user",
-    })
-    .where(
-      and(
-        eq(clinicClaims.clinicId, claim.clinicId),
-        eq(clinicClaims.status, "pending"),
-        sql`${clinicClaims.id} != ${claimId}`
-      )
-    );
-
-  // 5. Send approval email
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics/${claim.clinicId}`;
-  await sendClaimApprovedEmail(
-    claim.businessEmail,
-    claim.clinic.title,
-    dashboardUrl,
-    {
-      userId: claim.userId,
-      clinicId: claim.clinicId,
-      claimId,
-    }
-  );
+  console.log("[Claim Approval] Complete", { ...result, emailSent });
 
   return {
     success: true,
-    claimId,
-    clinicId: claim.clinicId,
-    userId: claim.userId,
+    ...result,
+    emailSent,
   };
 }
 

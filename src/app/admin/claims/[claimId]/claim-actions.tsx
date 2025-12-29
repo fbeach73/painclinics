@@ -51,8 +51,14 @@ export function ClaimActions({ claimId, clinicName }: ClaimActionsProps) {
       setApproveOpen(false);
       router.refresh();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       toast.error("Failed to approve claim", {
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: errorMessage,
+        duration: 5000, // Show longer for debugging
+        action: {
+          label: "Retry",
+          onClick: () => handleApprove(),
+        },
       });
     } finally {
       setIsLoading(false);
@@ -89,8 +95,14 @@ export function ClaimActions({ claimId, clinicName }: ClaimActionsProps) {
       setRejectOpen(false);
       router.refresh();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       toast.error("Failed to reject claim", {
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: errorMessage,
+        duration: 5000, // Show longer for debugging
+        action: {
+          label: "Retry",
+          onClick: () => handleReject(),
+        },
       });
     } finally {
       setIsLoading(false);
