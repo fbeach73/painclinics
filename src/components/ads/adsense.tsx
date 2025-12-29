@@ -8,6 +8,78 @@ declare global {
   }
 }
 
+// Ad slot IDs from AdSense dashboard
+// Data analysis (Nov 28 - Dec 27, 2025) showed:
+// - Mobile = 74% of revenue with 5.7x higher RPM than desktop
+// - Dynamic/responsive sizing earned $481 vs poor fixed-size performance
+// - In-page ads had only 39% viewability - need better positioning
+export const AD_SLOTS = {
+  inPage: "9665261047", // painclinics-in-page (Display, responsive)
+} as const;
+
+/**
+ * In-Page Display Ad - Responsive format
+ *
+ * Performance data:
+ * - $221 earnings but only 39% viewability (needs better positioning)
+ * - Using responsive format because dynamic sizing earned $481
+ * - Mobile-first: 74% of revenue comes from mobile
+ */
+export function InPageAd({ className = "" }: { className?: string }) {
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (err) {
+      console.error("AdSense error:", err);
+    }
+  }, []);
+
+  return (
+    <div className={`w-full ${className}`}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: "block" }}
+        data-ad-client="ca-pub-5028121986513144"
+        data-ad-slot={AD_SLOTS.inPage}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
+  );
+}
+
+/**
+ * Ad Placement Wrapper
+ * - Shows "Advertisement" label on desktop only (cleaner mobile experience)
+ * - Mobile is 74% of revenue, keep it clean
+ */
+interface AdPlacementProps {
+  children: React.ReactNode;
+  className?: string;
+  showLabel?: boolean;
+}
+
+export function AdPlacement({
+  children,
+  className = "",
+  showLabel = true,
+}: AdPlacementProps) {
+  return (
+    <div className={`my-4 ${className}`}>
+      {showLabel && (
+        <p className="hidden sm:block text-xs text-muted-foreground text-center mb-1">
+          Advertisement
+        </p>
+      )}
+      {children}
+    </div>
+  );
+}
+
+// =============================================================================
+// Legacy components (kept for backwards compatibility)
+// =============================================================================
+
 interface AdUnitProps {
   slot: string;
   format?: "auto" | "fluid" | "rectangle" | "vertical" | "horizontal";
@@ -17,18 +89,7 @@ interface AdUnitProps {
 }
 
 /**
- * AdSense Ad Unit Component
- *
- * Usage:
- * <AdUnit slot="1234567890" format="auto" responsive />
- *
- * For manual placements, create ad units in AdSense dashboard and use the slot ID.
- * Common formats:
- * - "auto": Google chooses best format (recommended)
- * - "fluid": Native/in-feed ads
- * - "rectangle": Display ads (300x250, 336x280)
- * - "vertical": Skyscraper ads (120x600, 160x600)
- * - "horizontal": Banner ads (728x90, 970x90)
+ * Generic AdSense Ad Unit Component (Legacy)
  */
 export function AdUnit({
   slot,
@@ -39,7 +100,6 @@ export function AdUnit({
 }: AdUnitProps) {
   useEffect(() => {
     try {
-      // Push ad to queue after component mounts
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (err) {
       console.error("AdSense error:", err);
@@ -64,7 +124,7 @@ export function AdUnit({
 }
 
 /**
- * In-Article Ad - Best for within blog content
+ * In-Article Ad (Legacy) - Best for within blog content
  */
 export function InArticleAd({ className = "" }: { className?: string }) {
   useEffect(() => {
@@ -90,8 +150,7 @@ export function InArticleAd({ className = "" }: { className?: string }) {
 }
 
 /**
- * Multiplex Ad - Grid of recommended content ads
- * Good for end of articles or sidebar
+ * Multiplex Ad (Legacy) - Grid of recommended content ads
  */
 export function MultiplexAd({ className = "" }: { className?: string }) {
   useEffect(() => {
