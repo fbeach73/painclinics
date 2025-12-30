@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2, ExternalLink, CreditCard, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { checkout, customer } from "@/lib/auth-client";
+import { subscription } from "@/lib/auth-client";
 
 interface FeaturedCheckoutProps {
   clinicId: string;
@@ -12,15 +12,19 @@ interface FeaturedCheckoutProps {
   tier?: "basic" | "premium";
   currentTier?: "basic" | "premium" | null;
   mode: "subscribe" | "manage";
+  annual?: boolean;
 }
 
 export default function FeaturedCheckout({
   clinicId,
-  clinicName,
+  clinicName: _clinicName,
   tier,
   currentTier,
   mode,
+  annual = false,
 }: FeaturedCheckoutProps) {
+  // clinicName reserved for future use
+  void _clinicName;
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckout = async () => {
@@ -28,18 +32,32 @@ export default function FeaturedCheckout({
 
     setIsLoading(true);
     try {
-      const slug = tier === "basic" ? "featured-basic" : "featured-premium";
-
-      await checkout({
-        slug,
-        metadata: {
+      const response = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           clinicId,
-          clinicName,
-        },
+          plan: tier === "basic" ? "featured-basic" : "featured-premium",
+          annual,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Checkout failed");
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Failed to start checkout");
+      }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error("Failed to start checkout. Please try again.");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to start checkout. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -48,10 +66,24 @@ export default function FeaturedCheckout({
   const handleManageSubscription = async () => {
     setIsLoading(true);
     try {
-      await customer.portal();
+      const result = await subscription.billingPortal({
+        returnUrl: `${window.location.origin}/my-clinics/${clinicId}/featured`,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message || "Failed to open portal");
+      }
+
+      if (result.data?.url) {
+        window.location.href = result.data.url;
+      } else {
+        toast.error("Failed to open subscription portal");
+      }
     } catch (error) {
       console.error("Portal error:", error);
-      toast.error("Failed to open subscription portal. Please try again.");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to open subscription portal. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

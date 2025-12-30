@@ -92,6 +92,8 @@ export const user = pgTable(
     // Email preferences
     emailUnsubscribedAt: timestamp("email_unsubscribed_at"),
     unsubscribeToken: text("unsubscribe_token").unique(),
+    // Stripe integration
+    stripeCustomerId: text("stripe_customer_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -410,10 +412,10 @@ export const featuredSubscriptions = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
 
-    // Polar integration
-    polarSubscriptionId: text("polar_subscription_id").unique(),
-    polarCustomerId: text("polar_customer_id"),
-    polarProductId: text("polar_product_id"),
+    // Stripe integration
+    stripeSubscriptionId: text("stripe_subscription_id").unique(),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripePriceId: text("stripe_price_id"),
 
     // Subscription details
     tier: featuredTierEnum("tier").default("none").notNull(),
@@ -437,7 +439,7 @@ export const featuredSubscriptions = pgTable(
   (table) => [
     index("featured_subscriptions_clinic_idx").on(table.clinicId),
     index("featured_subscriptions_user_idx").on(table.userId),
-    index("featured_subscriptions_polar_sub_idx").on(table.polarSubscriptionId),
+    index("featured_subscriptions_stripe_sub_idx").on(table.stripeSubscriptionId),
     index("featured_subscriptions_status_idx").on(table.status),
   ]
 );

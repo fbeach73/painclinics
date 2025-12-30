@@ -220,7 +220,7 @@ export function ClinicFeaturedTab({ clinicId, initialData }: ClinicFeaturedTabPr
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Active Subscription Detected</AlertTitle>
           <AlertDescription>
-            This clinic has an active Polar subscription ({initialData.subscriptionTier} tier).
+            This clinic has an active Stripe subscription ({initialData.subscriptionTier} tier).
             Manual changes here will override the subscription settings. The subscription will
             continue to renew unless cancelled by the clinic owner.
           </AlertDescription>

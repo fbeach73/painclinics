@@ -103,12 +103,12 @@ export default async function SubscriptionsPage() {
         </div>
         <Button asChild variant="outline">
           <a
-            href="https://sandbox.polar.sh/dashboard"
+            href="https://dashboard.stripe.com"
             target="_blank"
             rel="noopener noreferrer"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
-            Polar Dashboard
+            Stripe Dashboard
           </a>
         </Button>
       </div>
@@ -176,7 +176,7 @@ export default async function SubscriptionsPage() {
             <CardTitle>Active Subscriptions</CardTitle>
           </div>
           <CardDescription>
-            Featured listing subscriptions managed through Polar
+            Featured listing subscriptions managed through Stripe
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -261,15 +261,15 @@ export default async function SubscriptionsPage() {
           <p>
             Subscriptions are managed through{" "}
             <a
-              href="https://polar.sh"
+              href="https://stripe.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
-              Polar
+              Stripe
             </a>
             . To issue refunds, cancel subscriptions, or view detailed payment history,
-            use the Polar Dashboard.
+            use the Stripe Dashboard.
           </p>
           <p>
             Featured listings are automatically updated when subscription status changes

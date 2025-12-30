@@ -59,14 +59,14 @@ export async function getSubscriptionSummary(): Promise<SubscriptionSummary> {
   const totalPremium = activeSubscriptions.filter((s) => s.tier === "premium").length
 
   // Calculate MRR
-  // Basic: $99/month, Premium: $199/month
-  // Annual subscriptions: Basic $990/year ($82.50/month), Premium $1990/year ($165.83/month)
+  // Basic: $49.50/month, Premium: $99.50/month
+  // Annual subscriptions: Basic $495/year ($41.25/month), Premium $995/year ($82.92/month)
   const mrr = activeSubscriptions.reduce((total, sub) => {
     if (sub.tier === "premium") {
-      return total + (sub.billingCycle === "annual" ? 165.83 : 199)
+      return total + (sub.billingCycle === "annual" ? 82.92 : 99.5)
     }
     if (sub.tier === "basic") {
-      return total + (sub.billingCycle === "annual" ? 82.5 : 99)
+      return total + (sub.billingCycle === "annual" ? 41.25 : 49.5)
     }
     return total
   }, 0)
@@ -82,9 +82,9 @@ export async function getSubscriptionSummary(): Promise<SubscriptionSummary> {
 export async function createSubscription(data: {
   clinicId: string
   userId: string
-  polarSubscriptionId: string
-  polarCustomerId: string
-  polarProductId: string
+  stripeSubscriptionId: string
+  stripeCustomerId: string
+  stripePriceId: string
   tier: "basic" | "premium"
   billingCycle: "monthly" | "annual"
   startDate: Date

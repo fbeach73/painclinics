@@ -331,7 +331,7 @@ export default async function FeaturedPage({
           <div>
             <h4 className="font-medium">What payment methods do you accept?</h4>
             <p className="text-sm text-muted-foreground">
-              We accept all major credit cards through our secure payment processor, Polar.
+              We accept all major credit cards through our secure payment processor, Stripe.
             </p>
           </div>
           <Separator />

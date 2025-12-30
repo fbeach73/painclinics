@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2 } from "lucide-react";
-import { InPageAd, AdPlacement } from "@/components/ads";
 import { SearchFeaturedSection } from "@/components/featured";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -151,11 +150,6 @@ export function StatePainManagementPageContent({
             </CardContent>
           </Card>
         </div>
-
-        {/* In-Page Ad */}
-        <AdPlacement className="my-8">
-          <InPageAd />
-        </AdPlacement>
 
         {/* Featured Clinics Section */}
         <SearchFeaturedSection stateAbbrev={stateAbbrev} />

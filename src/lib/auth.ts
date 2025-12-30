@@ -1,63 +1,56 @@
-import { betterAuth, type BetterAuthPlugin } from "better-auth"
+import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { stripe } from "@better-auth/stripe"
+import Stripe from "stripe"
 import { eq } from "drizzle-orm"
 import { db } from "./db"
 import { generateUnsubscribeToken, sendWelcomeEmail } from "./email"
 import * as schema from "./schema"
+import {
+  handleSubscriptionComplete,
+  handleSubscriptionCancel,
+  handleInvoicePaid,
+} from "./stripe-webhooks"
 
-// Initialize Polar plugin lazily to avoid import errors when Polar env vars are missing
-let polarPlugin: BetterAuthPlugin | null = null
+// Initialize Stripe client
+const stripeClient =
+  process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-12-15.clover",
+      })
+    : null
 
-// Initialize Polar plugin synchronously for module-level export
-// This won't throw if Polar isn't configured
-if (process.env.POLAR_ACCESS_TOKEN) {
-  // Polar will be initialized, but we need sync access for betterAuth config
-  // Use a simpler approach: only import Polar modules if env var is set
-  try {
-     
-    const { polar, checkout, portal, webhooks } = require("@polar-sh/better-auth")
-     
-    const { Polar } = require("@polar-sh/sdk")
-     
-    const polarWebhooks = require("./polar-webhooks")
-
-    polarPlugin = polar({
-      client: new Polar({
-        accessToken: process.env.POLAR_ACCESS_TOKEN,
-        // Use POLAR_ENVIRONMENT env var if set, otherwise default based on NODE_ENV
-        server: (process.env.POLAR_ENVIRONMENT as "sandbox" | "production") ||
-          (process.env.NODE_ENV === "production" ? "production" : "sandbox"),
-      }),
-      createCustomerOnSignUp: true,
-      use: [
-        checkout({
-          products: [
+// Initialize Stripe plugin only if configured
+const stripePlugin =
+  stripeClient && process.env.STRIPE_WEBHOOK_SECRET
+    ? stripe({
+        stripeClient,
+        stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+        createCustomerOnSignUp: true,
+        subscription: {
+          enabled: true,
+          plans: [
             {
-              productId: process.env.POLAR_BASIC_PRODUCT_ID || "",
-              slug: "featured-basic",
+              name: "featured-basic",
+              priceId: process.env.STRIPE_BASIC_MONTHLY_PRICE_ID || "",
+              annualDiscountPriceId: process.env.STRIPE_BASIC_ANNUAL_PRICE_ID,
             },
             {
-              productId: process.env.POLAR_PREMIUM_PRODUCT_ID || "",
-              slug: "featured-premium",
+              name: "featured-premium",
+              priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || "",
+              annualDiscountPriceId: process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID,
             },
           ],
-          successUrl: "/my-clinics/{metadata.clinicId}/featured?success=true&checkout_id={CHECKOUT_ID}",
-          authenticatedUsersOnly: true,
-        }),
-        portal(),
-        webhooks({
-          secret: process.env.POLAR_WEBHOOK_SECRET || "",
-          onSubscriptionActive: polarWebhooks.handleSubscriptionActive,
-          onSubscriptionCanceled: polarWebhooks.handleSubscriptionCanceled,
-          onOrderPaid: polarWebhooks.handleOrderPaid,
-        }),
-      ],
-    }) as unknown as BetterAuthPlugin
-  } catch (error) {
-    console.warn("Failed to initialize Polar plugin:", error)
-    polarPlugin = null
-  }
-}
+          onSubscriptionComplete: handleSubscriptionComplete,
+          onSubscriptionCancel: handleSubscriptionCancel,
+        },
+        onEvent: async (event) => {
+          if (event.type === "invoice.paid") {
+            await handleInvoicePaid(event)
+          }
+        },
+      })
+    : null
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -77,7 +70,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
-  plugins: polarPlugin ? [polarPlugin] : [],
+  plugins: stripePlugin ? [stripePlugin] : [],
   databaseHooks: {
     user: {
       create: {

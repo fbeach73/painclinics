@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
-import { InPageAd, AdPlacement } from '@/components/ads';
 import { HomepageFeaturedSection } from '@/components/featured';
 import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
 import { Button } from '@/components/ui/button';
@@ -61,13 +60,6 @@ export default async function Home() {
 
         {/* Featured Clinics Section */}
         <HomepageFeaturedSection />
-
-        {/* In-Page Ad */}
-        <section className="container mx-auto py-6">
-          <AdPlacement>
-            <InPageAd />
-          </AdPlacement>
-        </section>
 
         {/* Interactive Map Section */}
         <NearbyClinicsSection />

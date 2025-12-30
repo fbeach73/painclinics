@@ -86,7 +86,11 @@
       "WebFetch(domain:doc-0g-54-sheets.googleusercontent.com)",
       "WebFetch(domain:doc-0s-54-sheets.googleusercontent.com)",
       "WebFetch(domain:doc-08-54-sheets.googleusercontent.com)",
-      "WebFetch(domain:doc-00-54-sheets.googleusercontent.com)"
+      "WebFetch(domain:doc-00-54-sheets.googleusercontent.com)",
+      "WebFetch(domain:doc-04-54-sheets.googleusercontent.com)",
+      "WebFetch(domain:www.shadcn.io)",
+      "mcp__context7__resolve-library-id",
+      "WebFetch(domain:www.better-auth.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
