@@ -66,7 +66,7 @@ export default async function ClinicOverviewPage({
           </p>
         </div>
         <Button asChild>
-          <Link href={`/pain-management/${clinic.permalink}`} target="_blank">
+          <Link href={`/${clinic.permalink}`} target="_blank">
             <Eye className="h-4 w-4 mr-2" />
             View Public Listing
             <ExternalLink className="h-3 w-3 ml-1" />

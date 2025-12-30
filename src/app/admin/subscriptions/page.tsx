@@ -149,7 +149,7 @@ export default async function SubscriptionsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalBasic}</div>
             <p className="text-xs text-muted-foreground">
-              $99/mo or $990/yr
+              $49.50/mo or $495/yr
             </p>
           </CardContent>
         </Card>
@@ -162,7 +162,7 @@ export default async function SubscriptionsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{summary.totalPremium}</div>
             <p className="text-xs text-muted-foreground">
-              $199/mo or $1,990/yr
+              $99.50/mo or $995/yr
             </p>
           </CardContent>
         </Card>
@@ -209,7 +209,7 @@ export default async function SubscriptionsPage() {
                     <TableRow key={subscription.id}>
                       <TableCell>
                         <Link
-                          href={`/pain-management/${subscription.clinic?.state?.toLowerCase()}/${subscription.clinic?.permalink}`}
+                          href={`/${subscription.clinic?.permalink}`}
                           className="font-medium hover:underline"
                           target="_blank"
                         >

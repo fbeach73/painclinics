@@ -126,7 +126,7 @@ export default async function MyClinicsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/pain-management/${clinic.permalink}`}>
+                      <Link href={`/${clinic.permalink}`}>
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Link>
