@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { emailBroadcasts } from "@/lib/schema";
 
@@ -103,20 +103,21 @@ export async function listBroadcasts(options?: {
 }): Promise<{ broadcasts: Broadcast[]; total: number }> {
   const { status, limit = 20, offset = 0 } = options || {};
 
-  const query = db.query.emailBroadcasts.findMany({
+  // Fetch paginated broadcasts
+  const broadcasts = await db.query.emailBroadcasts.findMany({
     where: status ? eq(emailBroadcasts.status, status) : undefined,
     orderBy: desc(emailBroadcasts.createdAt),
     limit,
     offset,
   });
 
-  const broadcasts = await query;
+  // Get total count efficiently using SQL count
+  const countResult = await db
+    .select({ total: count() })
+    .from(emailBroadcasts)
+    .where(status ? eq(emailBroadcasts.status, status) : undefined);
 
-  // Get total count
-  const allBroadcasts = await db.query.emailBroadcasts.findMany({
-    where: status ? eq(emailBroadcasts.status, status) : undefined,
-  });
-  const total = allBroadcasts.length;
+  const total = countResult[0]?.total ?? 0;
 
   return { broadcasts, total };
 }
@@ -234,20 +235,28 @@ export async function getBroadcastCountsByStatus(): Promise<{
   failed: number;
   total: number;
 }> {
-  const allBroadcasts = await db.query.emailBroadcasts.findMany();
+  // Use GROUP BY for efficient counting
+  const result = await db
+    .select({
+      status: emailBroadcasts.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(emailBroadcasts)
+    .groupBy(emailBroadcasts.status);
 
   const counts = {
     draft: 0,
     sending: 0,
     completed: 0,
     failed: 0,
-    total: allBroadcasts.length,
+    total: 0,
   };
 
-  for (const broadcast of allBroadcasts) {
-    if (broadcast.status && broadcast.status in counts) {
-      counts[broadcast.status as keyof Omit<typeof counts, 'total'>]++;
+  for (const row of result) {
+    if (row.status && row.status in counts) {
+      counts[row.status as keyof Omit<typeof counts, "total">] = row.count;
     }
+    counts.total += row.count;
   }
 
   return counts;

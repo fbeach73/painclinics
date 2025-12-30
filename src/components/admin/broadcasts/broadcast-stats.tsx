@@ -68,7 +68,9 @@ export function BroadcastStats({
   const deliveryRate = sentCount > 0 ? (deliveredCount / sentCount) * 100 : 0;
   const openRate = deliveredCount > 0 ? (openedCount / deliveredCount) * 100 : 0;
   const clickRate = openedCount > 0 ? (clickedCount / openedCount) * 100 : 0;
-  const failureRate = sentCount > 0 ? (failedCount / sentCount) * 100 : 0;
+  // Failure rate includes both failed sends and bounced emails
+  const totalFailed = failedCount + bouncedCount;
+  const failureRate = sentCount > 0 ? (totalFailed / sentCount) * 100 : 0;
 
   const isSending = status === "sending";
 
@@ -109,7 +111,7 @@ export function BroadcastStats({
       />
       <StatCard
         label="Failed"
-        value={failedCount + bouncedCount}
+        value={totalFailed}
         rate={sentCount > 0 ? failureRate : undefined}
         icon={<AlertTriangle className="h-5 w-5" />}
         colorClass="text-red-600 dark:text-red-400"

@@ -5,3 +5,4 @@ export { BroadcastPreview, BroadcastPreviewCard } from "./broadcast-preview";
 export { SendConfirmation } from "./send-confirmation";
 export { BroadcastStats } from "./broadcast-stats";
 export { BroadcastRecipientList } from "./broadcast-recipient-list";
+export { BroadcastStatusBadge } from "./broadcast-status-badge";
