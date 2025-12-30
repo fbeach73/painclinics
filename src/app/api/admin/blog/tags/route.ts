@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
-import { getAllTags } from "@/lib/blog/blog-queries";
 import {
   createTag,
   deleteTag,
   isTagSlugAvailable,
 } from "@/lib/blog/blog-mutations";
+import { getAllTags } from "@/lib/blog/blog-queries";
 
 /**
  * GET /api/admin/blog/tags

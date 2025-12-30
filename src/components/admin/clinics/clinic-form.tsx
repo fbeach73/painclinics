@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, MapPin, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { PlacesLookupDialog } from '@/components/admin/sync/places-lookup-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlacesLookupDialog } from '@/components/admin/sync/places-lookup-dialog';
 
 interface ClinicFormData {
   id?: string;

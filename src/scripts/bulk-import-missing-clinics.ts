@@ -11,9 +11,9 @@
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
+import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
-import { sql } from "drizzle-orm";
 
 const WP_API_BASE = "https://wordpress-1356334-4988742.cloudwaysapps.com/wp-json/wp/v2/pain-management";
 const PER_PAGE = 100;

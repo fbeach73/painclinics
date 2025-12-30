@@ -8,14 +8,14 @@
 
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
-import { getAllCategories, getAllTags } from "../blog-queries";
+import { generateSlug } from "@/lib/slug";
 import {
   createTag,
   setPostCategories,
   setPostTags,
   isTagSlugAvailable,
 } from "../blog-mutations";
-import { generateSlug } from "@/lib/slug";
+import { getAllCategories, getAllTags } from "../blog-queries";
 
 // Use Claude 3.5 Sonnet which is reliable for structured output
 const AI_MODEL = "anthropic/claude-3.5-sonnet";

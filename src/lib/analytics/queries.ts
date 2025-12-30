@@ -4,7 +4,6 @@
  */
 
 import { and, count, countDistinct, desc, eq, gte } from "drizzle-orm";
-
 import { db } from "@/lib/db";
 import { analyticsEvents } from "@/lib/schema";
 import type {

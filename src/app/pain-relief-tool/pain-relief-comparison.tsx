@@ -2,13 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import { X } from 'lucide-react';
-import { painReliefMethods, filterMethods } from '@/data/pain-relief-methods';
-import type { PainReliefFilters, ComparisonState, PainReliefMethod } from '@/types/pain-relief';
+import { ComparisonPanel } from '@/components/pain-relief/comparison-panel';
 import { ReliefMethodFilters } from '@/components/pain-relief/relief-method-filters';
 import { ReliefMethodTable } from '@/components/pain-relief/relief-method-table';
-import { ComparisonPanel } from '@/components/pain-relief/comparison-panel';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { painReliefMethods, filterMethods } from '@/data/pain-relief-methods';
+import type { PainReliefFilters, ComparisonState, PainReliefMethod } from '@/types/pain-relief';
 
 const MAX_COMPARISON_ITEMS = 4;
 

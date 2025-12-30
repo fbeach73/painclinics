@@ -1,13 +1,13 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { useCallback, useEffect } from "react";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import Youtube from "@tiptap/extension-youtube";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
-import { useCallback, useEffect } from "react";
+import Youtube from "@tiptap/extension-youtube";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import { TiptapToolbar } from "./tiptap-toolbar";
 
 interface TiptapEditorProps {

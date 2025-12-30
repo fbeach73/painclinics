@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Building2, Edit, Eye, MapPin, Phone, Star, Image as ImageIcon, Wrench } from "lucide-react";
+import { SubscriptionStatusBadge } from "@/components/owner/subscription-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SubscriptionStatusBadge } from "@/components/owner/subscription-status-badge";
 import { getOwnedClinics, getOwnerClinicStats } from "@/lib/owner-queries";
 import { requireOwner } from "@/lib/session";
 

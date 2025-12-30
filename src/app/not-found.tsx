@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { FileQuestion, Home, Search, BookOpen, MapPin } from "lucide-react";
-
 import { NotFoundLogger } from "@/components/not-found-logger";
 import { Button } from "@/components/ui/button";
 

@@ -1,13 +1,13 @@
 import { AlertTriangle } from "lucide-react";
 import { Metadata } from "next";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FloatingToc } from "@/components/blog/floating-toc";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FloatingToc } from "@/components/blog/floating-toc";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   generateFAQStructuredData,
   generateHowToSchema,

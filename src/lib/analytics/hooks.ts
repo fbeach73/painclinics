@@ -1,7 +1,6 @@
 "use client";
 
 import useSWR from "swr";
-
 import type { AnalyticsData, ClinicAnalytics, DateRange } from "@/types/analytics";
 
 /**

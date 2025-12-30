@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
+import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
-import { sql } from "drizzle-orm";
 
 // Dynamic route - no static generation needed for redirects
 export const dynamic = "force-dynamic";

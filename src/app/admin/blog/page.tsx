@@ -1,5 +1,5 @@
-import { getBlogPostsAdmin, getBlogPostCountsByStatus } from "@/lib/blog/blog-queries";
 import { BlogPostList } from "@/components/admin/blog";
+import { getBlogPostsAdmin, getBlogPostCountsByStatus } from "@/lib/blog/blog-queries";
 
 export const metadata = {
   title: "Blog Posts - Admin",

@@ -2,25 +2,10 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { getPhotoLimit } from "@/lib/constants/photo-limits";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 import { upload, deleteFile } from "@/lib/storage";
-
-/**
- * Photo limits based on subscription tier
- */
-const PHOTO_LIMITS: Record<string, number> = {
-  none: 0,
-  basic: 5,
-  premium: 50, // "unlimited" but with reasonable cap
-};
-
-/**
- * Get the photo limit for a clinic based on its subscription tier
- */
-function getPhotoLimit(featuredTier: string | null): number {
-  return PHOTO_LIMITS[featuredTier || "none"] || 0;
-}
 
 type VerifyResult =
   | { error: string; status: number }

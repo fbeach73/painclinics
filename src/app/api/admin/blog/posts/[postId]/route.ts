@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
-import { getBlogPostById } from "@/lib/blog/blog-queries";
 import {
   updateBlogPost,
   deleteBlogPost,
@@ -9,6 +7,7 @@ import {
   setPostTags,
   isSlugAvailable,
 } from "@/lib/blog/blog-mutations";
+import { getBlogPostById } from "@/lib/blog/blog-queries";
 
 interface RouteParams {
   params: Promise<{ postId: string }>;

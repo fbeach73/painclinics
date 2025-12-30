@@ -8,14 +8,14 @@ import { Search, Menu } from 'lucide-react';
 import { UserProfile } from '@/components/auth/user-profile';
 import { SearchBar } from './search/search-bar';
 import { Button } from './ui/button';
-import { ModeToggle } from './ui/mode-toggle';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from './ui/sheet';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from './ui/dropdown-menu';
+import { ModeToggle } from './ui/mode-toggle';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -26,12 +26,12 @@ import {
   navigationMenuTriggerStyle,
 } from './ui/navigation-menu';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from './ui/dropdown-menu';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from './ui/sheet';
 
 export function SiteHeader() {
   const router = useRouter();

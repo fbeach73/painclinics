@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { ClinicServiceSelector } from "@/components/admin/services/clinic-service-selector";
 import { ServiceEnhanceModal } from "@/components/admin/services/service-enhance-modal";
+import { Button } from "@/components/ui/button";
 import type { Service, ClinicService, SetServiceInput } from "@/types/service";
 
 interface ClinicServicesTabProps {

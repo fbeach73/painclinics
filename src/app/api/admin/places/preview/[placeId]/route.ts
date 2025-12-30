@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { SyncFieldType } from "@/lib/google-places";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
+import type { SyncFieldType } from "@/lib/google-places";
 import { PlacesApiClientError } from "@/lib/google-places";
 import { previewPlaceData, isPlacesApiConfigured } from "@/lib/sync";
 

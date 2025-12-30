@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Text, Section, Hr } from "@react-email/components";
-
 import { EmailCard, EmailCardTitle, EmailDataRow } from "./components/email-card";
 import { EmailLayout } from "./components/email-layout";
 

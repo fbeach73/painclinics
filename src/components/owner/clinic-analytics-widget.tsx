@@ -2,7 +2,6 @@
 
 import { Eye, Users, TrendingUp, RefreshCw } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
-
 import { Badge } from "@/components/ui/badge";
 import {
   Card,

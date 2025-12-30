@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { MethodDetailCard } from './method-detail-card';
 import type { PainReliefMethod } from '@/types/pain-relief';
+import { MethodDetailCard } from './method-detail-card';
 
 interface ComparisonPanelProps {
   methods: PainReliefMethod[];

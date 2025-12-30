@@ -1,7 +1,6 @@
-import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
-
 import { db } from "@/lib/db";
 import { resourceDownloads } from "@/lib/schema";
 

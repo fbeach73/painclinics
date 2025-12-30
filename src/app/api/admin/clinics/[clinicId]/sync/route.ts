@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { SyncFieldType } from "@/lib/google-places";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { getClinicById } from "@/lib/clinic-queries";
+import type { SyncFieldType } from "@/lib/google-places";
 import { syncClinic, getSyncStatus, isPlacesApiConfigured } from "@/lib/sync";
 
 interface RouteParams {

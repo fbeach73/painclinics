@@ -2,12 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Check, ChevronsUpDown, Users, Loader2 } from "lucide-react";
-
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -16,13 +13,15 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { TargetAudience, TargetFilters } from "@/lib/broadcast/broadcast-queries";
+import { cn } from "@/lib/utils";
 
 // US States list
 const US_STATES = [

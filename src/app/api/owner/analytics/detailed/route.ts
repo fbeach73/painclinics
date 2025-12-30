@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-
 import { getOwnerClinicAnalytics } from "@/lib/analytics/owner-analytics";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";

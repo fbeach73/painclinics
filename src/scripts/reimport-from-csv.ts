@@ -10,8 +10,6 @@ dotenv.config({ path: ".env.local" });
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "csv-parse/sync";
-import { db } from "@/lib/db";
-import { clinics } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import {
   type RawClinicCSVRow,
@@ -26,6 +24,8 @@ import {
   parseQuestions,
   getFirstImageUrl,
 } from "@/lib/clinic-transformer";
+import { db } from "@/lib/db";
+import { clinics } from "@/lib/schema";
 
 const CSV_DIR = path.join(
   process.cwd(),

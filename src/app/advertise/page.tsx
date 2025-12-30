@@ -1,9 +1,7 @@
 import { Award, CheckCircle2, Target, TrendingUp, Users } from "lucide-react";
 import { Metadata } from "next";
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { AdvertiseForm } from "./advertise-form";
 
 export const metadata: Metadata = {

@@ -1,6 +1,6 @@
-import type { ClinicHour, FeaturedReview } from "./clinic-transformer";
 import { stripHtmlTags } from "./html-utils";
 import { parseTimeRange } from "./time-utils";
+import type { ClinicHour, FeaturedReview } from "./clinic-transformer";
 import type { clinics } from "./schema";
 
 type DbClinic = typeof clinics.$inferSelect;

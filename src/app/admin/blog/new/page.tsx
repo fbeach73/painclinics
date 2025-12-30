@@ -1,5 +1,5 @@
-import { getAllCategories, getAllTags } from "@/lib/blog/blog-queries";
 import { BlogPostForm } from "@/components/admin/blog";
+import { getAllCategories, getAllTags } from "@/lib/blog/blog-queries";
 
 export const metadata = {
   title: "New Post - Admin",

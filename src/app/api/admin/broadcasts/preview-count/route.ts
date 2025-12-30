@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
-import { previewRecipientCount } from "@/lib/broadcast/broadcast-service";
 import type { TargetAudience, TargetFilters } from "@/lib/broadcast/broadcast-queries";
+import { previewRecipientCount } from "@/lib/broadcast/broadcast-service";
 
 /**
  * GET /api/admin/broadcasts/preview-count

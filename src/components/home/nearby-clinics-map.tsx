@@ -2,9 +2,9 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ClinicMap } from '@/components/map/clinic-map';
 import { GeolocationPrompt } from '@/components/map/geolocation-prompt';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { useNearbyClinics } from '@/hooks/use-nearby-clinics';
 

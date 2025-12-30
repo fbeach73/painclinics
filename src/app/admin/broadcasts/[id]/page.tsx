@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   Mail,
@@ -8,11 +8,11 @@ import {
   Clock,
   User,
 } from "lucide-react";
+import { BroadcastStats, BroadcastPreviewCard, BroadcastRecipientList, BroadcastStatusBadge } from "@/components/admin/broadcasts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getBroadcast } from "@/lib/broadcast/broadcast-queries";
-import { BroadcastStats, BroadcastPreviewCard, BroadcastRecipientList, BroadcastStatusBadge } from "@/components/admin/broadcasts";
 import { BroadcastDetailActions } from "./broadcast-detail-actions";
 
 interface PageProps {

@@ -9,9 +9,9 @@
  * Run with: POSTGRES_URL="..." pnpm tsx src/scripts/cleanup-service-data.ts
  */
 
+import { sql, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { services, clinics } from "@/lib/schema";
-import { sql, eq } from "drizzle-orm";
 
 // Icon name normalization map (lowercase/kebab-case -> PascalCase)
 const ICON_NAME_MAP: Record<string, string> = {

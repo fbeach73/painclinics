@@ -13,8 +13,8 @@ import {
   getFeaturedImageFromPost,
   getAuthorFromPost,
 } from "@/lib/blog/wordpress-api";
-import { stripHtmlTags } from "@/lib/html-utils";
 import { db } from "@/lib/db";
+import { stripHtmlTags } from "@/lib/html-utils";
 import * as schema from "@/lib/schema";
 
 /**

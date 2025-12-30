@@ -6,8 +6,8 @@ import {
   getRelatedPosts,
 } from "@/lib/blog/blog-queries";
 import { extractFAQsFromContent } from "@/lib/blog/seo/faq-extractor";
-import { generateFAQStructuredData, generateBlogBreadcrumbSchema } from "@/lib/structured-data";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
+import { generateFAQStructuredData, generateBlogBreadcrumbSchema } from "@/lib/structured-data";
 import type { Metadata } from "next";
 
 interface BlogPostPageProps {

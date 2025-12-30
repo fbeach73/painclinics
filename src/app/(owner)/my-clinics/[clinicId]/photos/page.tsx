@@ -1,20 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { PHOTO_LIMITS } from "@/lib/constants/photo-limits";
 import { requireClinicOwnership } from "@/lib/session";
 import { PhotosClient } from "./photos-client";
-
-/**
- * Photo limits based on subscription tier
- */
-const PHOTO_LIMITS: Record<string, number> = {
-  none: 0,
-  basic: 5,
-  premium: 50,
-};
 
 export default async function PhotosManagementPage({
   params,

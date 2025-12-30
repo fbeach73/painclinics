@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Clock, ArrowLeft, User } from "lucide-react";
+import { OptimizedHtmlContent } from "@/components/blog/optimized-html-content";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { OptimizedHtmlContent } from "@/components/blog/optimized-html-content";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
 
 interface BlogPostContentProps {

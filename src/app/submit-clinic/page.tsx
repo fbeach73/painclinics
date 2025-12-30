@@ -1,9 +1,7 @@
 import { CheckCircle2, ClipboardList, Clock, Mail } from "lucide-react";
 import { Metadata } from "next";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { SubmitClinicForm } from "./submit-clinic-form";
 
 export const metadata: Metadata = {

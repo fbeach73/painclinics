@@ -4,9 +4,9 @@
  */
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
+import { sql, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
-import { sql, eq } from "drizzle-orm";
 
 async function main() {
   // Find clinics with the wrong permalink format (contains /unknown/)

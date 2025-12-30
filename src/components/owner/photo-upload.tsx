@@ -3,8 +3,6 @@
 import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Upload, X, Loader2, AlertCircle, ImagePlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 interface PhotoUploadProps {

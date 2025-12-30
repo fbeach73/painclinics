@@ -15,8 +15,8 @@
  *   --limit=N    Process only N clinics (for testing)
  */
 
-import { config } from "dotenv";
 import { put } from "@vercel/blob";
+import { config } from "dotenv";
 import postgres from "postgres";
 
 // Load environment variables from .env.local file

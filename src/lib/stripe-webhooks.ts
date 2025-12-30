@@ -1,4 +1,3 @@
-import type Stripe from "stripe"
 import { eq } from "drizzle-orm"
 import { db } from "./db"
 import {
@@ -10,6 +9,7 @@ import {
   sendSubscriptionThankYouEmail,
 } from "./email"
 import * as schema from "./schema"
+import type Stripe from "stripe"
 
 // ============================================
 // Webhook Idempotency Functions

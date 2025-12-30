@@ -8,14 +8,14 @@ dotenv.config({ path: ".env.local" });
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "csv-parse/sync";
-import { db } from "@/lib/db";
-import { clinics } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import {
   type RawClinicCSVRow,
   transformClinicRow,
   transformClinicRows,
 } from "@/lib/clinic-transformer";
+import { db } from "@/lib/db";
+import { clinics } from "@/lib/schema";
 
 const CSV_PATH = path.join(process.cwd(), "public/updatedcClinics.csv");
 

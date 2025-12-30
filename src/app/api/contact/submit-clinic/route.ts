@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
 import { sendSubmitClinicEmail } from "@/lib/email";
 import { verifyTurnstile } from "@/lib/turnstile";
 

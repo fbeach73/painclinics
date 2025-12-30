@@ -15,9 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { generateSlug } from "@/lib/slug";
 import { SERVICE_CATEGORIES, type Service, type ServiceCategory } from "@/types/service";
 import { ServiceIconPicker } from "./service-icon-picker";
-import { generateSlug } from "@/lib/slug";
 
 interface ServiceFormData {
   name: string;

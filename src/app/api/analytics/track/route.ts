@@ -1,11 +1,10 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-
-import { db } from "@/lib/db";
-import { analyticsEvents } from "@/lib/schema";
 import { isBot, isRateLimited } from "@/lib/analytics/bot-filter";
 import { categorizeReferrer } from "@/lib/analytics/referrer-utils";
 import { generateSessionHash, getEventDate } from "@/lib/analytics/session-hash";
+import { db } from "@/lib/db";
+import { analyticsEvents } from "@/lib/schema";
 
 interface TrackRequest {
   eventType: "pageview" | "clinic_view";

@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
@@ -9,12 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { EffectivenessStars } from './effectiveness-stars';
-import { CostIndicator } from './cost-indicator';
 import { reliefCategories } from '@/data/pain-relief-methods';
-import type { PainReliefMethod } from '@/types/pain-relief';
 import { cn } from '@/lib/utils';
+import type { PainReliefMethod } from '@/types/pain-relief';
+import { CostIndicator } from './cost-indicator';
+import { EffectivenessStars } from './effectiveness-stars';
 
 interface ReliefMethodTableProps {
   methods: PainReliefMethod[];

@@ -1,14 +1,14 @@
 'use client';
 
 import { X, Clock, Timer, AlertTriangle, CheckCircle, ImageIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { EffectivenessStars } from './effectiveness-stars';
-import { CostIndicator } from './cost-indicator';
 import { reliefCategories } from '@/data/pain-relief-methods';
 import type { PainReliefMethod } from '@/types/pain-relief';
+import { CostIndicator } from './cost-indicator';
+import { EffectivenessStars } from './effectiveness-stars';
 
 interface MethodDetailCardProps {
   method: PainReliefMethod;

@@ -2,6 +2,7 @@
  * Database queries for sync-related tables
  */
 
+import { eq, and, lte, isNull, isNotNull, or, desc, inArray, gte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   syncSchedules,
@@ -9,7 +10,6 @@ import {
   clinicSyncStatus,
   clinics,
 } from "@/lib/schema";
-import { eq, and, lte, isNull, isNotNull, or, desc, inArray, gte } from "drizzle-orm";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 // ============================================

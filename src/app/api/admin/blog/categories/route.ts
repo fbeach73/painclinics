@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
-import { getAllCategories } from "@/lib/blog/blog-queries";
 import {
   createCategory,
   deleteCategory,
   isCategorySlugAvailable,
 } from "@/lib/blog/blog-mutations";
+import { getAllCategories } from "@/lib/blog/blog-queries";
 
 /**
  * GET /api/admin/blog/categories

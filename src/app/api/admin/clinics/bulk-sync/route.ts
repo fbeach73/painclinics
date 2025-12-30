@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
+import { type SyncFieldType } from "@/lib/google-places";
 import {
   syncBulk,
   createSyncLog,
   updateSyncLog,
   isPlacesApiConfigured,
 } from "@/lib/sync";
-import { type SyncFieldType } from "@/lib/google-places";
 
 /**
  * POST /api/admin/clinics/bulk-sync
