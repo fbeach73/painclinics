@@ -12,10 +12,10 @@ Notify admin of new subscriptions with clinic slug for Adsense management, and i
 
 ### Tasks
 
-- [ ] Create admin notification email template
-- [ ] Add admin email sending function to email.ts
-- [ ] Update stripe-webhooks.ts to send admin notification
-- [ ] Update user welcome email CTA text
+- [x] Create admin notification email template
+- [x] Add admin email sending function to email.ts
+- [x] Update stripe-webhooks.ts to send admin notification
+- [x] Update user welcome email CTA text
 
 ### Technical Details
 
@@ -58,9 +58,9 @@ Replace "Get Featured" button with subscription status for subscribed clinics.
 
 ### Tasks
 
-- [ ] Update getOwnedClinics query to include subscription data
-- [ ] Create SubscriptionStatusBadge component
-- [ ] Update my-clinics page to show status badge for featured clinics
+- [x] Update getOwnedClinics query to include subscription data
+- [x] Create SubscriptionStatusBadge component
+- [x] Update my-clinics page to show status badge for featured clinics
 
 ### Technical Details
 
@@ -105,9 +105,9 @@ Add featured badges and highlighting to clinic cards in state/city directory pag
 
 ### Tasks
 
-- [ ] Create reusable FeaturedBadge component
-- [ ] Update state-page.tsx to show badges and highlighting
-- [ ] Update city-page.tsx to show badges and highlighting
+- [x] Create reusable FeaturedBadge component
+- [x] Update state-page.tsx to show badges and highlighting
+- [x] Update city-page.tsx to show badges and highlighting
 
 ### Technical Details
 
@@ -156,8 +156,8 @@ Verify featured tier data flows correctly to map markers. Markers already suppor
 
 ### Tasks
 
-- [ ] Verify ClinicMap passes featuredTier to markers
-- [ ] Test map markers show correct styling for all tiers
+- [x] Verify ClinicMap passes featuredTier to markers
+- [x] Test map markers show correct styling for all tiers
 
 ### Technical Details
 
@@ -189,10 +189,10 @@ Create analytics dashboard for Premium subscribers showing page views and traffi
 
 ### Tasks
 
-- [ ] Create owner analytics query functions
-- [ ] Create analytics dashboard page
-- [ ] Add analytics link to clinic management page
-- [ ] Implement access control (Premium only)
+- [x] Create owner analytics query functions
+- [x] Create analytics dashboard page
+- [x] Add analytics link to clinic management page
+- [x] Implement access control (Premium only)
 
 ### Technical Details
 
@@ -272,10 +272,10 @@ Implement photo upload functionality with tier-based limits.
 
 ### Tasks
 
-- [ ] Create photo upload API endpoint
-- [ ] Create photo upload component with drag & drop
-- [ ] Update photos page with real upload functionality
-- [ ] Implement tier-based limits (Basic: 5, Premium: unlimited)
+- [x] Create photo upload API endpoint
+- [x] Create photo upload component with drag & drop
+- [x] Update photos page with real upload functionality
+- [x] Implement tier-based limits (Basic: 5, Premium: 50)
 
 ### Technical Details
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ClinicMap } from '@/components/map/clinic-map';
 import { GeolocationPrompt } from '@/components/map/geolocation-prompt';
 import { useGeolocation } from '@/hooks/use-geolocation';
@@ -13,10 +14,11 @@ export function NearbyClinicsMap() {
     useGeolocation();
   const [promptDismissed, setPromptDismissed] = useState(false);
 
-  const { clinics, isLoading: isLoadingClinics } = useNearbyClinics(location, 50);
+  const { clinics, isLoading: isLoadingClinics, error: clinicsError } = useNearbyClinics(location, 50);
 
   const showPrompt = !promptDismissed && (location.isDefault || permissionState === 'prompt');
   const isLoading = isLoadingLocation || isLoadingClinics;
+  const hasError = error || clinicsError;
 
   const scrollToMap = useCallback(() => {
     // Small delay to allow the map to start updating before scrolling
@@ -51,6 +53,16 @@ export function NearbyClinicsMap() {
           userLocation={location}
           className="h-full w-full"
         />
+      )}
+      {hasError && !showPrompt && (
+        <div className="absolute top-4 left-4 right-4 z-10 max-w-md">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {clinicsError || error || 'Unable to load nearby clinics. Please try again.'}
+            </AlertDescription>
+          </Alert>
+        </div>
       )}
       {showPrompt && (
         <GeolocationPrompt

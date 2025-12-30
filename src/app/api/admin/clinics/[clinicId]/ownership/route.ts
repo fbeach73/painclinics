@@ -26,7 +26,8 @@ export async function DELETE(
       );
     }
 
-    console.log(
+    // Audit log for ownership removal
+    console.warn(
       `[Admin] Ownership removed from clinic ${clinicId} by admin ${adminCheck.user.id}`
     );
 

@@ -33,7 +33,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json().catch(() => ({}));
     const { adminNotes } = body;
 
-    console.log("[API] Claim approval initiated", {
+    // Audit log for claim approval
+    console.warn("[API] Claim approval initiated", {
       claimId,
       adminId: adminCheck.user.id,
       hasAdminNotes: !!adminNotes,
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       adminNotes
     );
 
-    console.log("[API] Claim approval completed", {
+    console.warn("[API] Claim approval completed", {
       claimId,
       clinicId: result.clinicId,
       userId: result.userId,

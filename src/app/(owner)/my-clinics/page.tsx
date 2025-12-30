@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Building2, Edit, Eye, MapPin, Phone, Star, Image, Wrench } from "lucide-react";
+import { Building2, Edit, Eye, MapPin, Phone, Star, Image as ImageIcon, Wrench } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SubscriptionStatusBadge } from "@/components/owner/subscription-status-badge";
 import { getOwnedClinics, getOwnerClinicStats } from "@/lib/owner-queries";
 import { requireOwner } from "@/lib/session";
 
@@ -150,7 +151,7 @@ export default async function MyClinicsPage() {
                   </Button>
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/my-clinics/${clinic.id}/photos`}>
-                      <Image className="h-4 w-4 mr-1" />
+                      <ImageIcon className="h-4 w-4 mr-1" aria-hidden="true" />
                       Photos
                     </Link>
                   </Button>
@@ -160,14 +161,11 @@ export default async function MyClinicsPage() {
                       Services
                     </Link>
                   </Button>
-                  {clinic.isFeatured && clinic.featuredTier && clinic.featuredTier !== "none" ? (
-                    <Link
-                      href={`/my-clinics/${clinic.id}/featured`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-opacity hover:opacity-80 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-                    >
-                      <Star className="h-3 w-3" />
-                      {clinic.featuredTier === "premium" ? "Premium" : "Basic"}
-                    </Link>
+                  {clinic.featuredSubscription?.status === "active" && clinic.featuredSubscription.tier ? (
+                    <SubscriptionStatusBadge
+                      tier={clinic.featuredSubscription.tier as "basic" | "premium"}
+                      clinicId={clinic.id}
+                    />
                   ) : (
                     <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50" asChild>
                       <Link href={`/my-clinics/${clinic.id}/featured`}>

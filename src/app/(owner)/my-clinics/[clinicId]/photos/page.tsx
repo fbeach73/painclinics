@@ -1,11 +1,20 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ImagePlus } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { requireClinicOwnership } from "@/lib/session";
+import { PhotosClient } from "./photos-client";
+
+/**
+ * Photo limits based on subscription tier
+ */
+const PHOTO_LIMITS: Record<string, number> = {
+  none: 0,
+  basic: 5,
+  premium: 50,
+};
 
 export default async function PhotosManagementPage({
   params,
@@ -19,16 +28,12 @@ export default async function PhotosManagementPage({
     notFound();
   }
 
-  // Get all images from the clinic
-  const images: string[] = [
-    ...(clinic.featImage ? [clinic.featImage] : []),
-    ...(clinic.imageUrl ? [clinic.imageUrl] : []),
-    ...(clinic.imageFeatured ? [clinic.imageFeatured] : []),
-    ...(clinic.clinicImageUrls || []),
-  ].filter(Boolean);
+  // Get current photos (only from clinicImageUrls - these are owner-managed)
+  const currentPhotos = clinic.clinicImageUrls || [];
 
-  // Remove duplicates
-  const uniqueImages = [...new Set(images)];
+  // Determine tier and limit
+  const tier = (clinic.featuredTier || "none") as "none" | "basic" | "premium";
+  const photoLimit = PHOTO_LIMITS[tier] || 0;
 
   return (
     <div className="space-y-6">
@@ -38,59 +43,45 @@ export default async function PhotosManagementPage({
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Photos</h1>
           <p className="text-muted-foreground">
             Manage your clinic&apos;s photo gallery
           </p>
         </div>
+        {tier !== "none" && (
+          <Badge
+            variant="secondary"
+            className={tier === "premium"
+              ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+            }
+          >
+            {currentPhotos.length} / {photoLimit} photos
+          </Badge>
+        )}
       </div>
-
-      <Alert>
-        <ImagePlus className="h-4 w-4" />
-        <AlertTitle>Photo Management Coming Soon</AlertTitle>
-        <AlertDescription>
-          The ability to upload and manage photos will be available in a future update.
-          Currently showing existing photos imported from your listing.
-        </AlertDescription>
-      </Alert>
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Photos</CardTitle>
+          <CardTitle>Photo Gallery</CardTitle>
           <CardDescription>
-            {uniqueImages.length} photo{uniqueImages.length !== 1 ? "s" : ""} in your gallery
+            {tier === "none" ? (
+              "Get a Featured subscription to upload photos"
+            ) : tier === "basic" ? (
+              `Upload up to ${photoLimit} photos with Basic. Upgrade to Premium for up to 50.`
+            ) : (
+              `Upload up to ${photoLimit} photos to showcase your clinic`
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {uniqueImages.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <ImagePlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No photos available for this clinic yet.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {uniqueImages.map((imageUrl, index) => (
-                <div
-                  key={index}
-                  className="relative aspect-square rounded-lg overflow-hidden border bg-muted"
-                >
-                  <Image
-                    src={imageUrl}
-                    alt={`${clinic.title} photo ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  />
-                  {index === 0 && (
-                    <div className="absolute top-2 left-2 px-2 py-1 bg-primary text-primary-foreground text-xs rounded">
-                      Featured
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <PhotosClient
+            clinicId={clinicId}
+            initialPhotos={currentPhotos}
+            maxPhotos={photoLimit}
+            tier={tier}
+          />
         </CardContent>
       </Card>
     </div>

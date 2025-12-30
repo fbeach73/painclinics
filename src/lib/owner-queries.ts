@@ -36,6 +36,7 @@ export async function getOwnedClinics(userId: string) {
           service: true,
         },
       },
+      featuredSubscription: true,
     },
   });
 

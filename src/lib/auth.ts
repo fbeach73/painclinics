@@ -53,7 +53,7 @@ const stripePlugin =
           // Check idempotency - skip if already processed
           const alreadyProcessed = await checkWebhookIdempotency(event.id)
           if (alreadyProcessed) {
-            console.log(`[Stripe Webhook] Event ${event.id} already processed, skipping`)
+            console.warn(`[Stripe Webhook] Event ${event.id} already processed, skipping`)
             return // Don't record again, it's already in the database
           }
 
@@ -78,7 +78,7 @@ const stripePlugin =
             await recordWebhookSuccess(event.id, event.type, isHandled ? "processed" : "received")
 
             if (!isHandled) {
-              console.log(`[Stripe Webhook] Event ${event.id} (${event.type}) received but not specifically handled`)
+              console.warn(`[Stripe Webhook] Event ${event.id} (${event.type}) received but not specifically handled`)
             }
           } catch (error) {
             // Record failure with detailed error information

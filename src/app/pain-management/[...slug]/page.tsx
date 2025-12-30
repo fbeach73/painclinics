@@ -512,6 +512,8 @@ export default async function PainManagementClinicPage({ params }: Props) {
         streetAddress: clinic.streetAddress,
         postalCode: clinic.postalCode,
         clinicHours: clinic.clinicHours,
+        isFeatured: clinic.isFeatured,
+        featuredTier: clinic.featuredTier,
       }));
 
       return (

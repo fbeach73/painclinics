@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     const event = eventData.event as string;
 
     if (!messageId) {
-      console.log("Webhook received without message ID:", event);
+      console.warn("Webhook received without message ID:", event);
       return NextResponse.json({ received: true });
     }
 
@@ -168,14 +168,14 @@ async function processEvent(
       return;
 
     default:
-      console.log("Unhandled Mailgun event:", event);
+      console.warn("Unhandled Mailgun event:", event);
       return;
   }
 
   if (Object.keys(updates).length > 0) {
     try {
       await updateEmailLogByMessageId(messageId, updates);
-      console.log(`Email log updated for ${messageId}: ${event}`);
+      console.warn(`Email log updated for ${messageId}: ${event}`);
     } catch (error) {
       console.error(`Failed to update email log for ${messageId}:`, error);
     }

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2, ChevronRight } from "lucide-react";
+import { FeaturedBadge, type FeaturedTier } from "@/components/clinic/featured-badge";
 import { SearchFeaturedSection } from "@/components/featured";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,8 @@ interface ClinicSummary {
   streetAddress: string | null;
   postalCode: string;
   clinicHours: unknown; // JSONB from database
+  isFeatured: boolean | null;
+  featuredTier: string | null;
 }
 
 /**
@@ -191,20 +194,32 @@ export function CityPainManagementPageContent({
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {clinics.map((clinic) => (
+              {clinics.map((clinic) => {
+                const featuredTier = (clinic.isFeatured && clinic.featuredTier)
+                  ? (clinic.featuredTier as FeaturedTier)
+                  : 'none';
+
+                return (
                 <Link
                   key={clinic.id}
                   href={`/${clinic.permalink}/`}
-                  className="block p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className={cn(
+                    "block p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors",
+                    featuredTier === 'premium' && "border-amber-300 bg-amber-50/30 dark:border-amber-700/50 dark:bg-amber-950/20 ring-1 ring-amber-200/50 dark:ring-amber-800/30",
+                    featuredTier === 'basic' && "border-yellow-200 bg-yellow-50/20 dark:border-yellow-800/50 dark:bg-yellow-950/10"
+                  )}
                   itemScope
                   itemType="https://schema.org/MedicalBusiness"
                 >
-                  <h3
-                    className="font-medium line-clamp-2 mb-2"
-                    itemProp="name"
-                  >
-                    {clinic.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3
+                      className="font-medium line-clamp-2"
+                      itemProp="name"
+                    >
+                      {clinic.title}
+                    </h3>
+                    <FeaturedBadge tier={featuredTier} size="sm" className="flex-shrink-0" />
+                  </div>
                   {/* Open/Closed Status */}
                   <OpenClosedStatus clinicHours={clinic.clinicHours} />
                   {clinic.rating && clinic.rating > 0 && (
@@ -258,7 +273,8 @@ export function CityPainManagementPageContent({
                     content={`${typeof window !== "undefined" ? window.location.origin : ""}/${clinic.permalink}/`}
                   />
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

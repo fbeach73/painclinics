@@ -293,6 +293,7 @@ export function ClinicMap({
             <ClinicMarker
               isSelected={selectedClinic?.id === clinic.id}
               isFeatured={clinic.isFeatured}
+              featuredTier={clinic.featuredTier || 'none'}
               onClick={() => handleMarkerClick(clinic)}
             />
           </Marker>
