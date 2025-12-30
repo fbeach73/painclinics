@@ -5,8 +5,80 @@ import {
   sendFeaturedConfirmedEmail,
   sendFeaturedRenewalEmail,
   sendSubscriptionCanceledEmail,
+  sendPaymentFailedEmail,
+  sendSubscriptionAdminNotificationEmail,
+  sendSubscriptionThankYouEmail,
 } from "./email"
 import * as schema from "./schema"
+
+// ============================================
+// Webhook Idempotency Functions
+// ============================================
+
+/**
+ * Check if a webhook event has already been processed
+ * Returns true if event was already processed (should skip)
+ */
+export async function checkWebhookIdempotency(
+  eventId: string
+): Promise<boolean> {
+  const existingEvent = await db.query.webhookEvents.findFirst({
+    where: eq(schema.webhookEvents.stripeEventId, eventId),
+  })
+  return !!existingEvent
+}
+
+/**
+ * Record a successfully processed webhook event
+ * @param status - "processed" for handled events, "received" for unhandled events
+ */
+export async function recordWebhookSuccess(
+  eventId: string,
+  eventType: string,
+  status: "processed" | "received" = "processed"
+): Promise<void> {
+  await db.insert(schema.webhookEvents).values({
+    stripeEventId: eventId,
+    eventType,
+    status,
+  })
+}
+
+/**
+ * Record a failed webhook event processing
+ */
+export async function recordWebhookFailure(
+  eventId: string,
+  eventType: string,
+  errorMessage: string
+): Promise<void> {
+  await db.insert(schema.webhookEvents).values({
+    stripeEventId: eventId,
+    eventType,
+    status: "failed",
+    errorMessage,
+  })
+}
+
+/**
+ * Record a skipped webhook event (already processed)
+ */
+export async function recordWebhookSkipped(
+  eventId: string,
+  eventType: string
+): Promise<void> {
+  // Only record if not already in the database (avoid duplicates)
+  const existing = await db.query.webhookEvents.findFirst({
+    where: eq(schema.webhookEvents.stripeEventId, eventId),
+  })
+  if (!existing) {
+    await db.insert(schema.webhookEvents).values({
+      stripeEventId: eventId,
+      eventType,
+      status: "skipped",
+    })
+  }
+}
 
 // Helper functions for determining subscription tier and billing cycle
 function determineTier(planName: string): "basic" | "premium" {
@@ -169,6 +241,30 @@ export async function handleSubscriptionComplete(params: {
         await sendFeaturedConfirmedEmail(user.email, clinic.title, tier, {
           userId,
           clinicId,
+          unsubscribeToken: user.unsubscribeToken ?? undefined,
+        })
+
+        // Extract slug from permalink (remove "pain-management/" prefix if present)
+        const clinicSlug = clinic.permalink.replace(/^pain-management\//, "")
+
+        // Send admin notification email
+        await sendSubscriptionAdminNotificationEmail(
+          clinic.title,
+          clinicSlug,
+          tier,
+          billingCycle,
+          user.email,
+          {
+            clinicId,
+            subscriptionId: stripeSubscriptionId,
+          }
+        )
+
+        // Send user thank you email
+        await sendSubscriptionThankYouEmail(user.email, clinic.title, tier, {
+          userId,
+          clinicId,
+          subscriptionId: stripeSubscriptionId,
           unsubscribeToken: user.unsubscribeToken ?? undefined,
         })
       }
@@ -386,6 +482,163 @@ export async function handleInvoicePaid(event: Stripe.Event): Promise<void> {
     )
   } catch (error) {
     console.error("[Stripe Webhook] Error handling invoice paid:", error)
+    throw error
+  }
+}
+
+/**
+ * Handle invoice.payment_failed event from Stripe
+ * Called when a recurring payment fails
+ */
+export async function handleInvoicePaymentFailed(
+  event: Stripe.Event
+): Promise<void> {
+  const invoice = event.data.object as Stripe.Invoice
+
+  // Get subscription ID from invoice
+  const subscriptionDetails = invoice.parent?.subscription_details
+  if (!subscriptionDetails?.subscription) {
+    return
+  }
+
+  const stripeSubscriptionId =
+    typeof subscriptionDetails.subscription === "string"
+      ? subscriptionDetails.subscription
+      : subscriptionDetails.subscription.id
+
+  try {
+    // Find the subscription by Stripe subscription ID
+    const subscription = await db.query.featuredSubscriptions.findFirst({
+      where: eq(
+        schema.featuredSubscriptions.stripeSubscriptionId,
+        stripeSubscriptionId
+      ),
+    })
+
+    if (!subscription) {
+      console.error(
+        "[Stripe Webhook] Subscription not found for failed payment:",
+        stripeSubscriptionId
+      )
+      return
+    }
+
+    // Update subscription status to past_due
+    await db
+      .update(schema.featuredSubscriptions)
+      .set({
+        status: "past_due",
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.featuredSubscriptions.id, subscription.id))
+
+    // Send payment failed email
+    if (subscription.userId) {
+      const user = await db.query.user.findFirst({
+        where: eq(schema.user.id, subscription.userId),
+      })
+
+      const clinic = await db.query.clinics.findFirst({
+        where: eq(schema.clinics.id, subscription.clinicId),
+      })
+
+      if (user?.email && clinic) {
+        await sendPaymentFailedEmail(user.email, clinic.title, {
+          userId: subscription.userId,
+          clinicId: subscription.clinicId,
+          subscriptionId: subscription.id,
+          unsubscribeToken: user.unsubscribeToken ?? undefined,
+        })
+      }
+    }
+
+    console.log(
+      `[Stripe Webhook] Payment failed for clinic ${subscription.clinicId}, status set to past_due`
+    )
+  } catch (error) {
+    console.error(
+      "[Stripe Webhook] Error handling invoice payment failed:",
+      error
+    )
+    throw error
+  }
+}
+
+/**
+ * Handle customer.subscription.updated event from Stripe
+ * Called when a subscription status changes (e.g., to past_due, unpaid, etc.)
+ */
+export async function handleSubscriptionUpdated(
+  event: Stripe.Event
+): Promise<void> {
+  const stripeSubscription = event.data.object as Stripe.Subscription
+  const stripeSubscriptionId = stripeSubscription.id
+  const stripeStatus = stripeSubscription.status
+
+  try {
+    // Find the subscription by Stripe subscription ID
+    const subscription = await db.query.featuredSubscriptions.findFirst({
+      where: eq(
+        schema.featuredSubscriptions.stripeSubscriptionId,
+        stripeSubscriptionId
+      ),
+    })
+
+    if (!subscription) {
+      // Subscription not in our system - likely handled elsewhere or not a featured subscription
+      return
+    }
+
+    // Map Stripe status to our status
+    let newStatus: "active" | "canceled" | "past_due" | "expired" =
+      subscription.status as "active" | "canceled" | "past_due" | "expired"
+
+    switch (stripeStatus) {
+      case "active":
+      case "trialing":
+        newStatus = "active"
+        break
+      case "past_due":
+      case "unpaid":
+        newStatus = "past_due"
+        break
+      case "canceled":
+      case "incomplete_expired":
+        newStatus = "canceled"
+        break
+    }
+
+    // Only update if status changed
+    if (newStatus !== subscription.status) {
+      await db
+        .update(schema.featuredSubscriptions)
+        .set({
+          status: newStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.featuredSubscriptions.id, subscription.id))
+
+      // If subscription became inactive, update clinic featured status
+      if (newStatus === "canceled" || newStatus === "expired") {
+        await db
+          .update(schema.clinics)
+          .set({
+            isFeatured: false,
+            featuredTier: "none",
+            featuredUntil: null,
+          })
+          .where(eq(schema.clinics.id, subscription.clinicId))
+      }
+
+      console.log(
+        `[Stripe Webhook] Subscription ${stripeSubscriptionId} status updated to ${newStatus}`
+      )
+    }
+  } catch (error) {
+    console.error(
+      "[Stripe Webhook] Error handling subscription updated:",
+      error
+    )
     throw error
   }
 }

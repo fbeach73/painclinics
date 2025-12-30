@@ -80,6 +80,25 @@ export const syncStatusEnum = pgEnum("sync_status", [
   "cancelled",
 ]);
 
+// ============================================
+// Email Broadcast Enums
+// ============================================
+
+export const broadcastStatusEnum = pgEnum("broadcast_status", [
+  "draft",
+  "sending",
+  "completed",
+  "failed",
+]);
+
+export const targetAudienceEnum = pgEnum("target_audience", [
+  "all_with_email",
+  "featured_only",
+  "by_state",
+  "by_tier",
+  "custom",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -498,6 +517,45 @@ export const emailLogs = pgTable(
 );
 
 // ============================================
+// Email Broadcasts Table
+// ============================================
+
+export const emailBroadcasts = pgTable(
+  "email_broadcasts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    subject: text("subject").notNull(),
+    previewText: text("preview_text"),
+    htmlContent: text("html_content").notNull(),
+    targetAudience: targetAudienceEnum("target_audience").default("all_with_email"),
+    targetFilters: jsonb("target_filters"), // { states?: string[], tiers?: string[], excludeUnsubscribed?: boolean }
+    attachments: jsonb("attachments"), // [{ url: string, filename: string, size: number }]
+    status: broadcastStatusEnum("status").default("draft"),
+    recipientCount: integer("recipient_count").default(0),
+    sentCount: integer("sent_count").default(0),
+    failedCount: integer("failed_count").default(0),
+    openedCount: integer("opened_count").default(0),
+    clickedCount: integer("clicked_count").default(0),
+    scheduledAt: timestamp("scheduled_at"),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    createdBy: text("created_by").references(() => user.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("broadcast_status_idx").on(table.status),
+    index("broadcast_created_at_idx").on(table.createdAt),
+  ]
+);
+
+// ============================================
 // Blog Tables
 // ============================================
 
@@ -658,6 +716,7 @@ export const userRelations = relations(user, ({ many }) => ({
   claims: many(clinicClaims),
   subscriptions: many(featuredSubscriptions),
   emailLogs: many(emailLogs),
+  broadcasts: many(emailBroadcasts),
 }));
 
 export const clinicsRelations = relations(clinics, ({ one, many }) => ({
@@ -718,6 +777,13 @@ export const clinicServicesRelations = relations(clinicServices, ({ one }) => ({
 export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
   user: one(user, {
     fields: [emailLogs.userId],
+    references: [user.id],
+  }),
+}));
+
+export const emailBroadcastsRelations = relations(emailBroadcasts, ({ one }) => ({
+  creator: one(user, {
+    fields: [emailBroadcasts.createdBy],
     references: [user.id],
   }),
 }));
@@ -972,3 +1038,28 @@ export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => 
     references: [clinics.id],
   }),
 }));
+
+// ============================================
+// Webhook Events Table (Idempotency)
+// ============================================
+
+export const webhookEvents = pgTable(
+  "webhook_events",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    stripeEventId: text("stripe_event_id").unique().notNull(),
+    eventType: text("event_type").notNull(),
+    status: text("status").notNull(), // "processed" | "received" | "failed" | "skipped"
+    processedAt: timestamp("processed_at").defaultNow(),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("webhook_events_stripe_event_id_idx").on(table.stripeEventId),
+    index("webhook_events_event_type_idx").on(table.eventType),
+    index("webhook_events_status_idx").on(table.status),
+    index("webhook_events_created_at_idx").on(table.createdAt),
+  ]
+);

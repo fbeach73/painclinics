@@ -3,6 +3,7 @@ import FormData from "form-data";
 import Mailgun from "mailgun.js";
 import {
   renderAdvertiseInquiryEmail,
+  renderBroadcastEmail,
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
   renderClaimPendingAdminEmail,
@@ -14,11 +15,14 @@ import {
   renderInquiryConfirmationEmail,
   renderPaymentFailedEmail,
   renderSubmitClinicEmail,
+  renderSubscriptionAdminEmail,
   renderSubscriptionCanceledEmail,
+  renderSubscriptionThankYouEmail,
   renderWelcomeEmail,
   renderPasswordResetEmail,
   EMAIL_TEMPLATES,
   type AdvertiseInquiryProps,
+  type BroadcastEmailProps,
   type ClaimVerificationProps,
   type ClaimApprovedProps,
   type ClaimPendingAdminProps,
@@ -30,7 +34,9 @@ import {
   type InquiryConfirmationProps,
   type PaymentFailedProps,
   type SubmitClinicProps,
+  type SubscriptionAdminProps,
   type SubscriptionCanceledProps,
+  type SubscriptionThankYouProps,
   type WelcomeProps,
   type PasswordResetProps,
   type EmailTemplateName,
@@ -471,6 +477,99 @@ export async function sendSubscriptionCanceledEmail(
   });
 }
 
+export async function sendSubscriptionAdminNotificationEmail(
+  clinicName: string,
+  clinicSlug: string,
+  tier: "basic" | "premium",
+  billingCycle: "monthly" | "annual",
+  userEmail: string,
+  options?: {
+    clinicId?: string | undefined;
+    subscriptionId?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const clinicUrl = `${baseUrl}/pain-management/${clinicSlug}`;
+  const adsenseExclusionUrl =
+    process.env.ADSENSE_EXCLUSION_URL ||
+    "https://www.google.com/adsense/new/u/0/url-channels";
+  const submittedAt = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const tierLabel = tier === "premium" ? "Premium" : "Basic";
+  const subject = `New Featured Subscription - ${clinicName} (${tierLabel})`;
+  const props: SubscriptionAdminProps = {
+    clinicName,
+    clinicSlug,
+    tier,
+    billingCycle,
+    userEmail,
+    submittedAt,
+    clinicUrl,
+    adsenseExclusionUrl,
+  };
+
+  const html = await renderSubscriptionAdminEmail(props);
+
+  return sendEmail({
+    to: PRIMARY_ADMIN_EMAIL,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.SUBSCRIPTION_ADMIN,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.subscriptionId && { subscriptionId: options.subscriptionId }),
+      userEmail,
+      tier,
+      billingCycle,
+    },
+    ...(ADMIN_EMAILS.length > 1 && { bcc: ADMIN_EMAILS.slice(1).join(",") }),
+  });
+}
+
+export async function sendSubscriptionThankYouEmail(
+  to: string,
+  clinicName: string,
+  tier: "basic" | "premium",
+  options?: {
+    userId?: string | undefined;
+    clinicId?: string | undefined;
+    subscriptionId?: string | undefined;
+    unsubscribeToken?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const subject = "Thank You for Subscribing! - Pain Clinics Directory";
+  const props: SubscriptionThankYouProps = {
+    clinicName,
+    tier,
+    dashboardUrl,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderSubscriptionThankYouEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.SUBSCRIPTION_THANK_YOU,
+    userId: options?.userId,
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
+      ...(options?.subscriptionId && { subscriptionId: options.subscriptionId }),
+      tier,
+    },
+  });
+}
+
 export async function sendWelcomeEmail(
   to: string,
   userName: string,
@@ -723,4 +822,54 @@ export async function sendSubmitClinicEmail(
     return { success: result.success, error: errorMessage };
   }
   return { success: result.success };
+}
+
+// ============================================
+// Broadcast Email Functions
+// ============================================
+
+export interface SendBroadcastEmailOptions {
+  to: string;
+  subject: string;
+  htmlContent: string;
+  previewText?: string | undefined;
+  broadcastId: string;
+  clinicId?: string | undefined;
+  unsubscribeUrl: string;
+  isTest?: boolean | undefined;
+}
+
+export async function sendBroadcastEmail(
+  options: SendBroadcastEmailOptions
+): Promise<SendEmailResult> {
+  const {
+    to,
+    subject,
+    htmlContent,
+    previewText,
+    broadcastId,
+    clinicId,
+    unsubscribeUrl,
+    isTest = false,
+  } = options;
+
+  const props: BroadcastEmailProps = {
+    htmlContent,
+    previewText,
+    unsubscribeUrl,
+  };
+
+  const html = await renderBroadcastEmail(props);
+
+  return sendEmail({
+    to,
+    subject: isTest ? `[TEST] ${subject}` : subject,
+    html,
+    templateName: isTest ? EMAIL_TEMPLATES.BROADCAST_TEST : EMAIL_TEMPLATES.BROADCAST,
+    metadata: {
+      broadcastId,
+      ...(clinicId && { clinicId }),
+      ...(isTest && { isTest: "true" }),
+    },
+  });
 }

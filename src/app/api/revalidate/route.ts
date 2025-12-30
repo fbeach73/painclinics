@@ -8,10 +8,17 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify secret token is configured
+    const expectedSecret = process.env.REVALIDATE_SECRET;
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
     const { path, secret } = await request.json();
 
-    // Verify secret token
-    const expectedSecret = process.env.REVALIDATE_SECRET || "painclinics-revalidate-2024";
     if (secret !== expectedSecret) {
       return NextResponse.json({ error: "Invalid secret" }, { status: 401 });
     }
@@ -28,8 +35,7 @@ export async function POST(request: NextRequest) {
       path,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error("Revalidation error:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to revalidate" },
       { status: 500 }
@@ -42,11 +48,19 @@ export async function POST(request: NextRequest) {
  * Usage: GET /api/revalidate?path=/pain-management/...&secret=...
  */
 export async function GET(request: NextRequest) {
+  // Verify secret token is configured
+  const expectedSecret = process.env.REVALIDATE_SECRET;
+  if (!expectedSecret) {
+    return NextResponse.json(
+      { error: "Server configuration error" },
+      { status: 500 }
+    );
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const path = searchParams.get("path");
   const secret = searchParams.get("secret");
 
-  const expectedSecret = process.env.REVALIDATE_SECRET || "painclinics-revalidate-2024";
   if (secret !== expectedSecret) {
     return NextResponse.json({ error: "Invalid secret" }, { status: 401 });
   }
@@ -62,8 +76,7 @@ export async function GET(request: NextRequest) {
       path,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error("Revalidation error:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to revalidate" },
       { status: 500 }

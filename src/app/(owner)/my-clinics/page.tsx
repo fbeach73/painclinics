@@ -160,7 +160,15 @@ export default async function MyClinicsPage() {
                       Services
                     </Link>
                   </Button>
-                  {!clinic.isFeatured && (
+                  {clinic.isFeatured && clinic.featuredTier && clinic.featuredTier !== "none" ? (
+                    <Link
+                      href={`/my-clinics/${clinic.id}/featured`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-opacity hover:opacity-80 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+                    >
+                      <Star className="h-3 w-3" />
+                      {clinic.featuredTier === "premium" ? "Premium" : "Basic"}
+                    </Link>
+                  ) : (
                     <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50" asChild>
                       <Link href={`/my-clinics/${clinic.id}/featured`}>
                         <Star className="h-4 w-4 mr-1" />

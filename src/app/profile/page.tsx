@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Calendar, User, Shield, ArrowLeft, Lock, Smartphone } from "lucide-react";
-import { toast } from "sonner";
+import { Mail, Calendar, Shield, ArrowLeft, Lock, Smartphone } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,15 +20,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
   const [emailPrefsOpen, setEmailPrefsOpen] = useState(false);
 
@@ -54,13 +50,6 @@ export default function ProfilePage() {
         day: "numeric",
       })
     : null;
-
-  const handleEditProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // In a real app, this would call an API to update the user profile
-    toast.info("Profile updates require backend implementation");
-    setEditProfileOpen(false);
-  };
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
@@ -220,20 +209,7 @@ export default function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                variant="outline"
-                className="justify-start h-auto p-4"
-                onClick={() => setEditProfileOpen(true)}
-              >
-                <User className="h-4 w-4 mr-2" />
-                <div className="text-left">
-                  <div className="font-medium">Edit Profile</div>
-                  <div className="text-xs text-muted-foreground">
-                    Update your information
-                  </div>
-                </div>
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button
                 variant="outline"
                 className="justify-start h-auto p-4"
@@ -264,52 +240,6 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Edit Profile Dialog */}
-      <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              Update your profile information. Changes will be saved to your
-              account.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditProfileSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                defaultValue={user.name || ""}
-                placeholder="Enter your name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                defaultValue={user.email || ""}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">
-                Email cannot be changed for OAuth accounts
-              </p>
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditProfileOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save Changes</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* Security Settings Dialog */}
       <Dialog open={securityOpen} onOpenChange={setSecurityOpen}>

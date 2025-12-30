@@ -171,32 +171,40 @@ export async function POST(request: NextRequest) {
 
   // Create checkout session with clinic metadata
   try {
-    const checkoutSession = await stripe.checkout.sessions.create({
-      customer: stripeCustomerId,
-      mode: "subscription",
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
+    // Generate idempotency key to prevent duplicate charges from retries
+    const idempotencyKey = `checkout-${clinicId}-${userId}-${Date.now()}`
+
+    const checkoutSession = await stripe.checkout.sessions.create(
+      {
+        customer: stripeCustomerId,
+        mode: "subscription",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        subscription_data: {
+          metadata: {
+            clinicId,
+            userId,
+            plan: planName,
+          },
         },
-      ],
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      subscription_data: {
         metadata: {
           clinicId,
           userId,
           plan: planName,
         },
+        allow_promotion_codes: true,
       },
-      metadata: {
-        clinicId,
-        userId,
-        plan: planName,
-      },
-      allow_promotion_codes: true,
-    })
+      {
+        idempotencyKey,
+      }
+    )
 
     if (!checkoutSession.url) {
       return NextResponse.json(

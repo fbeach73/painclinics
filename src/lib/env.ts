@@ -24,6 +24,44 @@ const serverEnvSchema = z.object({
   // Google Places API
   GOOGLE_PLACES_API_KEY: z.string().optional(),
 
+  // Stripe Payment Processing
+  STRIPE_SECRET_KEY: z
+    .string()
+    .refine((val) => val.startsWith("sk_"), {
+      message: "STRIPE_SECRET_KEY must start with 'sk_'",
+    })
+    .optional(),
+  STRIPE_WEBHOOK_SECRET: z
+    .string()
+    .refine((val) => val.startsWith("whsec_"), {
+      message: "STRIPE_WEBHOOK_SECRET must start with 'whsec_'",
+    })
+    .optional(),
+  STRIPE_BASIC_MONTHLY_PRICE_ID: z
+    .string()
+    .refine((val) => val.startsWith("price_"), {
+      message: "STRIPE_BASIC_MONTHLY_PRICE_ID must start with 'price_'",
+    })
+    .optional(),
+  STRIPE_BASIC_ANNUAL_PRICE_ID: z
+    .string()
+    .refine((val) => val.startsWith("price_"), {
+      message: "STRIPE_BASIC_ANNUAL_PRICE_ID must start with 'price_'",
+    })
+    .optional(),
+  STRIPE_PREMIUM_MONTHLY_PRICE_ID: z
+    .string()
+    .refine((val) => val.startsWith("price_"), {
+      message: "STRIPE_PREMIUM_MONTHLY_PRICE_ID must start with 'price_'",
+    })
+    .optional(),
+  STRIPE_PREMIUM_ANNUAL_PRICE_ID: z
+    .string()
+    .refine((val) => val.startsWith("price_"), {
+      message: "STRIPE_PREMIUM_ANNUAL_PRICE_ID must start with 'price_'",
+    })
+    .optional(),
+
   // Cron Jobs
   CRON_SECRET: z.string().optional(),
 
@@ -120,6 +158,14 @@ export function checkEnv(): void {
 
   if (!process.env.CRON_SECRET) {
     warnings.push("CRON_SECRET is not set. Scheduled sync jobs will not be protected.");
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    warnings.push("STRIPE_SECRET_KEY is not set. Payment processing will not work.");
+  }
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    warnings.push("STRIPE_WEBHOOK_SECRET is not set. Stripe webhooks will not be verified.");
   }
 
   // Log warnings in development

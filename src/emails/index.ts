@@ -1,5 +1,6 @@
 import { render } from "@react-email/components";
 import { AdvertiseInquiry } from "./advertise-inquiry";
+import { BroadcastEmail, type BroadcastEmailProps } from "./broadcast-email";
 import { ClaimApproved } from "./claim-approved";
 import { ClaimPendingAdmin, type ClaimPendingAdminProps } from "./claim-pending-admin";
 import { ClaimRejected } from "./claim-rejected";
@@ -12,12 +13,15 @@ import { InquiryConfirmation } from "./inquiry-confirmation";
 import { PasswordReset } from "./password-reset";
 import { PaymentFailed } from "./payment-failed";
 import { SubmitClinic } from "./submit-clinic";
+import { SubscriptionAdmin, type SubscriptionAdminProps } from "./subscription-admin";
 import { SubscriptionCanceled } from "./subscription-canceled";
+import { SubscriptionThankYou, type SubscriptionThankYouProps } from "./subscription-thank-you";
 import { Welcome } from "./welcome";
 
 // Re-export components for direct use if needed
 export {
   AdvertiseInquiry,
+  BroadcastEmail,
   ClaimVerification,
   ClaimApproved,
   ClaimPendingAdmin,
@@ -29,7 +33,9 @@ export {
   InquiryConfirmation,
   PaymentFailed,
   SubmitClinic,
+  SubscriptionAdmin,
   SubscriptionCanceled,
+  SubscriptionThankYou,
   Welcome,
   PasswordReset,
 };
@@ -54,7 +60,13 @@ export interface ClaimRejectedProps {
   unsubscribeUrl?: string | undefined;
 }
 
+export type { BroadcastEmailProps };
+
 export type { ClaimPendingAdminProps };
+
+export type { SubscriptionAdminProps };
+
+export type { SubscriptionThankYouProps };
 
 export interface FeaturedWelcomeProps {
   clinicName: string;
@@ -160,6 +172,10 @@ export interface SubmitClinicProps {
 }
 
 // Render functions that return HTML strings
+export async function renderBroadcastEmail(props: BroadcastEmailProps): Promise<string> {
+  return render(BroadcastEmail(props));
+}
+
 export async function renderClaimVerificationEmail(props: ClaimVerificationProps): Promise<string> {
   return render(ClaimVerification(props));
 }
@@ -220,9 +236,19 @@ export async function renderSubmitClinicEmail(props: SubmitClinicProps): Promise
   return render(SubmitClinic(props));
 }
 
+export async function renderSubscriptionAdminEmail(props: SubscriptionAdminProps): Promise<string> {
+  return render(SubscriptionAdmin(props));
+}
+
+export async function renderSubscriptionThankYouEmail(props: SubscriptionThankYouProps): Promise<string> {
+  return render(SubscriptionThankYou(props));
+}
+
 // Template name constants for logging
 export const EMAIL_TEMPLATES = {
   ADVERTISE_INQUIRY: "advertise-inquiry",
+  BROADCAST: "broadcast",
+  BROADCAST_TEST: "broadcast_test",
   CLAIM_VERIFICATION: "claim-verification",
   CLAIM_APPROVED: "claim-approved",
   CLAIM_PENDING_ADMIN: "claim-pending-admin",
@@ -234,7 +260,9 @@ export const EMAIL_TEMPLATES = {
   FEATURED_RENEWAL: "featured-renewal",
   PAYMENT_FAILED: "payment-failed",
   SUBMIT_CLINIC: "submit-clinic",
+  SUBSCRIPTION_ADMIN: "subscription-admin",
   SUBSCRIPTION_CANCELED: "subscription-canceled",
+  SUBSCRIPTION_THANK_YOU: "subscription-thank-you",
   WELCOME: "welcome",
   PASSWORD_RESET: "password-reset",
 } as const;

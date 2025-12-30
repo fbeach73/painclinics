@@ -10,6 +10,11 @@ import {
   handleSubscriptionComplete,
   handleSubscriptionCancel,
   handleInvoicePaid,
+  handleInvoicePaymentFailed,
+  handleSubscriptionUpdated,
+  checkWebhookIdempotency,
+  recordWebhookSuccess,
+  recordWebhookFailure,
 } from "./stripe-webhooks"
 
 // Initialize Stripe client
@@ -45,8 +50,45 @@ const stripePlugin =
           onSubscriptionCancel: handleSubscriptionCancel,
         },
         onEvent: async (event) => {
-          if (event.type === "invoice.paid") {
-            await handleInvoicePaid(event)
+          // Check idempotency - skip if already processed
+          const alreadyProcessed = await checkWebhookIdempotency(event.id)
+          if (alreadyProcessed) {
+            console.log(`[Stripe Webhook] Event ${event.id} already processed, skipping`)
+            return // Don't record again, it's already in the database
+          }
+
+          try {
+            // Track whether this event type is specifically handled
+            let isHandled = false
+
+            // Handle different event types
+            if (event.type === "invoice.paid") {
+              await handleInvoicePaid(event)
+              isHandled = true
+            } else if (event.type === "invoice.payment_failed") {
+              await handleInvoicePaymentFailed(event)
+              isHandled = true
+            } else if (event.type === "customer.subscription.updated") {
+              await handleSubscriptionUpdated(event)
+              isHandled = true
+            }
+
+            // Record ALL events - both handled and unhandled
+            // Status is "processed" for handled events, "received" for unhandled
+            await recordWebhookSuccess(event.id, event.type, isHandled ? "processed" : "received")
+
+            if (!isHandled) {
+              console.log(`[Stripe Webhook] Event ${event.id} (${event.type}) received but not specifically handled`)
+            }
+          } catch (error) {
+            // Record failure with detailed error information
+            const errorMessage = error instanceof Error
+              ? `${error.name}: ${error.message}${error.stack ? `\n${error.stack.split('\n').slice(0, 3).join('\n')}` : ''}`
+              : "Unknown error"
+
+            console.error(`[Stripe Webhook] Error processing event ${event.id} (${event.type}):`, error)
+            await recordWebhookFailure(event.id, event.type, errorMessage)
+            throw error // Re-throw so Stripe retries
           }
         },
       })

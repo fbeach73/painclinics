@@ -12,8 +12,9 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error("Application error:", error);
+    // Error is automatically logged by Next.js error boundary
+    // Future: Add error tracking service (e.g., Sentry) here
+    // Sentry.captureException(error);
   }, [error]);
 
   return (
