@@ -24,7 +24,9 @@ if (process.env.POLAR_ACCESS_TOKEN) {
     polarPlugin = polar({
       client: new Polar({
         accessToken: process.env.POLAR_ACCESS_TOKEN,
-        server: process.env.NODE_ENV === "production" ? "production" : "sandbox",
+        // Use POLAR_ENVIRONMENT env var if set, otherwise default based on NODE_ENV
+        server: (process.env.POLAR_ENVIRONMENT as "sandbox" | "production") ||
+          (process.env.NODE_ENV === "production" ? "production" : "sandbox"),
       }),
       createCustomerOnSignUp: true,
       use: [
