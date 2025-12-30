@@ -216,12 +216,10 @@ export function ClinicFeaturedTab({ clinicId, initialData }: ClinicFeaturedTabPr
 
       {/* Subscription Warning */}
       {initialData?.hasActiveSubscription && (
-        <Alert variant="default" className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          <AlertTitle className="text-yellow-800 dark:text-yellow-200">
-            Active Subscription Detected
-          </AlertTitle>
-          <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+        <Alert variant="warning">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Active Subscription Detected</AlertTitle>
+          <AlertDescription>
             This clinic has an active Polar subscription ({initialData.subscriptionTier} tier).
             Manual changes here will override the subscription settings. The subscription will
             continue to renew unless cancelled by the clinic owner.

@@ -95,8 +95,8 @@ export function ImportResults({ results, onClose, onViewDetails }: ImportResults
 
         {/* Partial success message */}
         {isPartialSuccess && (
-          <Alert variant="default" className="border-yellow-500 bg-yellow-500/10">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          <Alert variant="warning">
+            <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Completed with issues</AlertTitle>
             <AlertDescription>
               {successCount.toLocaleString()} records imported, {errorCount.toLocaleString()} errors, {skipCount.toLocaleString()} skipped.

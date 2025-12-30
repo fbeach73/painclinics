@@ -126,9 +126,9 @@ export default function PainReliefToolPage() {
             specific situation. Filter by pain location, type, and available resources.
           </p>
 
-          <Alert className="mb-8 border-yellow-500 bg-yellow-500/10">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-gray-800 dark:text-yellow-200">
+          <Alert variant="warning" className="mb-8">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
               This tool is for educational purposes only. Always consult a healthcare provider for
               persistent or severe pain. Do not exceed recommended dosages for medications.
             </AlertDescription>
