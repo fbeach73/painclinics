@@ -40,15 +40,6 @@ if (process.env.POLAR_ACCESS_TOKEN) {
               productId: process.env.POLAR_PREMIUM_PRODUCT_ID || "",
               slug: "featured-premium",
             },
-            // Early Adopter New Year's Promo products (50% off first month)
-            {
-              productId: process.env.POLAR_BASIC_PROMO_PRODUCT_ID || "",
-              slug: "featured-basic-promo",
-            },
-            {
-              productId: process.env.POLAR_PREMIUM_PROMO_PRODUCT_ID || "",
-              slug: "featured-premium-promo",
-            },
           ],
           successUrl: "/my-clinics/{metadata.clinicId}/featured?success=true&checkout_id={CHECKOUT_ID}",
           authenticatedUsersOnly: true,
