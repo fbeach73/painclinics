@@ -1,7 +1,7 @@
 'use client';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
@@ -202,8 +202,6 @@ interface ClinicMapProps {
   onClinicSelect?: (clinic: ClinicWithDistance | null) => void;
   onMapMoveEnd?: (center: { lat: number; lng: number }) => void;
   isLoadingClinics?: boolean;
-  /** When true, map will auto-fly to userLocation changes. Set to false when user is exploring. */
-  followUserLocation?: boolean;
   className?: string;
 }
 
@@ -213,47 +211,42 @@ export function ClinicMap({
   onClinicSelect,
   onMapMoveEnd,
   isLoadingClinics = false,
-  followUserLocation = true,
   className = 'h-[60vh] min-h-[400px] w-full',
 }: ClinicMapProps) {
   const mapRef = useRef<MapRef>(null);
-  const hasInitializedRef = useRef(false);
   const [selectedClinic, setSelectedClinic] = useState<ClinicWithDistance | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Generate a stable key that only changes ONCE when geolocation is first enabled.
+  // This forces the map to remount with the new center, then never remount again.
+  // We use useMemo with a condition that "locks in" after geolocation is enabled.
+  const [hasEverHadLocation] = useState(() => !userLocation.isDefault);
+  const mapKey = useMemo(() => {
+    // If we started with a real location, use a stable key
+    if (hasEverHadLocation) return 'has-location';
+    // If location becomes available, this will trigger ONE remount
+    // After that, the key stays stable because hasEverHadLocation doesn't change
+    return userLocation.isDefault ? 'no-location' : 'location-enabled';
+  }, [hasEverHadLocation, userLocation.isDefault]);
+
+  // Initial view state - used when map mounts/remounts
+  const initialViewState = useMemo(
+    () => ({
+      longitude: userLocation.coordinates.lng,
+      latitude: userLocation.coordinates.lat,
+      zoom: 11,
+    }),
+    // Only recalculate when map key changes (i.e., on remount)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mapKey]
+  );
 
   // Handle map move end - fetch new clinics for the area
   const handleMoveEnd = useCallback(() => {
     if (!mapRef.current || !onMapMoveEnd) return;
-
     const center = mapRef.current.getCenter();
     onMapMoveEnd({ lat: center.lat, lng: center.lng });
   }, [onMapMoveEnd]);
-
-  const initialViewState = useMemo(() => ({
-    longitude: userLocation.coordinates.lng,
-    latitude: userLocation.coordinates.lat,
-    zoom: 11,
-  }), [userLocation.coordinates.lat, userLocation.coordinates.lng]);
-
-  // Fly to new location when userLocation changes (after initial load)
-  // Only fly if followUserLocation is true (disabled when user is exploring)
-  useEffect(() => {
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true;
-      return;
-    }
-
-    // Don't auto-fly if user is exploring the map
-    if (!followUserLocation) return;
-
-    if (mapRef.current) {
-      mapRef.current.flyTo({
-        center: [userLocation.coordinates.lng, userLocation.coordinates.lat],
-        zoom: 11,
-        duration: 1500,
-      });
-    }
-  }, [userLocation.coordinates.lat, userLocation.coordinates.lng, followUserLocation]);
 
   const handleMarkerClick = useCallback(
     (clinic: ClinicWithDistance) => {
@@ -283,13 +276,13 @@ export function ClinicMap({
   return (
     <div className={cn(className, 'relative')}>
       <Map
+        key={mapKey}
         ref={mapRef}
         initialViewState={initialViewState}
+        onMoveEnd={handleMoveEnd}
         mapStyle={CUSTOM_MAP_STYLE}
         mapboxAccessToken={MAPBOX_TOKEN}
         style={{ width: '100%', height: '100%' }}
-        reuseMaps
-        onMoveEnd={handleMoveEnd}
       >
         <NavigationControl position="top-right" />
 
