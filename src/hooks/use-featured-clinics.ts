@@ -80,18 +80,14 @@ export function useFeaturedClinics(
     location,
     isLoading: isLocationLoading,
     permissionState,
-    requestLocation,
   } = useGeolocation();
 
   // Determine if we have real user location
   const hasLocation = !location.isDefault;
 
-  // Request location on mount if enabled
-  useEffect(() => {
-    if (shouldUseGeolocation && permissionState === 'prompt') {
-      requestLocation();
-    }
-  }, [shouldUseGeolocation, permissionState, requestLocation]);
+  // Note: We intentionally do NOT auto-request location on mount.
+  // This avoids the intrusive browser permission popup on page load.
+  // Users can enable location via the map's "Enable Location" button instead.
 
   const fetchClinics = useCallback(async () => {
     // Wait for location to be determined if we're using geolocation
