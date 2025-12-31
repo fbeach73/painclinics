@@ -144,6 +144,9 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
         if (formData.targetFilters.excludeUnsubscribed) {
           params.set("excludeUnsubscribed", "true");
         }
+        if (formData.targetFilters.manualEmails?.length) {
+          params.set("manualEmails", formData.targetFilters.manualEmails.join(","));
+        }
 
         const res = await fetch(`/api/admin/broadcasts/preview-count?${params}`);
         const data = await res.json();

@@ -111,7 +111,10 @@ export function RecipientSelector({
   const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statesOpen, setStatesOpen] = useState(false);
-  const [manualEmailsText, setManualEmailsText] = useState("");
+  // Initialize from saved manualEmails if they exist
+  const [manualEmailsText, setManualEmailsText] = useState(
+    () => filters.manualEmails?.join(", ") || ""
+  );
 
   // Fetch recipient count when audience or filters change
   const fetchCount = useCallback(async () => {
