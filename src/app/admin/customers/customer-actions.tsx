@@ -30,7 +30,7 @@ export function CancelSubscriptionButton({ subscriptionId, clinicName }: CancelS
   const handleCancel = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/customers/${subscriptionId}/cancel`, {
+      const response = await fetch(`/api/admin/subscriptions/${subscriptionId}/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
