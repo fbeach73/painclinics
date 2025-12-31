@@ -119,7 +119,7 @@ export default function BillingTogglePricing({
         </Label>
         {isAnnual && (
           <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-            Save up to 17%
+            Save now up to 67%!
           </Badge>
         )}
       </div>
