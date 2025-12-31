@@ -67,7 +67,7 @@ export function NearbyClinicsMap() {
   }, [requestLocation, scrollToMap]);
 
   return (
-    <section ref={sectionRef} className="relative w-full h-[50vh] min-h-[350px]">
+    <section ref={sectionRef} className="relative w-full h-[50vh] md:h-[62vh] min-h-[350px]">
       {isLoading && clinics.length === 0 ? (
         <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
