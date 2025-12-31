@@ -5,6 +5,8 @@ import {
   Star,
   Check,
   Sparkles,
+  Zap,
+  Clock,
 } from "lucide-react";
 import FeaturedCheckout from "@/components/owner/featured-checkout";
 import { Badge } from "@/components/ui/badge";
@@ -15,12 +17,16 @@ import { Switch } from "@/components/ui/switch";
 
 const PRICING = {
   basic: {
+    regularMonthly: 99,
+    regularAnnual: 990,
     monthly: 49.50,
     annual: 495,
     savings: 99,
     monthlyEquivalent: 41.25, // 495/12
   },
   premium: {
+    regularMonthly: 199,
+    regularAnnual: 1990,
     monthly: 99.50,
     annual: 995,
     savings: 199,
@@ -63,6 +69,34 @@ export default function BillingTogglePricing({
 
   return (
     <div className="space-y-6">
+      {/* Early Adopter Banner */}
+      <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 dark:border-amber-700">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0">
+              <Zap className="h-6 w-6 text-amber-600 fill-amber-600" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-bold text-amber-800 dark:text-amber-200">
+                  Early Adopter Pricing
+                </h3>
+                <Badge className="bg-red-500 text-white hover:bg-red-500">
+                  50% OFF
+                </Badge>
+              </div>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                Lock in these special launch prices before they go up. This offer won&apos;t last long!
+              </p>
+            </div>
+            <div className="hidden sm:flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <Clock className="h-4 w-4" />
+              <span className="text-xs font-medium">Limited Time</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Billing Toggle */}
       <div className="flex items-center justify-center gap-4 p-4 bg-muted/50 rounded-lg">
         <Label
@@ -107,26 +141,31 @@ export default function BillingTogglePricing({
             <div>
               {isAnnual ? (
                 <>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">${PRICING.basic.annual}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg text-muted-foreground line-through">${PRICING.basic.regularAnnual}</span>
+                    <span className="text-3xl font-bold text-green-600">${PRICING.basic.annual}</span>
                     <span className="text-muted-foreground">/year</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     ${PRICING.basic.monthlyEquivalent.toFixed(2)}/month equivalent
                   </p>
-                  <Badge variant="outline" className="mt-2 text-green-600 border-green-600">
-                    Save ${PRICING.basic.savings}/year
+                  <Badge className="mt-2 bg-green-600 text-white hover:bg-green-600">
+                    Save 50% - Early Adopter Price
                   </Badge>
                 </>
               ) : (
                 <>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">${PRICING.basic.monthly}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg text-muted-foreground line-through">${PRICING.basic.regularMonthly}</span>
+                    <span className="text-3xl font-bold text-green-600">${PRICING.basic.monthly}</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Billed monthly, cancel anytime
                   </p>
+                  <Badge className="mt-2 bg-green-600 text-white hover:bg-green-600">
+                    Save 50% - Early Adopter Price
+                  </Badge>
                 </>
               )}
             </div>
@@ -178,26 +217,31 @@ export default function BillingTogglePricing({
             <div>
               {isAnnual ? (
                 <>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">${PRICING.premium.annual}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg text-muted-foreground line-through">${PRICING.premium.regularAnnual}</span>
+                    <span className="text-3xl font-bold text-green-600">${PRICING.premium.annual}</span>
                     <span className="text-muted-foreground">/year</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     ${PRICING.premium.monthlyEquivalent.toFixed(2)}/month equivalent
                   </p>
-                  <Badge variant="outline" className="mt-2 text-green-600 border-green-600">
-                    Save ${PRICING.premium.savings}/year
+                  <Badge className="mt-2 bg-green-600 text-white hover:bg-green-600">
+                    Save 50% - Early Adopter Price
                   </Badge>
                 </>
               ) : (
                 <>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">${PRICING.premium.monthly}</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg text-muted-foreground line-through">${PRICING.premium.regularMonthly}</span>
+                    <span className="text-3xl font-bold text-green-600">${PRICING.premium.monthly}</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Billed monthly, cancel anytime
                   </p>
+                  <Badge className="mt-2 bg-green-600 text-white hover:bg-green-600">
+                    Save 50% - Early Adopter Price
+                  </Badge>
                 </>
               )}
             </div>
