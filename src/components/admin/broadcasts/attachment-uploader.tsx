@@ -75,26 +75,29 @@ export function AttachmentUploader({ attachments, onChange }: AttachmentUploader
   };
 
   // Validate file
-  const validateFile = (file: File): string | null => {
-    if (attachments.length >= MAX_ATTACHMENTS) {
-      return `Maximum ${MAX_ATTACHMENTS} attachments allowed`;
-    }
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      if (attachments.length >= MAX_ATTACHMENTS) {
+        return `Maximum ${MAX_ATTACHMENTS} attachments allowed`;
+      }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return `File too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}`;
-    }
+      if (file.size > MAX_FILE_SIZE) {
+        return `File too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}`;
+      }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return `Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}`;
-    }
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return `Invalid file type. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}`;
+      }
 
-    // Check for duplicate filename
-    if (attachments.some((a) => a.filename === file.name)) {
-      return "A file with this name is already attached";
-    }
+      // Check for duplicate filename
+      if (attachments.some((a) => a.filename === file.name)) {
+        return "A file with this name is already attached";
+      }
 
-    return null;
-  };
+      return null;
+    },
+    [attachments]
+  );
 
   // Upload file to storage
   const uploadFile = useCallback(
@@ -139,7 +142,7 @@ export function AttachmentUploader({ attachments, onChange }: AttachmentUploader
         setIsUploading(false);
       }
     },
-    [attachments, onChange]
+    [attachments, onChange, validateFile]
   );
 
   // Handle file input change

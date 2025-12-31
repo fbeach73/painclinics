@@ -105,10 +105,6 @@ export function TrafficAnalyticsClient() {
   const topPages = data?.topPages || [];
   const viewsOverTime = data?.viewsOverTime || [];
 
-  // Debug: Log what we received
-  if (process.env.NODE_ENV === "development") {
-    console.log("Analytics data:", { overview, referrersCount: referrers.length, topPagesCount: topPages.length, viewsOverTimeCount: viewsOverTime.length, viewsOverTime });
-  }
 
   return (
     <div className="space-y-6">

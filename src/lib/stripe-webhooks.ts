@@ -270,7 +270,7 @@ export async function handleSubscriptionComplete(params: {
       }
     }
 
-    console.log(
+    console.warn(
       `[Stripe Webhook] Subscription activated for clinic ${clinicId}, tier: ${tier}`
     )
   } catch (error) {
@@ -349,7 +349,7 @@ export async function handleSubscriptionCancel(params: {
       }
     }
 
-    console.log(
+    console.warn(
       `[Stripe Webhook] Subscription canceled for clinic ${dbSubscription.clinicId}`
     )
 
@@ -477,7 +477,7 @@ export async function handleInvoicePaid(event: Stripe.Event): Promise<void> {
       }
     }
 
-    console.log(
+    console.warn(
       `[Stripe Webhook] Invoice paid (renewal) for clinic ${subscription.clinicId}`
     )
   } catch (error) {
@@ -552,7 +552,7 @@ export async function handleInvoicePaymentFailed(
       }
     }
 
-    console.log(
+    console.warn(
       `[Stripe Webhook] Payment failed for clinic ${subscription.clinicId}, status set to past_due`
     )
   } catch (error) {
@@ -630,7 +630,7 @@ export async function handleSubscriptionUpdated(
           .where(eq(schema.clinics.id, subscription.clinicId))
       }
 
-      console.log(
+      console.warn(
         `[Stripe Webhook] Subscription ${stripeSubscriptionId} status updated to ${newStatus}`
       )
     }

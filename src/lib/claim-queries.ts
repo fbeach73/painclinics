@@ -307,7 +307,6 @@ export async function approveClaim(
   reviewerId: string,
   adminNotes?: string
 ) {
-  console.log("[Claim Approval] Starting approval process", { claimId, reviewerId });
 
   // Get the claim first (outside transaction for read)
   const claim = await getClaimById(claimId);
@@ -327,7 +326,6 @@ export async function approveClaim(
   // All DB writes in transaction for atomicity
   const result = await db.transaction(async (tx) => {
     // Step 1: Update claim status
-    console.log("[Claim Approval] Step 1: Updating claim status", { claimId });
     await tx
       .update(clinicClaims)
       .set({
@@ -337,13 +335,8 @@ export async function approveClaim(
         adminNotes: adminNotes,
       })
       .where(eq(clinicClaims.id, claimId));
-    console.log("[Claim Approval] Step 1: Complete");
 
     // Step 2: Update clinic ownership
-    console.log("[Claim Approval] Step 2: Transferring clinic ownership", {
-      clinicId: claim.clinicId,
-      userId: claim.userId,
-    });
     await tx
       .update(clinics)
       .set({
@@ -352,7 +345,6 @@ export async function approveClaim(
         claimedAt: now,
       })
       .where(eq(clinics.id, claim.clinicId));
-    console.log("[Claim Approval] Step 2: Complete");
 
     // Step 3: Update user role to clinic_owner if not already admin
     const [claimantUser] = await tx
@@ -362,20 +354,13 @@ export async function approveClaim(
       .limit(1);
 
     if (claimantUser && claimantUser.role !== "admin") {
-      console.log("[Claim Approval] Step 3: Updating user role", { userId: claim.userId });
       await tx
         .update(user)
         .set({ role: "clinic_owner" })
         .where(eq(user.id, claim.userId));
-      console.log("[Claim Approval] Step 3: Complete");
-    } else {
-      console.log("[Claim Approval] Step 3: Skipped (user is admin)", { userId: claim.userId });
     }
 
     // Step 4: Expire other pending claims for this clinic
-    console.log("[Claim Approval] Step 4: Expiring other pending claims", {
-      clinicId: claim.clinicId,
-    });
     await tx
       .update(clinicClaims)
       .set({
@@ -389,15 +374,11 @@ export async function approveClaim(
           sql`${clinicClaims.id} != ${claimId}`
         )
       );
-    console.log("[Claim Approval] Step 4: Complete");
 
     return { claimId, clinicId: claim.clinicId, userId: claim.userId };
   });
 
-  console.log("[Claim Approval] Transaction committed successfully", result);
-
   // Email sending AFTER transaction commits (failures won't rollback DB)
-  console.log("[Claim Approval] Step 5: Sending approval email", { email: claim.businessEmail });
   const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics/${claim.clinicId}`;
 
   let emailSent = false;
@@ -419,8 +400,6 @@ export async function approveClaim(
         claimId,
         error: emailResult.error,
       });
-    } else {
-      console.log("[Claim Approval] Step 5: Complete");
     }
   } catch (emailError) {
     console.error("[Claim Approval] Email threw error but approval succeeded", {
@@ -428,8 +407,6 @@ export async function approveClaim(
       error: emailError instanceof Error ? emailError.message : "Unknown error",
     });
   }
-
-  console.log("[Claim Approval] Complete", { ...result, emailSent });
 
   return {
     success: true,

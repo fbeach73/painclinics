@@ -72,100 +72,106 @@ export function PhotoUpload({
     return null;
   };
 
-  const uploadFile = async (file: File): Promise<string | null> => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch(`/api/owner/clinics/${clinicId}/photos`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Upload failed");
-      }
-
-      return data.url;
-    } catch (err) {
-      throw err;
-    }
-  };
-
-  const handleFiles = async (files: FileList | File[]) => {
-    setError(null);
-    const fileArray = Array.from(files);
-
-    // Check how many files we can upload
-    const availableSlots = maxPhotos - currentPhotos.length;
-    if (fileArray.length > availableSlots) {
-      setError(`Can only upload ${availableSlots} more photo${availableSlots !== 1 ? "s" : ""}`);
-      return;
-    }
-
-    // Validate all files first
-    for (const file of fileArray) {
-      const validationError = validateFile(file);
-      if (validationError) {
-        setError(validationError);
-        return;
-      }
-    }
-
-    // Start uploading
-    const uploadingFiles: UploadingFile[] = fileArray.map((file) => ({
-      file,
-      progress: 0,
-    }));
-    setUploading(uploadingFiles);
-
-    const newPhotos: string[] = [];
-
-    for (let i = 0; i < fileArray.length; i++) {
-      const file = fileArray[i];
-      if (!file) continue;
+  const uploadFile = useCallback(
+    async (file: File): Promise<string | null> => {
+      const formData = new FormData();
+      formData.append("file", file);
 
       try {
-        // Simulate progress (since fetch doesn't support progress)
-        setUploading((prev) =>
-          prev.map((item, idx) =>
-            idx === i ? { ...item, progress: 50 } : item
-          )
-        );
+        const response = await fetch(`/api/owner/clinics/${clinicId}/photos`, {
+          method: "POST",
+          body: formData,
+        });
 
-        const url = await uploadFile(file);
-        if (url) {
-          newPhotos.push(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Upload failed");
         }
 
-        setUploading((prev) =>
-          prev.map((item, idx) =>
-            idx === i ? { ...item, progress: 100 } : item
-          )
-        );
+        return data.url;
       } catch (err) {
-        setUploading((prev) =>
-          prev.map((item, idx) =>
-            idx === i
-              ? { ...item, error: err instanceof Error ? err.message : "Upload failed" }
-              : item
-          )
-        );
+        throw err;
       }
-    }
+    },
+    [clinicId]
+  );
 
-    // Update photos list
-    if (newPhotos.length > 0) {
-      onPhotosChange([...currentPhotos, ...newPhotos]);
-    }
+  const handleFiles = useCallback(
+    async (files: FileList | File[]) => {
+      setError(null);
+      const fileArray = Array.from(files);
 
-    // Clear uploading state after a delay
-    setTimeout(() => {
-      setUploading([]);
-    }, 1000);
-  };
+      // Check how many files we can upload
+      const availableSlots = maxPhotos - currentPhotos.length;
+      if (fileArray.length > availableSlots) {
+        setError(`Can only upload ${availableSlots} more photo${availableSlots !== 1 ? "s" : ""}`);
+        return;
+      }
+
+      // Validate all files first
+      for (const file of fileArray) {
+        const validationError = validateFile(file);
+        if (validationError) {
+          setError(validationError);
+          return;
+        }
+      }
+
+      // Start uploading
+      const uploadingFiles: UploadingFile[] = fileArray.map((file) => ({
+        file,
+        progress: 0,
+      }));
+      setUploading(uploadingFiles);
+
+      const newPhotos: string[] = [];
+
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        if (!file) continue;
+
+        try {
+          // Simulate progress (since fetch doesn't support progress)
+          setUploading((prev) =>
+            prev.map((item, idx) =>
+              idx === i ? { ...item, progress: 50 } : item
+            )
+          );
+
+          const url = await uploadFile(file);
+          if (url) {
+            newPhotos.push(url);
+          }
+
+          setUploading((prev) =>
+            prev.map((item, idx) =>
+              idx === i ? { ...item, progress: 100 } : item
+            )
+          );
+        } catch (err) {
+          setUploading((prev) =>
+            prev.map((item, idx) =>
+              idx === i
+                ? { ...item, error: err instanceof Error ? err.message : "Upload failed" }
+                : item
+            )
+          );
+        }
+      }
+
+      // Update photos list
+      if (newPhotos.length > 0) {
+        onPhotosChange([...currentPhotos, ...newPhotos]);
+      }
+
+      // Clear uploading state after a delay
+      setTimeout(() => {
+        setUploading([]);
+      }, 1000);
+    },
+    [currentPhotos, maxPhotos, onPhotosChange, uploadFile]
+  );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -179,7 +185,7 @@ export function PhotoUpload({
         handleFiles(files);
       }
     },
-    [canUpload, clinicId, currentPhotos, maxPhotos, onPhotosChange]
+    [canUpload, handleFiles]
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
