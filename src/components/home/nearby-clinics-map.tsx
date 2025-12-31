@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { ClinicMap } from '@/components/map/clinic-map';
 import { GeolocationPrompt } from '@/components/map/geolocation-prompt';
@@ -15,13 +15,28 @@ export function NearbyClinicsMap() {
     useGeolocation();
   const [promptDismissed, setPromptDismissed] = useState(false);
 
-  // Track the map's search center separately from user's location
-  // This allows users to drag the map to explore different areas
-  const [mapCenter, setMapCenter] = useState<UserLocation | null>(null);
+  // Track the map's view center separately from user's geolocation
+  // This is the "source of truth" for where the map should be centered
+  // It only updates when: 1) user enables geolocation, 2) user searches, 3) user drags
+  const [mapCenter, setMapCenter] = useState<UserLocation>(userLocation);
 
-  // Use map center for fetching clinics if user has dragged, otherwise use user location
-  const searchLocationForClinics = mapCenter || userLocation;
-  const { clinics, isLoading: isLoadingClinics, error: clinicsError } = useNearbyClinics(searchLocationForClinics, 50);
+  // Track if we've already captured the user's geolocation
+  const hasSetUserLocationRef = useRef(false);
+
+  // When user enables geolocation, update mapCenter ONCE
+  // After that, mapCenter is only updated by user dragging
+  useEffect(() => {
+    if (!hasSetUserLocationRef.current && !userLocation.isDefault) {
+      hasSetUserLocationRef.current = true;
+      // Use requestAnimationFrame to avoid "synchronous setState in effect" lint error
+      requestAnimationFrame(() => {
+        setMapCenter(userLocation);
+      });
+    }
+  }, [userLocation]);
+
+  // Use map center for fetching clinics
+  const { clinics, isLoading: isLoadingClinics, error: clinicsError } = useNearbyClinics(mapCenter, 50);
 
   const showPrompt = !promptDismissed && (userLocation.isDefault || permissionState === 'prompt');
   const isLoading = isLoadingLocation || isLoadingClinics;
@@ -30,9 +45,8 @@ export function NearbyClinicsMap() {
   // Handle map drag - update search center to fetch clinics in new area
   const handleMapMoveEnd = useCallback((center: { lat: number; lng: number }) => {
     // Only update if the center has moved significantly (more than ~1 mile)
-    const currentCenter = mapCenter?.coordinates || userLocation.coordinates;
-    const latDiff = Math.abs(center.lat - currentCenter.lat);
-    const lngDiff = Math.abs(center.lng - currentCenter.lng);
+    const latDiff = Math.abs(center.lat - mapCenter.coordinates.lat);
+    const lngDiff = Math.abs(center.lng - mapCenter.coordinates.lng);
 
     // ~0.015 degrees is roughly 1 mile
     if (latDiff > 0.015 || lngDiff > 0.015) {
@@ -43,7 +57,7 @@ export function NearbyClinicsMap() {
       // Dismiss the prompt once user starts exploring
       setPromptDismissed(true);
     }
-  }, [mapCenter, userLocation.coordinates]);
+  }, [mapCenter.coordinates.lat, mapCenter.coordinates.lng]);
 
   const scrollToMap = useCallback(() => {
     // Small delay to allow the map to start updating before scrolling
@@ -76,9 +90,9 @@ export function NearbyClinicsMap() {
         <ClinicMap
           clinics={clinics}
           userLocation={userLocation}
+          mapCenter={mapCenter}
           onMapMoveEnd={handleMapMoveEnd}
           isLoadingClinics={isLoadingClinics}
-          followUserLocation={!mapCenter}
           className="h-full w-full"
         />
       )}

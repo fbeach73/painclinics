@@ -1,7 +1,7 @@
 'use client';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance, UserLocation } from '@/types/clinic';
@@ -199,6 +199,7 @@ const CUSTOM_MAP_STYLE: StyleSpecification = {
 interface ClinicMapProps {
   clinics: ClinicWithDistance[];
   userLocation: UserLocation;
+  mapCenter: UserLocation;
   onClinicSelect?: (clinic: ClinicWithDistance | null) => void;
   onMapMoveEnd?: (center: { lat: number; lng: number }) => void;
   isLoadingClinics?: boolean;
@@ -208,6 +209,7 @@ interface ClinicMapProps {
 export function ClinicMap({
   clinics,
   userLocation,
+  mapCenter,
   onClinicSelect,
   onMapMoveEnd,
   isLoadingClinics = false,
@@ -217,34 +219,57 @@ export function ClinicMap({
   const [selectedClinic, setSelectedClinic] = useState<ClinicWithDistance | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Generate a stable key that only changes ONCE when geolocation is first enabled.
-  // This forces the map to remount with the new center, then never remount again.
-  // We use useMemo with a condition that "locks in" after geolocation is enabled.
-  const [hasEverHadLocation] = useState(() => !userLocation.isDefault);
-  const mapKey = useMemo(() => {
-    // If we started with a real location, use a stable key
-    if (hasEverHadLocation) return 'has-location';
-    // If location becomes available, this will trigger ONE remount
-    // After that, the key stays stable because hasEverHadLocation doesn't change
-    return userLocation.isDefault ? 'no-location' : 'location-enabled';
-  }, [hasEverHadLocation, userLocation.isDefault]);
+  // Track the last mapCenter we responded to, to detect external changes
+  const lastMapCenterRef = useRef({
+    lat: mapCenter.coordinates.lat,
+    lng: mapCenter.coordinates.lng,
+  });
 
-  // Initial view state - used when map mounts/remounts
-  const initialViewState = useMemo(
-    () => ({
-      longitude: userLocation.coordinates.lng,
-      latitude: userLocation.coordinates.lat,
-      zoom: 11,
-    }),
-    // Only recalculate when map key changes (i.e., on remount)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mapKey]
-  );
+  // Controlled view state - map owns its position
+  const [viewState, setViewState] = useState({
+    longitude: mapCenter.coordinates.lng,
+    latitude: mapCenter.coordinates.lat,
+    zoom: 11,
+  });
 
-  // Handle map move end - fetch new clinics for the area
+  // Detect when mapCenter prop changes (from geolocation/search, not from drag)
+  // and fly to the new center
+  useEffect(() => {
+    const prevLat = lastMapCenterRef.current.lat;
+    const prevLng = lastMapCenterRef.current.lng;
+    const newLat = mapCenter.coordinates.lat;
+    const newLng = mapCenter.coordinates.lng;
+
+    // Check if center changed significantly (more than 0.001 degrees ≈ 100m)
+    const hasChanged =
+      Math.abs(newLat - prevLat) > 0.001 || Math.abs(newLng - prevLng) > 0.001;
+
+    if (hasChanged) {
+      // Update our tracking ref
+      lastMapCenterRef.current = { lat: newLat, lng: newLng };
+
+      // Fly to new center
+      if (mapRef.current) {
+        mapRef.current.flyTo({
+          center: [newLng, newLat],
+          zoom: 11,
+          duration: 1500,
+        });
+      }
+    }
+  }, [mapCenter.coordinates.lat, mapCenter.coordinates.lng]);
+
+  // Handle map movements (drag, zoom, etc.)
+  const handleMove = useCallback((evt: { viewState: { longitude: number; latitude: number; zoom: number } }) => {
+    setViewState(evt.viewState);
+  }, []);
+
+  // Handle map move end - notify parent of new center for clinic fetching
   const handleMoveEnd = useCallback(() => {
     if (!mapRef.current || !onMapMoveEnd) return;
     const center = mapRef.current.getCenter();
+    // Update our tracking ref so we don't fly back to this position
+    lastMapCenterRef.current = { lat: center.lat, lng: center.lng };
     onMapMoveEnd({ lat: center.lat, lng: center.lng });
   }, [onMapMoveEnd]);
 
@@ -276,9 +301,9 @@ export function ClinicMap({
   return (
     <div className={cn(className, 'relative')}>
       <Map
-        key={mapKey}
         ref={mapRef}
-        initialViewState={initialViewState}
+        {...viewState}
+        onMove={handleMove}
         onMoveEnd={handleMoveEnd}
         mapStyle={CUSTOM_MAP_STYLE}
         mapboxAccessToken={MAPBOX_TOKEN}
