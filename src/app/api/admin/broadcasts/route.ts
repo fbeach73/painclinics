@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
       "by_state",
       "by_tier",
       "custom",
+      "manual",
     ];
     if (targetAudience && !validAudiences.includes(targetAudience)) {
       return NextResponse.json(

@@ -100,6 +100,7 @@ export async function PATCH(
         "by_state",
         "by_tier",
         "custom",
+        "manual",
       ];
       if (!validAudiences.includes(targetAudience)) {
         return NextResponse.json(
