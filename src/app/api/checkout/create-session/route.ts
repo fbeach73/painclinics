@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
   // Build success and cancel URLs
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  const successUrl = `${appUrl}/my-clinics/${clinicId}/featured?success=true`
+  const successUrl = `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl = `${appUrl}/my-clinics/${clinicId}/featured?canceled=true`
 
   // Create checkout session with clinic metadata

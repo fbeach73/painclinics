@@ -97,6 +97,7 @@ export const targetAudienceEnum = pgEnum("target_audience", [
   "by_state",
   "by_tier",
   "custom",
+  "manual",
 ]);
 
 export const user = pgTable(

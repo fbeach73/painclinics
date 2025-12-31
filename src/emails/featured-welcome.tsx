@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Text, Section } from "@react-email/components";
+import { Text, Section, Link } from "@react-email/components";
 import { EmailButton } from "./components/email-button";
 import { EmailCard, EmailCardTitle, EmailCardText } from "./components/email-card";
 import { EmailLayout } from "./components/email-layout";
@@ -59,8 +59,11 @@ export function FeaturedWelcome({
 
       <Text style={paragraphStyle}>
         Your listing will now appear with a Featured badge and receive
-        priority placement, helping more patients discover your clinic.
-        Visit your clinic dashboard at /my-clinics to manage your listing.
+        priority placement, helping more patients discover your clinic.{" "}
+        <Link href={dashboardUrl} style={linkStyle}>
+          Visit your clinic dashboard
+        </Link>{" "}
+        to manage your listing.
       </Text>
 
       <Section style={buttonContainerStyle}>
@@ -105,6 +108,11 @@ const paragraphStyle: React.CSSProperties = {
   color: "#374151",
   lineHeight: "1.6",
   margin: "0 0 16px 0",
+};
+
+const linkStyle: React.CSSProperties = {
+  color: "#2563eb",
+  textDecoration: "underline",
 };
 
 const buttonContainerStyle: React.CSSProperties = {

@@ -55,7 +55,7 @@ export default async function ClinicOverviewPage({
               </Badge>
             )}
             {clinic.isVerified && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
+              <Badge variant="secondary">
                 Verified
               </Badge>
             )}
@@ -80,8 +80,8 @@ export default async function ClinicOverviewPage({
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
           <Link href={`/my-clinics/${clinicId}/edit`}>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                <Edit className="h-5 w-5 text-primary" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted">
+                <Edit className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
                 <h3 className="font-medium">Edit Info</h3>
@@ -93,8 +93,8 @@ export default async function ClinicOverviewPage({
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
           <Link href={`/my-clinics/${clinicId}/photos`}>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900">
-                <ImageIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted">
+                <ImageIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               </div>
               <div>
                 <h3 className="font-medium">Photos</h3>
@@ -106,8 +106,8 @@ export default async function ClinicOverviewPage({
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
           <Link href={`/my-clinics/${clinicId}/services`}>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900">
-                <Wrench className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted">
+                <Wrench className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
                 <h3 className="font-medium">Services</h3>
@@ -135,8 +135,8 @@ export default async function ClinicOverviewPage({
           <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
             <Link href={`/my-clinics/${clinicId}/analytics`}>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900">
-                  <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted">
+                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
                   <h3 className="font-medium">Analytics</h3>
@@ -387,7 +387,7 @@ export default async function ClinicOverviewPage({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <Badge variant="outline" className="text-green-600 border-green-600">
+                <Badge variant="secondary" className="capitalize">
                   {subscriptionData.subscription.status}
                 </Badge>
               </div>

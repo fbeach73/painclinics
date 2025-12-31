@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Upload, Home, LayoutDashboard, Settings, Database, BarChart3, Grid3X3, Shield, CreditCard, Mail, FileText, PenSquare, Link2, Activity, Send } from "lucide-react";
+import { Upload, Home, LayoutDashboard, Settings, Database, BarChart3, Grid3X3, Shield, CreditCard, Mail, FileText, PenSquare, Link2, Activity, Send, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/blog/migration", label: "Blog Migration", icon: FileText },
   { href: "/admin/blog", label: "Blog Posts", icon: PenSquare },
   { href: "/admin/claims", label: "Claims", icon: Shield },
+  { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/stats", label: "Site Stats", icon: Activity },

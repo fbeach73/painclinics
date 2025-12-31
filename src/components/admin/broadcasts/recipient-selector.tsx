@@ -20,8 +20,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import type { TargetAudience, TargetFilters } from "@/lib/broadcast/broadcast-queries";
 import { cn } from "@/lib/utils";
+
+// Email validation helper
+const parseManualEmails = (text: string): string[] => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return text
+    .split(/[,\n]+/)
+    .map((e) => e.trim())
+    .filter((e) => emailRegex.test(e));
+};
 
 // US States list
 const US_STATES = [
@@ -101,6 +111,7 @@ export function RecipientSelector({
   const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statesOpen, setStatesOpen] = useState(false);
+  const [manualEmailsText, setManualEmailsText] = useState("");
 
   // Fetch recipient count when audience or filters change
   const fetchCount = useCallback(async () => {
@@ -115,6 +126,9 @@ export function RecipientSelector({
       }
       if (filters.excludeUnsubscribed) {
         params.set("excludeUnsubscribed", "true");
+      }
+      if (filters.manualEmails && filters.manualEmails.length > 0) {
+        params.set("manualEmails", filters.manualEmails.join(","));
       }
 
       const res = await fetch(`/api/admin/broadcasts/preview-count?${params}`);
@@ -186,6 +200,28 @@ export function RecipientSelector({
     [filters, onFiltersChange]
   );
 
+  // Handle manual emails change
+  const handleManualEmailsChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const text = e.target.value;
+      setManualEmailsText(text);
+      const validEmails = parseManualEmails(text);
+      const newFilters = { ...filters };
+      if (validEmails.length > 0) {
+        newFilters.manualEmails = validEmails;
+      } else {
+        delete newFilters.manualEmails;
+      }
+      onFiltersChange(newFilters);
+    },
+    [filters, onFiltersChange]
+  );
+
+  // Count valid emails from manual input
+  const validEmailCount = useMemo(() => {
+    return parseManualEmails(manualEmailsText).length;
+  }, [manualEmailsText]);
+
   // Selected states display
   const selectedStatesDisplay = useMemo(() => {
     const states = filters.states || [];
@@ -228,6 +264,10 @@ export function RecipientSelector({
             }
             if (value !== "by_tier" && value !== "custom") {
               delete newFilters.tiers;
+            }
+            if (value !== "manual") {
+              delete newFilters.manualEmails;
+              setManualEmailsText("");
             }
             onFiltersChange(newFilters);
           }}
@@ -279,6 +319,16 @@ export function RecipientSelector({
               <div className="font-medium">Custom filter</div>
               <div className="text-sm text-muted-foreground">
                 Combine state and tier filters
+              </div>
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
+            <RadioGroupItem value="manual" id="manual" />
+            <Label htmlFor="manual" className="flex-1 cursor-pointer">
+              <div className="font-medium">Manual email list</div>
+              <div className="text-sm text-muted-foreground">
+                Enter specific email addresses
               </div>
             </Label>
           </div>
@@ -370,6 +420,23 @@ export function RecipientSelector({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Manual email input (show when manual) */}
+      {audience === "manual" && (
+        <div className="space-y-3">
+          <Label>Enter Email Addresses</Label>
+          <Textarea
+            placeholder={"email1@example.com, email2@example.com\nemail3@example.com"}
+            value={manualEmailsText}
+            onChange={handleManualEmailsChange}
+            rows={5}
+          />
+          <p className="text-sm text-muted-foreground">
+            Enter email addresses separated by commas or new lines.
+            {validEmailCount > 0 && ` ${validEmailCount} valid email(s) detected.`}
+          </p>
         </div>
       )}
 

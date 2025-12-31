@@ -70,6 +70,18 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
         conditions.push(inArray(clinics.featuredTier, tierValues));
       }
       break;
+
+    case "manual":
+      // Return manual email list directly, skip database query
+      if (filters?.manualEmails && filters.manualEmails.length > 0) {
+        return filters.manualEmails.map((email) => ({
+          clinicId: "",
+          clinicName: "Manual Entry",
+          email,
+          ownerUserId: null,
+        }));
+      }
+      return [];
   }
 
   // Query clinics

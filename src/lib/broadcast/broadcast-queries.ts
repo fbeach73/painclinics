@@ -10,6 +10,7 @@ export type TargetFilters = {
   states?: string[];
   tiers?: string[];
   excludeUnsubscribed?: boolean;
+  manualEmails?: string[];
 };
 
 export type Attachment = {
@@ -19,7 +20,7 @@ export type Attachment = {
 };
 
 export type BroadcastStatus = "draft" | "sending" | "completed" | "failed";
-export type TargetAudience = "all_with_email" | "featured_only" | "by_state" | "by_tier" | "custom";
+export type TargetAudience = "all_with_email" | "featured_only" | "by_state" | "by_tier" | "custom" | "manual";
 
 export type Broadcast = typeof emailBroadcasts.$inferSelect;
 export type NewBroadcast = typeof emailBroadcasts.$inferInsert;

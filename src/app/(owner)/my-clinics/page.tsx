@@ -98,7 +98,7 @@ export default async function MyClinicsPage() {
                         </Badge>
                       )}
                       {clinic.isVerified && (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
+                        <Badge variant="secondary">
                           Verified
                         </Badge>
                       )}
@@ -167,7 +167,7 @@ export default async function MyClinicsPage() {
                       clinicId={clinic.id}
                     />
                   ) : (
-                    <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50" asChild>
+                    <Button variant="ghost" size="sm" className="text-amber-600" asChild>
                       <Link href={`/my-clinics/${clinic.id}/featured`}>
                         <Star className="h-4 w-4 mr-1" />
                         Get Featured

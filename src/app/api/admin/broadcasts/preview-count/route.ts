@@ -7,7 +7,7 @@ import { previewRecipientCount } from "@/lib/broadcast/broadcast-service";
  * GET /api/admin/broadcasts/preview-count
  * Get recipient count for given targeting filters
  *
- * Query params: audience, states (comma-separated), tiers (comma-separated), excludeUnsubscribed
+ * Query params: audience, states (comma-separated), tiers (comma-separated), manualEmails (comma-separated), excludeUnsubscribed
  */
 export async function GET(request: NextRequest) {
   const adminCheck = await checkAdminApi();
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const audience = (searchParams.get("audience") || "all_with_email") as TargetAudience;
     const statesParam = searchParams.get("states");
     const tiersParam = searchParams.get("tiers");
+    const manualEmailsParam = searchParams.get("manualEmails");
     const excludeUnsubscribed = searchParams.get("excludeUnsubscribed") === "true";
 
     // Validate audience
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
       "by_state",
       "by_tier",
       "custom",
+      "manual",
     ];
     if (!validAudiences.includes(audience)) {
       return NextResponse.json(
@@ -48,6 +50,10 @@ export async function GET(request: NextRequest) {
 
     if (tiersParam) {
       filters.tiers = tiersParam.split(",").filter(Boolean);
+    }
+
+    if (manualEmailsParam) {
+      filters.manualEmails = manualEmailsParam.split(",").filter(Boolean);
     }
 
     const count = await previewRecipientCount(audience, filters);
