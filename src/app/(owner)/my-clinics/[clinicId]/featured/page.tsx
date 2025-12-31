@@ -1,49 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Star,
-  Check,
-  Sparkles,
-  TrendingUp,
-  MapPin,
   ArrowLeft,
+  Check,
+  MapPin,
+  Sparkles,
+  Star,
+  TrendingUp,
 } from "lucide-react";
+import BillingTogglePricing from "@/components/owner/billing-toggle-pricing";
 import FeaturedCheckout from "@/components/owner/featured-checkout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getClinicWithSubscription } from "@/lib/owner-queries";
 import { requireClinicOwnership } from "@/lib/session";
-
-const PRICING = {
-  basic: {
-    monthly: 49.50,
-    annual: 495,
-    savings: 99,
-  },
-  premium: {
-    monthly: 99.50,
-    annual: 995,
-    savings: 199,
-  },
-};
-
-const BASIC_FEATURES = [
-  "Featured badge on listing",
-  "Priority placement in search results",
-  "Highlighted card in directory",
-  "Featured marker on map",
-];
-
-const PREMIUM_FEATURES = [
-  "All Basic features",
-  "Premium gold badge",
-  "Top placement in search results",
-  "Larger marker on map",
-  "Featured on homepage",
-  "Priority support",
-];
 
 export default async function FeaturedPage({
   params,
@@ -204,109 +176,13 @@ export default async function FeaturedPage({
         </div>
       )}
 
-      {/* Pricing Cards */}
-      <div className="grid gap-6 md:grid-cols-2 max-w-4xl">
-        {/* Basic Plan */}
-        <Card className={`relative ${hasActiveSubscription && subscriptionData?.subscription?.tier === "basic" ? "ring-2 ring-amber-400" : ""}`}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
-              Basic
-            </CardTitle>
-            <CardDescription>
-              Essential features to boost your visibility
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">${PRICING.basic.monthly}</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                or ${PRICING.basic.annual}/year (save ${PRICING.basic.savings})
-              </p>
-            </div>
-            <Separator />
-            <ul className="space-y-2">
-              {BASIC_FEATURES.map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-          <CardFooter>
-            {hasActiveSubscription && subscriptionData?.subscription?.tier === "basic" ? (
-              <Badge variant="secondary" className="w-full justify-center py-2">
-                Current Plan
-              </Badge>
-            ) : (
-              <FeaturedCheckout
-                clinicId={clinicId}
-                clinicName={clinic.title}
-                tier="basic"
-                currentTier={subscriptionData?.subscription?.tier as "basic" | "premium" | null}
-                mode="subscribe"
-              />
-            )}
-          </CardFooter>
-        </Card>
-
-        {/* Premium Plan */}
-        <Card className={`relative ${hasActiveSubscription && subscriptionData?.subscription?.tier === "premium" ? "ring-2 ring-amber-400" : "border-amber-200 dark:border-amber-700"}`}>
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <Badge className="bg-amber-500 text-white font-bold shadow-md hover:bg-amber-500">
-              Most Popular
-            </Badge>
-          </div>
-          <CardHeader className="pt-6">
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-amber-500" />
-              Premium
-            </CardTitle>
-            <CardDescription>
-              Maximum visibility and premium features
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">${PRICING.premium.monthly}</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                or ${PRICING.premium.annual}/year (save ${PRICING.premium.savings})
-              </p>
-            </div>
-            <Separator />
-            <ul className="space-y-2">
-              {PREMIUM_FEATURES.map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-sm">
-                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-          <CardFooter>
-            {hasActiveSubscription && subscriptionData?.subscription?.tier === "premium" ? (
-              <Badge variant="secondary" className="w-full justify-center py-2">
-                Current Plan
-              </Badge>
-            ) : (
-              <FeaturedCheckout
-                clinicId={clinicId}
-                clinicName={clinic.title}
-                tier="premium"
-                currentTier={subscriptionData?.subscription?.tier as "basic" | "premium" | null}
-                mode="subscribe"
-              />
-            )}
-          </CardFooter>
-        </Card>
-      </div>
+      {/* Pricing Cards with Billing Toggle */}
+      <BillingTogglePricing
+        clinicId={clinicId}
+        clinicName={clinic.title}
+        currentTier={subscriptionData?.subscription?.tier as "basic" | "premium" | null}
+        hasActiveSubscription={hasActiveSubscription}
+      />
 
       {/* FAQ */}
       <Card>
