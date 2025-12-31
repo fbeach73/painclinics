@@ -84,3 +84,7 @@ jobs:
           POSTGRES_URL: "postgresql://user:pass@localhost:5432/db"
           BETTER_AUTH_SECRET: "build-check-secret-32-characters!"
           NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+          # Dummy keys for services that initialize at module load time
+          STRIPE_SECRET_KEY: "sk_test_dummy_key_for_ci_build_only"
+          MAILGUN_API_KEY: "dummy-mailgun-key-for-ci-build"
+          MAILGUN_DOMAIN: "dummy.mailgun.org"
