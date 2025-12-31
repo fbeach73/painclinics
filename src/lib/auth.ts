@@ -62,7 +62,40 @@ const stripePlugin =
             let isHandled = false
 
             // Handle different event types
-            if (event.type === "invoice.paid") {
+            if (event.type === "checkout.session.completed") {
+              // Manual handling for checkout.session.completed since Better Auth
+              // internal handler isn't triggering onSubscriptionComplete
+              const session = event.data.object as Stripe.Checkout.Session
+              if (session.mode === "subscription" && session.subscription && stripeClient) {
+                const subscriptionId = typeof session.subscription === "string"
+                  ? session.subscription
+                  : session.subscription.id
+                const stripeSubscription = await stripeClient.subscriptions.retrieve(subscriptionId)
+
+                // Get plan info from subscription metadata or price
+                const priceId = stripeSubscription.items.data[0]?.price?.id || ""
+                const planName = priceId === process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID ||
+                                 priceId === process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID
+                  ? "featured-premium" : "featured-basic"
+
+                await handleSubscriptionComplete({
+                  event,
+                  subscription: {
+                    id: stripeSubscription.id,
+                    referenceId: session.metadata?.userId || stripeSubscription.metadata?.userId || "",
+                    plan: planName,
+                    status: stripeSubscription.status,
+                    stripeSubscriptionId: stripeSubscription.id,
+                    stripeCustomerId: typeof stripeSubscription.customer === "string"
+                      ? stripeSubscription.customer
+                      : stripeSubscription.customer?.id,
+                  },
+                  stripeSubscription,
+                  plan: { name: planName, priceId },
+                })
+                isHandled = true
+              }
+            } else if (event.type === "invoice.paid") {
               await handleInvoicePaid(event)
               isHandled = true
             } else if (event.type === "invoice.payment_failed") {
@@ -70,6 +103,21 @@ const stripePlugin =
               isHandled = true
             } else if (event.type === "customer.subscription.updated") {
               await handleSubscriptionUpdated(event)
+              isHandled = true
+            } else if (event.type === "customer.subscription.deleted") {
+              // Handle subscription deletion/cancellation
+              const stripeSubscription = event.data.object as Stripe.Subscription
+              await handleSubscriptionCancel({
+                event,
+                subscription: {
+                  id: stripeSubscription.id,
+                  referenceId: stripeSubscription.metadata?.userId || "",
+                  plan: "",
+                  status: stripeSubscription.status,
+                  stripeSubscriptionId: stripeSubscription.id,
+                },
+                stripeSubscription,
+              })
               isHandled = true
             }
 
