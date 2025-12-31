@@ -202,6 +202,8 @@ interface ClinicMapProps {
   onClinicSelect?: (clinic: ClinicWithDistance | null) => void;
   onMapMoveEnd?: (center: { lat: number; lng: number }) => void;
   isLoadingClinics?: boolean;
+  /** When true, map will auto-fly to userLocation changes. Set to false when user is exploring. */
+  followUserLocation?: boolean;
   className?: string;
 }
 
@@ -211,6 +213,7 @@ export function ClinicMap({
   onClinicSelect,
   onMapMoveEnd,
   isLoadingClinics = false,
+  followUserLocation = true,
   className = 'h-[60vh] min-h-[400px] w-full',
 }: ClinicMapProps) {
   const mapRef = useRef<MapRef>(null);
@@ -233,11 +236,15 @@ export function ClinicMap({
   }), [userLocation.coordinates.lat, userLocation.coordinates.lng]);
 
   // Fly to new location when userLocation changes (after initial load)
+  // Only fly if followUserLocation is true (disabled when user is exploring)
   useEffect(() => {
     if (!hasInitializedRef.current) {
       hasInitializedRef.current = true;
       return;
     }
+
+    // Don't auto-fly if user is exploring the map
+    if (!followUserLocation) return;
 
     if (mapRef.current) {
       mapRef.current.flyTo({
@@ -246,7 +253,7 @@ export function ClinicMap({
         duration: 1500,
       });
     }
-  }, [userLocation.coordinates.lat, userLocation.coordinates.lng]);
+  }, [userLocation.coordinates.lat, userLocation.coordinates.lng, followUserLocation]);
 
   const handleMarkerClick = useCallback(
     (clinic: ClinicWithDistance) => {

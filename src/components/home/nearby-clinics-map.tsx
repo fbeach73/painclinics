@@ -78,6 +78,7 @@ export function NearbyClinicsMap() {
           userLocation={userLocation}
           onMapMoveEnd={handleMapMoveEnd}
           isLoadingClinics={isLoadingClinics}
+          followUserLocation={!mapCenter}
           className="h-full w-full"
         />
       )}
