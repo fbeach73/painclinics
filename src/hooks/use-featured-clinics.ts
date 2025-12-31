@@ -79,7 +79,6 @@ export function useFeaturedClinics(
   const {
     location,
     isLoading: isLocationLoading,
-    permissionState,
   } = useGeolocation();
 
   // Determine if we have real user location

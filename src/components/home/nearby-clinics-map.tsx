@@ -7,18 +7,43 @@ import { GeolocationPrompt } from '@/components/map/geolocation-prompt';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { useNearbyClinics } from '@/hooks/use-nearby-clinics';
+import type { UserLocation } from '@/types/clinic';
 
 export function NearbyClinicsMap() {
   const sectionRef = useRef<HTMLElement>(null);
-  const { location, isLoading: isLoadingLocation, error, permissionState, requestLocation, searchLocation } =
+  const { location: userLocation, isLoading: isLoadingLocation, error, permissionState, requestLocation, searchLocation } =
     useGeolocation();
   const [promptDismissed, setPromptDismissed] = useState(false);
 
-  const { clinics, isLoading: isLoadingClinics, error: clinicsError } = useNearbyClinics(location, 50);
+  // Track the map's search center separately from user's location
+  // This allows users to drag the map to explore different areas
+  const [mapCenter, setMapCenter] = useState<UserLocation | null>(null);
 
-  const showPrompt = !promptDismissed && (location.isDefault || permissionState === 'prompt');
+  // Use map center for fetching clinics if user has dragged, otherwise use user location
+  const searchLocationForClinics = mapCenter || userLocation;
+  const { clinics, isLoading: isLoadingClinics, error: clinicsError } = useNearbyClinics(searchLocationForClinics, 50);
+
+  const showPrompt = !promptDismissed && (userLocation.isDefault || permissionState === 'prompt');
   const isLoading = isLoadingLocation || isLoadingClinics;
   const hasError = error || clinicsError;
+
+  // Handle map drag - update search center to fetch clinics in new area
+  const handleMapMoveEnd = useCallback((center: { lat: number; lng: number }) => {
+    // Only update if the center has moved significantly (more than ~1 mile)
+    const currentCenter = mapCenter?.coordinates || userLocation.coordinates;
+    const latDiff = Math.abs(center.lat - currentCenter.lat);
+    const lngDiff = Math.abs(center.lng - currentCenter.lng);
+
+    // ~0.015 degrees is roughly 1 mile
+    if (latDiff > 0.015 || lngDiff > 0.015) {
+      setMapCenter({
+        coordinates: { lat: center.lat, lng: center.lng },
+        isDefault: false,
+      });
+      // Dismiss the prompt once user starts exploring
+      setPromptDismissed(true);
+    }
+  }, [mapCenter, userLocation.coordinates]);
 
   const scrollToMap = useCallback(() => {
     // Small delay to allow the map to start updating before scrolling
@@ -50,7 +75,9 @@ export function NearbyClinicsMap() {
       ) : (
         <ClinicMap
           clinics={clinics}
-          userLocation={location}
+          userLocation={userLocation}
+          onMapMoveEnd={handleMapMoveEnd}
+          isLoadingClinics={isLoadingClinics}
           className="h-full w-full"
         />
       )}

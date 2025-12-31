@@ -200,6 +200,8 @@ interface ClinicMapProps {
   clinics: ClinicWithDistance[];
   userLocation: UserLocation;
   onClinicSelect?: (clinic: ClinicWithDistance | null) => void;
+  onMapMoveEnd?: (center: { lat: number; lng: number }) => void;
+  isLoadingClinics?: boolean;
   className?: string;
 }
 
@@ -207,12 +209,22 @@ export function ClinicMap({
   clinics,
   userLocation,
   onClinicSelect,
+  onMapMoveEnd,
+  isLoadingClinics = false,
   className = 'h-[60vh] min-h-[400px] w-full',
 }: ClinicMapProps) {
   const mapRef = useRef<MapRef>(null);
   const hasInitializedRef = useRef(false);
   const [selectedClinic, setSelectedClinic] = useState<ClinicWithDistance | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Handle map move end - fetch new clinics for the area
+  const handleMoveEnd = useCallback(() => {
+    if (!mapRef.current || !onMapMoveEnd) return;
+
+    const center = mapRef.current.getCenter();
+    onMapMoveEnd({ lat: center.lat, lng: center.lng });
+  }, [onMapMoveEnd]);
 
   const initialViewState = useMemo(() => ({
     longitude: userLocation.coordinates.lng,
@@ -270,6 +282,7 @@ export function ClinicMap({
         mapboxAccessToken={MAPBOX_TOKEN}
         style={{ width: '100%', height: '100%' }}
         reuseMaps
+        onMoveEnd={handleMoveEnd}
       >
         <NavigationControl position="top-right" />
 
@@ -306,6 +319,16 @@ export function ClinicMap({
         isOpen={isDialogOpen}
         onClose={handleDialogClose}
       />
+
+      {/* Loading overlay when fetching new clinics */}
+      {isLoadingClinics && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+          <div className="bg-background/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm font-medium">Loading clinics...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
