@@ -314,6 +314,76 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+
+      // Author pages to about
+      {
+        source: "/author/:author",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/author/:author/",
+        destination: "/about",
+        permanent: true,
+      },
+
+      // About page variations
+      {
+        source: "/about-us",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/about-us/",
+        destination: "/about",
+        permanent: true,
+      },
+
+      // Old WordPress listing pages to clinics
+      {
+        source: "/pain-management-clinics-mega-listing",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-clinics-experts-2024",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-clinics-near-me",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-clinics-near-me-sort",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/local-pain-clinics",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management-listings",
+        destination: "/clinics",
+        permanent: true,
+      },
+
+      // Neuropathy content to blog
+      {
+        source: "/neuropathy",
+        destination: "/blog/peripheral-neuropathy",
+        permanent: true,
+      },
+
+      // Managing pain sections
+      {
+        source: "/managing-pain/:path*",
+        destination: "/treatment-options",
+        permanent: true,
+      },
     ];
   },
 };
