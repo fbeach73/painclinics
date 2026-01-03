@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
+  Mail,
   MapPin,
   Phone,
   Plus,
@@ -189,6 +190,9 @@ export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: Clini
   const [isAutomating, setIsAutomating] = useState(false);
   const [newAmenity, setNewAmenity] = useState("");
 
+  // Email state
+  const [newEmail, setNewEmail] = useState("");
+
   // Ownership removal state
   const [isRemovingOwnership, setIsRemovingOwnership] = useState(false);
 
@@ -327,6 +331,39 @@ export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: Clini
       amenities: [...current, trimmed],
     }));
     setNewAmenity("");
+    setHasUnsavedChanges(true);
+  };
+
+  // Email handlers
+  const removeEmail = (index: number) => {
+    const newEmails = [...(formData.emails || [])];
+    newEmails.splice(index, 1);
+    setFormData((prev) => ({ ...prev, emails: newEmails.length > 0 ? newEmails : null }));
+    setHasUnsavedChanges(true);
+  };
+
+  const addEmail = () => {
+    const trimmed = newEmail.trim().toLowerCase();
+    if (!trimmed) return;
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    const current = formData.emails || [];
+    if (current.includes(trimmed)) {
+      toast.error("Email already exists");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      emails: [...current, trimmed],
+    }));
+    setNewEmail("");
     setHasUnsavedChanges(true);
   };
 
@@ -762,6 +799,67 @@ export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: Clini
                     onChange={(e) => handleInputChange("googleListingLink", e.target.value)}
                     placeholder="https://maps.google.com/..."
                   />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Email Addresses */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email Addresses
+                </h4>
+
+                {/* Current Emails */}
+                {formData.emails && formData.emails.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.emails.map((email, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1 pr-1"
+                      >
+                        {email}
+                        <button
+                          type="button"
+                          onClick={() => removeEmail(index)}
+                          className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No email addresses set
+                  </p>
+                )}
+
+                {/* Add Email */}
+                <div className="flex gap-2">
+                  <Input
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Enter email address"
+                    type="email"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addEmail();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addEmail}
+                    disabled={!newEmail.trim()}
+                    size="sm"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add
+                  </Button>
                 </div>
               </div>
 

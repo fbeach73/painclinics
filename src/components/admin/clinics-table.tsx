@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Calendar } from 'lucide-react';
+import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Calendar, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +29,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { BulkEnhanceModal } from './bulk-enhance-modal';
 import { BulkSyncModal } from './sync/bulk-sync-modal';
 
@@ -78,6 +88,8 @@ export function ClinicsTable({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showBulkSyncModal, setShowBulkSyncModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Create a map of clinic IDs to names for the modal
   const clinicNamesMap = useMemo(() => {
@@ -116,6 +128,34 @@ export function ClinicsTable({
 
   const clearSelection = () => {
     setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/api/admin/clinics/bulk-delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clinicIds: Array.from(selectedIds) }),
+      });
+
+      if (response.ok) {
+        clearSelection();
+        fetchClinics(offset);
+        setShowDeleteDialog(false);
+      } else {
+        const error = await response.json();
+        console.error('Delete failed:', error);
+        alert(`Failed to delete clinics: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete clinics. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const fetchClinics = useCallback(async (currentOffset: number) => {
@@ -296,6 +336,10 @@ export function ClinicsTable({
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={clearSelection}>
                 Clear Selection
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowBulkSyncModal(true)}>
                 <RefreshCw className="mr-2 h-4 w-4" />
@@ -555,6 +599,45 @@ export function ClinicsTable({
           fetchClinics(offset);
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently Delete Clinics?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                You are about to permanently delete{' '}
+                <strong>{selectedIds.size} clinic{selectedIds.size !== 1 ? 's' : ''}</strong>{' '}
+                from the database.
+              </p>
+              <p className="text-destructive font-medium">
+                This action cannot be undone. All clinic data, services, and claims will be permanently removed.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete {selectedIds.size} Clinic{selectedIds.size !== 1 ? 's' : ''}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm";
 import { db } from "../lib/db";
 import * as schema from "../lib/schema";
-import { eq } from "drizzle-orm";
 
 async function main() {
   const user = await db.query.user.findFirst({

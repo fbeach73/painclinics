@@ -46,7 +46,7 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
       {isVariantFeatured && (
         <div className="relative h-48 bg-muted overflow-hidden">
           <Image
-            src={clinic.photos[0] || '/images/clinic-placeholder.png'}
+            src={clinic.photos[0] || '/images/clinic-placeholder.webp'}
             alt={clinic.name}
             fill
             className="object-cover"

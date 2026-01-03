@@ -6,7 +6,7 @@ import {
   type RawClinicCSVRow,
   type TransformedClinic,
 } from "@/lib/clinic-transformer";
-import { parseCSV } from "@/lib/csv-parser";
+import { parseCSVWithRepair } from "@/lib/csv-parser";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/schema";
 import type { serviceCategoryEnum } from "@/lib/schema";
@@ -225,15 +225,26 @@ export async function POST(request: NextRequest) {
         sendEvent("status", { message: "Fetching CSV from storage..." });
         const csvContent = await fetchFromBlob(blobUrl);
 
-        // Parse CSV
+        // Parse CSV with automatic repair of malformed rows
         sendEvent("status", { message: "Parsing CSV data..." });
-        const rows = parseCSV<RawClinicCSVRow>(csvContent);
+        const { data: rows, repaired: repairedRows, unfixable: unfixableRows } =
+          parseCSVWithRepair<RawClinicCSVRow>(csvContent);
         const totalRows = rows.length;
 
-        sendEvent("status", {
-          message: `Found ${totalRows} rows to process`,
-          totalRows,
-        });
+        // Report repair results
+        if (repairedRows > 0 || unfixableRows > 0) {
+          sendEvent("status", {
+            message: `CSV parsed: ${totalRows} rows, ${repairedRows} auto-repaired, ${unfixableRows} unfixable`,
+            totalRows,
+            repairedRows,
+            unfixableRows,
+          });
+        } else {
+          sendEvent("status", {
+            message: `Found ${totalRows} rows to process`,
+            totalRows,
+          });
+        }
 
         // Create import batch
         const batchResult = await db
@@ -265,12 +276,24 @@ export async function POST(request: NextRequest) {
 
         const errors: Array<{ row?: number; error: string }> = [];
         let successCount = 0;
-        let skipCount = skipped.length;
+        let skipCount = skipped.length + unfixableRows; // Include unfixable CSV rows
         let errorCount = 0;
         let totalServicesCreated = 0;
         let totalServicesLinked = 0;
 
-        // Log skipped rows
+        // Log unfixable CSV rows
+        if (unfixableRows > 0) {
+          errors.push({
+            error: `${unfixableRows} row(s) had malformed CSV data that could not be auto-repaired (likely unclosed quotes or embedded newlines)`,
+          });
+        }
+
+        // Log repaired rows (informational)
+        if (repairedRows > 0) {
+          console.log(`Auto-repaired ${repairedRows} rows with malformed JSON fields`);
+        }
+
+        // Log skipped rows from transformation
         for (const rowIndex of skipped) {
           errors.push({
             row: rowIndex + 2,

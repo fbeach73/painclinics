@@ -518,6 +518,25 @@ export function parseEmails(emails: string | undefined): string[] | null {
 }
 
 /**
+ * Parse Outscraper JSON array emails
+ * @example '["client@painmd.com","info@primeatc.com"]'
+ */
+export function parseOutscraperEmails(emails: string | undefined): string[] | null {
+  if (!emails) return null;
+  try {
+    const parsed = JSON.parse(emails);
+    if (Array.isArray(parsed)) {
+      const validEmails = parsed.filter((e): e is string => typeof e === 'string' && e.includes('@'));
+      return validEmails.length > 0 ? validEmails : null;
+    }
+    return null;
+  } catch {
+    // Fallback to comma-separated parsing
+    return parseEmails(emails);
+  }
+}
+
+/**
  * Parse comma-separated amenities into array
  */
 export function parseAmenities(amenities: string | undefined): string[] | null {
@@ -1220,7 +1239,7 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       phone: emptyToNull(row.phone),
       phones: null,
       website: emptyToNull(row.website),
-      emails: null,
+      emails: parseOutscraperEmails(row.emails),
       reviewCount: safeParseInt(row.reviews) || 0,
       rating: safeParseFloat(row.rating),
       reviewsPerScore: parseOutscraperReviewsPerRating(row.reviews_per_rating),
@@ -1254,13 +1273,14 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       checkboxFeatures: categories,
       googleListingLink: emptyToNull(row.link),
       questions: null,
-      facebook: null,
-      instagram: null,
-      twitter: null,
-      youtube: null,
-      linkedin: null,
-      tiktok: null,
-      pinterest: null,
+      // Social Media: try lowercase first, then Title case
+      facebook: emptyToNull(row.facebook || row.Facebook),
+      instagram: emptyToNull(row.instagram || row.Instagram),
+      twitter: emptyToNull(row.twitter || row.Twitter),
+      youtube: emptyToNull(row.youtube || row.YouTube),
+      linkedin: emptyToNull(row.linkedin || row.LinkedIn),
+      tiktok: emptyToNull(row.tiktok || row.TikTok),
+      pinterest: emptyToNull(row.pinterest || row.Pinterest),
       status: "draft", // Import as draft for review before publishing
     };
   }
@@ -1347,7 +1367,7 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       phone: emptyToNull(row.phone),
       phones: null,
       website: emptyToNull(row.website),
-      emails: null,
+      emails: parseOutscraperEmails(row.emails),
       reviewCount: safeParseInt(row.reviews) || 0,
       rating: safeParseFloat(row.rating),
       reviewsPerScore: parseOutscraperReviewsPerRating(row.reviews_per_rating),
@@ -1375,13 +1395,14 @@ export function transformClinicRow(row: RawClinicCSVRow): TransformedClinic | nu
       checkboxFeatures: categories,
       googleListingLink: emptyToNull(row.link),
       questions: null,
-      facebook: null,
-      instagram: null,
-      twitter: null,
-      youtube: null,
-      linkedin: null,
-      tiktok: null,
-      pinterest: null,
+      // Social Media: try lowercase first (Outscraper format), then Title case
+      facebook: emptyToNull(row.facebook || row.Facebook),
+      instagram: emptyToNull(row.instagram || row.Instagram),
+      twitter: emptyToNull(row.twitter || row.Twitter),
+      youtube: emptyToNull(row.youtube || row.YouTube),
+      linkedin: emptyToNull(row.linkedin || row.LinkedIn),
+      tiktok: emptyToNull(row.tiktok || row.TikTok),
+      pinterest: emptyToNull(row.pinterest || row.Pinterest),
       status: "draft", // Import as draft for review before publishing
     };
   }

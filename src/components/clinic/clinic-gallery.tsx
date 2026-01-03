@@ -21,7 +21,7 @@ interface ClinicGalleryProps {
 export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const FALLBACK_IMAGE = '/images/clinic-placeholder.png';
+  const FALLBACK_IMAGE = '/images/clinic-placeholder.webp';
 
   // Use placeholder image if no photos provided
   const displayPhotos = photos.length > 0 ? photos : [FALLBACK_IMAGE];
