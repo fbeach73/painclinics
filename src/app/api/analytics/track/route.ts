@@ -7,11 +7,12 @@ import { db } from "@/lib/db";
 import { analyticsEvents } from "@/lib/schema";
 
 interface TrackRequest {
-  eventType: "pageview" | "clinic_view";
+  eventType: "pageview" | "clinic_view" | "ab_test";
   path: string;
   clinicId?: string;
   referrer?: string;
   fingerprint: string;
+  variant?: string; // For A/B test events
 }
 
 export async function POST(request: Request) {
@@ -35,9 +36,9 @@ export async function POST(request: Request) {
     }
 
     // Validate eventType
-    if (!["pageview", "clinic_view"].includes(body.eventType)) {
+    if (!["pageview", "clinic_view", "ab_test"].includes(body.eventType)) {
       return NextResponse.json(
-        { error: "Invalid eventType. Must be 'pageview' or 'clinic_view'" },
+        { error: "Invalid eventType. Must be 'pageview', 'clinic_view', or 'ab_test'" },
         { status: 400 }
       );
     }
@@ -46,6 +47,14 @@ export async function POST(request: Request) {
     if (body.eventType === "clinic_view" && !body.clinicId) {
       return NextResponse.json(
         { error: "clinicId is required for clinic_view events" },
+        { status: 400 }
+      );
+    }
+
+    // ab_test requires variant
+    if (body.eventType === "ab_test" && !body.variant) {
+      return NextResponse.json(
+        { error: "variant is required for ab_test events" },
         { status: 400 }
       );
     }
@@ -80,8 +89,9 @@ export async function POST(request: Request) {
       path: body.path,
       clinicId: body.clinicId || null,
       referrer: body.referrer || null,
-      referrerSource,
-      referrerDomain,
+      // For ab_test events, store variant in referrerSource
+      referrerSource: body.eventType === "ab_test" ? body.variant : referrerSource,
+      referrerDomain: body.eventType === "ab_test" ? null : referrerDomain,
       sessionHash,
       eventDate,
     });
