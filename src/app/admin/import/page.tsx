@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { upload } from "@vercel/blob/client";
-import { Upload, FolderOpen, RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Upload, RefreshCw, AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { ImportPreview } from "@/components/admin/import-preview";
 import { ImportProgress } from "@/components/admin/import-progress";
 import { ImportResults } from "@/components/admin/import-results";
@@ -73,8 +73,6 @@ export default function ImportPage() {
     skipCount: number;
     errors: Array<{ row?: number; error: string }>;
   } | null>(null);
-  const [batchImportInProgress, setBatchImportInProgress] = useState(false);
-
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/import/batch");
@@ -156,33 +154,6 @@ export default function ImportPage() {
       setError(err instanceof Error ? err.message : "Failed to upload file");
       setSelectedFile(null);
       setUploadProgress(null);
-    }
-  };
-
-  const handleStartBatchImport = async () => {
-    setBatchImportInProgress(true);
-    setError(null);
-    setImportMode("progress");
-
-    try {
-      const res = await fetch("/api/admin/import/batch", {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to start batch import");
-      }
-
-      const data = await res.json();
-      setImportResults(data);
-      setImportMode("results");
-      fetchStatus();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start batch import");
-      setImportMode("idle");
-    } finally {
-      setBatchImportInProgress(false);
     }
   };
 
@@ -395,7 +366,7 @@ export default function ImportPage() {
       {/* Import Progress */}
       {importMode === "progress" && (
         <ImportProgress
-          inProgress={batchImportInProgress || importProgress !== null}
+          inProgress={importProgress !== null}
           currentRecord={importProgress?.currentRecord ?? 0}
           totalRecords={importProgress?.totalRecords ?? 0}
           currentBatch={importProgress?.currentBatch ?? 0}
@@ -420,7 +391,7 @@ export default function ImportPage() {
       )}
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -429,16 +400,6 @@ export default function ImportPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{status?.totalClinics.toLocaleString() || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              CSV Files Available
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{status?.fileCount || 0}</p>
           </CardContent>
         </Card>
         <Card>
@@ -454,51 +415,7 @@ export default function ImportPage() {
       </div>
 
       {/* Import Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Batch Import */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5" />
-              Batch Import
-            </CardTitle>
-            <CardDescription>
-              Import all {status?.fileCount || 0} CSV files from {status?.dataDirectory}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {status?.files && status.files.length > 0 && (
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-2">Files to import:</p>
-                <ul className="list-disc list-inside space-y-1 max-h-32 overflow-y-auto">
-                  {status.files.map((file) => (
-                    <li key={file}>{file}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <Button
-              onClick={handleStartBatchImport}
-              disabled={batchImportInProgress || !status?.files?.length}
-              className="w-full"
-            >
-              {batchImportInProgress ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <FolderOpen className="h-4 w-4 mr-2" />
-                  Start Batch Import
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Single File Upload */}
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
@@ -540,8 +457,7 @@ export default function ImportPage() {
               </label>
             )}
           </CardContent>
-        </Card>
-      </div>
+      </Card>
 
       {/* Recent Imports */}
       <Card>
