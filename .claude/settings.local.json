@@ -97,7 +97,10 @@
       "mcp__shadcn__list_items_in_registries",
       "Bash(npm install)",
       "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" CONTACTS_API_KEY=\"ok_e50c9041ecbca33bd9b2ae796ebbba0c\" npx tsx scrape-to-db.ts --dry-run --limit=3)",
-      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" CONTACTS_API_KEY=\"ok_e50c9041ecbca33bd9b2ae796ebbba0c\" npx tsx:*)"
+      "Bash(POSTGRES_URL=\"postgresql://neondb_owner:npg_C6dToLlw7qDx@ep-holy-sound-a4l291cj-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require\" CONTACTS_API_KEY=\"ok_e50c9041ecbca33bd9b2ae796ebbba0c\" npx tsx:*)",
+      "Bash(/Users/kylesweezey/cc/painclinics/src/components/admin/blog/migration-progress.tsx )",
+      "Bash(/Users/kylesweezey/cc/painclinics/src/components/admin/blog/migration-results.tsx )",
+      "Bash(/Users/kylesweezey/cc/painclinics/src/components/admin/blog/migration-preview.tsx)"
     ]
   },
   "enableAllProjectMcpServers": true,
