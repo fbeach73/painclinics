@@ -17,7 +17,7 @@ interface OpenClosedStatusProps {
  *
  * Light theme:
  *   - Open: Light green background with green text
- *   - Closed: Solid red background with white text (high contrast)
+ *   - Closed: Solid red background with white text (high contrast for visibility)
  *
  * Dark theme:
  *   - Open: Dark green background with green text
