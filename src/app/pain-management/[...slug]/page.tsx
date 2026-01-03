@@ -41,6 +41,7 @@ import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
 // Revalidate pages every hour to pick up data changes
+// Build version: 2026-01-03-v2 (forces static page regeneration)
 export const revalidate = 3600;
 
 // Check if a slug is a valid US state abbreviation
@@ -670,7 +671,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
             </div>
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
               <Image
-                src={dbClinic.imageFeatured || dbClinic.imageUrl || "/images/clinic-placeholder.png"}
+                src={dbClinic.imageFeatured || dbClinic.imageUrl || "/images/clinic-placeholder.webp"}
                 alt={clinic.name}
                 fill
                 className="object-cover"
