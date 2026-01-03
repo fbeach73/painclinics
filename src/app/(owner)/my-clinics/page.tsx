@@ -115,13 +115,15 @@ export default async function MyClinicsPage() {
                         </span>
                       )}
                     </div>
-                    {clinic.rating && (
+                    {clinic.rating !== null && clinic.rating > 0 && (
                       <div className="flex items-center gap-1 text-sm">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span>{clinic.rating.toFixed(1)}</span>
-                        <span className="text-muted-foreground">
-                          ({clinic.reviewCount} reviews)
-                        </span>
+                        {clinic.reviewCount !== null && clinic.reviewCount > 0 && (
+                          <span className="text-muted-foreground">
+                            ({clinic.reviewCount} reviews)
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

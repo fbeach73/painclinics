@@ -183,7 +183,7 @@ export function CityPainManagementPageContent({
                   </div>
                   {/* Open/Closed Status */}
                   <OpenClosedStatus clinicHours={clinic.clinicHours} className="mb-2" />
-                  {clinic.rating && clinic.rating > 0 && (
+                  {clinic.rating !== null && clinic.rating > 0 && (
                     <div
                       className="flex items-center gap-1 mb-2"
                       itemProp="aggregateRating"
@@ -194,7 +194,7 @@ export function CityPainManagementPageContent({
                       <span className="text-sm font-medium" itemProp="ratingValue">
                         {clinic.rating.toFixed(1)}
                       </span>
-                      {clinic.reviewCount && clinic.reviewCount > 0 && (
+                      {clinic.reviewCount !== null && clinic.reviewCount > 0 && (
                         <span className="text-sm text-muted-foreground">
                           (<span itemProp="reviewCount">{clinic.reviewCount}</span>{" "}
                           reviews)

@@ -114,13 +114,13 @@ async function SearchResults({ query }: { query: string }) {
                   )}
                 </div>
 
-                {clinic.rating && clinic.rating > 0 && (
+                {clinic.rating !== null && clinic.rating > 0 && (
                   <div className="flex items-center gap-1 mb-2">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     <span className="text-sm font-medium">
                       {clinic.rating.toFixed(1)}
                     </span>
-                    {clinic.reviewCount && clinic.reviewCount > 0 && (
+                    {clinic.reviewCount !== null && clinic.reviewCount > 0 && (
                       <span className="text-sm text-muted-foreground">
                         ({clinic.reviewCount} reviews)
                       </span>
