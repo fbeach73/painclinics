@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+// Build cache buster: 2026-01-03-v1 (forces full static regeneration)
+
 // Blog post redirects from old WordPress URLs (/{slug}) to new Next.js URLs (/blog/{slug})
 const blogRedirects = [
   "abdominal-pain",
