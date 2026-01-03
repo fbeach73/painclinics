@@ -81,12 +81,14 @@ export async function generateStaticParams() {
 
     // Generate paths for all cities with clinics
     const cities = await getAllCitiesWithClinics();
-    const cityParams = cities.map((c) => ({
-      slug: [
-        c.stateAbbreviation!.toLowerCase(),
-        c.city.toLowerCase().replace(/\s+/g, "-"),
-      ],
-    }));
+    const cityParams = cities
+      .filter((c) => c.stateAbbreviation && c.city) // Filter out nulls
+      .map((c) => ({
+        slug: [
+          c.stateAbbreviation!.toLowerCase(),
+          c.city.toLowerCase().replace(/\s+/g, "-"),
+        ],
+      }));
 
     return [...stateParams, ...cityParams];
   } catch (error) {
