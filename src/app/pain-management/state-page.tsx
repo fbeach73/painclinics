@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2 } from "lucide-react";
 import { FeaturedBadge, type FeaturedTier } from "@/components/clinic/featured-badge";
+import { OpenClosedStatus } from "@/components/clinic/open-closed-status";
 import { SearchFeaturedSection } from "@/components/featured";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { transformClinicHours } from "@/lib/clinic-db-to-type";
-import type { ClinicHour } from "@/lib/clinic-transformer";
-import { isCurrentlyOpen } from "@/lib/time-utils";
 import { cn } from "@/lib/utils";
 
 interface ClinicSummary {
@@ -26,42 +23,6 @@ interface ClinicSummary {
   clinicHours: unknown; // JSONB from database
   isFeatured: boolean | null;
   featuredTier: string | null;
-}
-
-/**
- * Component to display open/closed status with colored indicator dot.
- */
-function OpenClosedStatus({ clinicHours }: { clinicHours: unknown }) {
-  const status = useMemo(() => {
-    const hours = transformClinicHours(clinicHours as ClinicHour[] | null);
-    return isCurrentlyOpen(hours);
-  }, [clinicHours]);
-
-  return (
-    <div
-      className={cn(
-        "inline-flex items-center gap-1.5 mb-2 px-2 py-0.5 rounded-full",
-        status.isOpen
-          ? "bg-green-100 dark:bg-green-950/50"
-          : "bg-red-100 dark:bg-red-950/50"
-      )}
-    >
-      <span
-        className={cn(
-          "h-2 w-2 rounded-full flex-shrink-0",
-          status.isOpen ? "bg-green-500" : "bg-red-500"
-        )}
-      />
-      <span
-        className={cn(
-          "text-xs font-medium",
-          status.isOpen ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-        )}
-      >
-        {status.isOpen ? "Open" : "Closed"}
-      </span>
-    </div>
-  );
 }
 
 interface StatePainManagementPageProps {
@@ -198,7 +159,7 @@ export function StatePainManagementPageContent({
                           <FeaturedBadge tier={featuredTier} size="sm" className="flex-shrink-0" />
                         </div>
                         {/* Open/Closed Status */}
-                        <OpenClosedStatus clinicHours={clinic.clinicHours} />
+                        <OpenClosedStatus clinicHours={clinic.clinicHours} className="mb-2" />
                         {clinic.rating && clinic.rating > 0 && (
                           <div className="flex items-center gap-1 mb-2">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
