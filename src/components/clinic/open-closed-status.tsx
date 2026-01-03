@@ -29,40 +29,40 @@ export function OpenClosedStatus({ clinicHours, className }: OpenClosedStatusPro
     return isCurrentlyOpen(hours);
   }, [clinicHours]);
 
-  // For Closed status: Use inline styles to override Tailwind v4's
-  // prefers-color-scheme media query that conflicts with .light class
-  const closedBgStyle = !status.isOpen ? { backgroundColor: 'rgb(220, 38, 38)' } : undefined;
-  const closedDotStyle = !status.isOpen ? { backgroundColor: 'white' } : undefined;
-  const closedTextStyle = !status.isOpen ? { color: 'white' } : undefined;
+  // For Closed status: Use inline styles ONLY (no Tailwind dark: classes)
+  // because Tailwind v4's dark: uses @media prefers-color-scheme which
+  // ignores the .light/.dark class and !important overrides inline styles
+  if (!status.isOpen) {
+    return (
+      <div
+        className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full mb-2", className)}
+        style={{ backgroundColor: 'rgb(220, 38, 38)' }}
+      >
+        <span
+          className="h-2 w-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: 'white' }}
+        />
+        <span
+          className="text-xs font-medium"
+          style={{ color: 'white' }}
+        >
+          Closed
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
       className={cn(
         "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full",
-        status.isOpen
-          ? "bg-green-100 dark:bg-green-950/50"
-          : "dark:!bg-red-950/50",
+        "bg-green-100 dark:bg-green-950/50",
         className
       )}
-      style={closedBgStyle}
     >
-      <span
-        className={cn(
-          "h-2 w-2 rounded-full flex-shrink-0",
-          status.isOpen ? "bg-green-500" : "dark:!bg-red-500"
-        )}
-        style={closedDotStyle}
-      />
-      <span
-        className={cn(
-          "text-xs font-medium",
-          status.isOpen
-            ? "text-green-600 dark:text-green-400"
-            : "dark:!text-red-400"
-        )}
-        style={closedTextStyle}
-      >
-        {status.isOpen ? "Open" : "Closed"}
+      <span className="h-2 w-2 rounded-full flex-shrink-0 bg-green-500" />
+      <span className="text-xs font-medium text-green-600 dark:text-green-400">
+        Open
       </span>
     </div>
   );
