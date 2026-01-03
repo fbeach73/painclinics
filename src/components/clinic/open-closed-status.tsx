@@ -29,29 +29,38 @@ export function OpenClosedStatus({ clinicHours, className }: OpenClosedStatusPro
     return isCurrentlyOpen(hours);
   }, [clinicHours]);
 
+  // For Closed status: Use inline styles to override Tailwind v4's
+  // prefers-color-scheme media query that conflicts with .light class
+  const closedBgStyle = !status.isOpen ? { backgroundColor: 'rgb(220, 38, 38)' } : undefined;
+  const closedDotStyle = !status.isOpen ? { backgroundColor: 'white' } : undefined;
+  const closedTextStyle = !status.isOpen ? { color: 'white' } : undefined;
+
   return (
     <div
       className={cn(
         "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full",
         status.isOpen
           ? "bg-green-100 dark:bg-green-950/50"
-          : "bg-red-600 dark:bg-red-950/50",
+          : "dark:!bg-red-950/50",
         className
       )}
+      style={closedBgStyle}
     >
       <span
         className={cn(
           "h-2 w-2 rounded-full flex-shrink-0",
-          status.isOpen ? "bg-green-500" : "bg-white dark:bg-red-500"
+          status.isOpen ? "bg-green-500" : "dark:!bg-red-500"
         )}
+        style={closedDotStyle}
       />
       <span
         className={cn(
           "text-xs font-medium",
           status.isOpen
             ? "text-green-600 dark:text-green-400"
-            : "text-white dark:text-red-400"
+            : "dark:!text-red-400"
         )}
+        style={closedTextStyle}
       >
         {status.isOpen ? "Open" : "Closed"}
       </span>
