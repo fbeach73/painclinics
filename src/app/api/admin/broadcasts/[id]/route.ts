@@ -97,6 +97,7 @@ export async function PATCH(
       const validAudiences: TargetAudience[] = [
         "all_with_email",
         "featured_only",
+        "claimed_owners",
         "by_state",
         "by_tier",
         "custom",

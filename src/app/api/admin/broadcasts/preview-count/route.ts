@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const validAudiences: TargetAudience[] = [
       "all_with_email",
       "featured_only",
+      "claimed_owners",
       "by_state",
       "by_tier",
       "custom",
