@@ -94,6 +94,7 @@ export const broadcastStatusEnum = pgEnum("broadcast_status", [
 export const targetAudienceEnum = pgEnum("target_audience", [
   "all_with_email",
   "featured_only",
+  "claimed_owners",
   "by_state",
   "by_tier",
   "custom",

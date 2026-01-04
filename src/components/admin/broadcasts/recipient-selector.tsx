@@ -297,6 +297,16 @@ export function RecipientSelector({
           </div>
 
           <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
+            <RadioGroupItem value="claimed_owners" id="claimed_owners" />
+            <Label htmlFor="claimed_owners" className="flex-1 cursor-pointer">
+              <div className="font-medium">Claimed clinic owners (non-subscribers)</div>
+              <div className="text-sm text-muted-foreground">
+                Users who claimed a listing but haven&apos;t subscribed yet
+              </div>
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
             <RadioGroupItem value="by_state" id="by_state" />
             <Label htmlFor="by_state" className="flex-1 cursor-pointer">
               <div className="font-medium">By state</div>

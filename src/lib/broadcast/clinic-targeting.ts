@@ -62,6 +62,11 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       conditions.push(eq(clinics.isFeatured, true));
       break;
 
+    case "claimed_owners":
+      // Target clinics that have been claimed (have an owner) but are NOT paying subscribers
+      // Perfect for upselling free users to paid memberships
+      return getClaimedNonSubscriberClinics(filters);
+
     case "by_state":
       if (filters?.states && filters.states.length > 0) {
         conditions.push(inArray(clinics.stateAbbreviation, filters.states));
@@ -343,4 +348,127 @@ async function getSubscriberClinics(
   }
 
   return targetClinics;
+}
+
+/**
+ * Get clinics that have been claimed (have an owner) but do NOT have active subscriptions
+ * These are free users who could be upsold to paid memberships
+ */
+async function getClaimedNonSubscriberClinics(
+  filters?: TargetFilters
+): Promise<ClinicEmail[]> {
+  // Get clinic IDs that have active subscriptions (to exclude them)
+  const activeSubscriptions = await db
+    .select({ clinicId: featuredSubscriptions.clinicId })
+    .from(featuredSubscriptions)
+    .where(eq(featuredSubscriptions.status, "active"));
+
+  const activeSubscriberIds = new Set(activeSubscriptions.map((s) => s.clinicId));
+
+  // Query clinics that:
+  // 1. Have an owner (claimed and approved)
+  // 2. Are published
+  // 3. Have email
+  const result = await db
+    .select({
+      clinicId: clinics.id,
+      clinicName: clinics.title,
+      emails: clinics.emails,
+      ownerUserId: clinics.ownerUserId,
+      permalink: clinics.permalink,
+      city: clinics.city,
+      state: clinics.state,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      website: clinics.website,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+    })
+    .from(clinics)
+    .where(
+      and(
+        eq(clinics.status, "published"),
+        isNotNull(clinics.emails),
+        isNotNull(clinics.ownerUserId), // Must have an owner (claimed)
+        sql`array_length(${clinics.emails}, 1) > 0`
+      )
+    );
+
+  // Filter out active subscribers and process results
+  let targetClinics: ClinicEmail[] = result
+    .filter((c) => {
+      // Must have email
+      if (!c.emails || c.emails.length === 0 || !c.emails[0]) return false;
+      // Must NOT be an active subscriber
+      if (activeSubscriberIds.has(c.clinicId)) return false;
+      return true;
+    })
+    .map((c) => ({
+      clinicId: c.clinicId,
+      clinicName: c.clinicName,
+      email: c.emails![0] as string,
+      ownerUserId: c.ownerUserId,
+      permalink: c.permalink,
+      city: c.city,
+      state: c.state,
+      stateAbbreviation: c.stateAbbreviation,
+      streetAddress: c.streetAddress,
+      postalCode: c.postalCode,
+      phone: c.phone,
+      website: c.website,
+      rating: c.rating,
+      reviewCount: c.reviewCount,
+      isFeatured: c.isFeatured,
+      featuredTier: c.featuredTier,
+    }));
+
+  // Exclude unsubscribed users if requested
+  if (filters?.excludeUnsubscribed) {
+    const unsubscribedUsers = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(isNotNull(user.emailUnsubscribedAt));
+
+    const unsubscribedIds = new Set(unsubscribedUsers.map((u) => u.id));
+
+    targetClinics = targetClinics.filter(
+      (c) => !c.ownerUserId || !unsubscribedIds.has(c.ownerUserId)
+    );
+  }
+
+  return targetClinics;
+}
+
+/**
+ * Get count of claimed clinic owners who are NOT active subscribers
+ */
+export async function getClaimedNonSubscriberCount(): Promise<number> {
+  // Get clinic IDs that have active subscriptions
+  const activeSubscriptions = await db
+    .select({ clinicId: featuredSubscriptions.clinicId })
+    .from(featuredSubscriptions)
+    .where(eq(featuredSubscriptions.status, "active"));
+
+  const activeSubscriberIds = new Set(activeSubscriptions.map((s) => s.clinicId));
+
+  // Count clinics with owners that aren't active subscribers
+  const result = await db
+    .select({ id: clinics.id })
+    .from(clinics)
+    .where(
+      and(
+        eq(clinics.status, "published"),
+        isNotNull(clinics.emails),
+        isNotNull(clinics.ownerUserId),
+        sql`array_length(${clinics.emails}, 1) > 0`
+      )
+    );
+
+  // Filter out active subscribers
+  const count = result.filter((c) => !activeSubscriberIds.has(c.id)).length;
+  return count;
 }
