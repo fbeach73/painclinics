@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, inArray, sql, SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { clinics, user } from "@/lib/schema";
+import { clinics, user, featuredSubscriptions } from "@/lib/schema";
 import type { TargetAudience, TargetFilters } from "./broadcast-queries";
 
 // ============================================
@@ -69,12 +69,12 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       break;
 
     case "by_tier":
+      // by_tier now targets ACTIVE SUBSCRIBERS, not just featured_tier on clinic
+      // This requires a separate query with JOIN to featured_subscriptions
       if (filters?.tiers && filters.tiers.length > 0) {
-        // Cast tiers to the enum type
-        const tierValues = filters.tiers as ("none" | "basic" | "premium")[];
-        conditions.push(inArray(clinics.featuredTier, tierValues));
+        return getSubscriberClinics(filters.tiers as ("basic" | "premium")[], filters);
       }
-      break;
+      return [];  // No tiers selected = no results
 
     case "custom":
       // Apply both state and tier filters if present
@@ -235,29 +235,112 @@ export async function getClinicCountsByState(): Promise<Record<string, number>> 
 }
 
 /**
- * Get clinic counts by featured tier
+ * Get clinic counts by ACTIVE SUBSCRIPTION tier (not featured_tier)
+ * This counts clinics with active Stripe subscriptions
  */
 export async function getClinicCountsByTier(): Promise<Record<string, number>> {
   const result = await db
     .select({
-      tier: clinics.featuredTier,
-      count: sql<number>`count(*)::int`,
+      tier: featuredSubscriptions.tier,
+      count: sql<number>`count(DISTINCT ${clinics.id})::int`,
     })
-    .from(clinics)
+    .from(featuredSubscriptions)
+    .innerJoin(clinics, eq(featuredSubscriptions.clinicId, clinics.id))
     .where(
       and(
+        eq(featuredSubscriptions.status, "active"),
         eq(clinics.status, "published"),
         isNotNull(clinics.emails),
         sql`array_length(${clinics.emails}, 1) > 0`
       )
     )
-    .groupBy(clinics.featuredTier);
+    .groupBy(featuredSubscriptions.tier);
 
   const counts: Record<string, number> = {};
   for (const row of result) {
-    if (row.tier) {
+    if (row.tier && row.tier !== "none") {
       counts[row.tier] = row.count;
     }
   }
   return counts;
+}
+
+/**
+ * Get clinics with ACTIVE SUBSCRIPTIONS for the given tiers
+ * Used by "by_tier" targeting to reach actual paying subscribers
+ */
+async function getSubscriberClinics(
+  tiers: ("basic" | "premium")[],
+  filters?: TargetFilters
+): Promise<ClinicEmail[]> {
+  // Query clinics that have active subscriptions with matching tiers
+  const result = await db
+    .select({
+      clinicId: clinics.id,
+      clinicName: clinics.title,
+      emails: clinics.emails,
+      ownerUserId: clinics.ownerUserId,
+      permalink: clinics.permalink,
+      city: clinics.city,
+      state: clinics.state,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      website: clinics.website,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+      subscriptionTier: featuredSubscriptions.tier,
+    })
+    .from(featuredSubscriptions)
+    .innerJoin(clinics, eq(featuredSubscriptions.clinicId, clinics.id))
+    .where(
+      and(
+        eq(featuredSubscriptions.status, "active"),
+        inArray(featuredSubscriptions.tier, tiers),
+        eq(clinics.status, "published"),
+        isNotNull(clinics.emails),
+        sql`array_length(${clinics.emails}, 1) > 0`
+      )
+    );
+
+  // Process results
+  let targetClinics: ClinicEmail[] = result
+    .filter((c) => c.emails && c.emails.length > 0 && c.emails[0])
+    .map((c) => ({
+      clinicId: c.clinicId,
+      clinicName: c.clinicName,
+      email: c.emails![0] as string,
+      ownerUserId: c.ownerUserId,
+      permalink: c.permalink,
+      city: c.city,
+      state: c.state,
+      stateAbbreviation: c.stateAbbreviation,
+      streetAddress: c.streetAddress,
+      postalCode: c.postalCode,
+      phone: c.phone,
+      website: c.website,
+      rating: c.rating,
+      reviewCount: c.reviewCount,
+      isFeatured: c.isFeatured,
+      featuredTier: c.featuredTier,
+    }));
+
+  // Exclude unsubscribed users if requested
+  if (filters?.excludeUnsubscribed) {
+    const unsubscribedUsers = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(isNotNull(user.emailUnsubscribedAt));
+
+    const unsubscribedIds = new Set(unsubscribedUsers.map((u) => u.id));
+
+    targetClinics = targetClinics.filter(
+      (c) => !c.ownerUserId || !unsubscribedIds.has(c.ownerUserId)
+    );
+  }
+
+  return targetClinics;
 }
