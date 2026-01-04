@@ -227,6 +227,30 @@ export async function incrementFailedCount(id: string): Promise<void> {
 }
 
 /**
+ * Increment opened count (called from webhook)
+ */
+export async function incrementOpenedCount(id: string): Promise<void> {
+  const broadcast = await getBroadcast(id);
+  if (broadcast) {
+    await updateBroadcast(id, {
+      openedCount: (broadcast.openedCount || 0) + 1,
+    });
+  }
+}
+
+/**
+ * Increment clicked count (called from webhook)
+ */
+export async function incrementClickedCount(id: string): Promise<void> {
+  const broadcast = await getBroadcast(id);
+  if (broadcast) {
+    await updateBroadcast(id, {
+      clickedCount: (broadcast.clickedCount || 0) + 1,
+    });
+  }
+}
+
+/**
  * Get broadcast counts by status
  */
 export async function getBroadcastCountsByStatus(): Promise<{
