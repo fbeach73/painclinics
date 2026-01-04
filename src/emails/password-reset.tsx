@@ -15,7 +15,7 @@ export function PasswordReset({
 }: PasswordResetProps) {
   return (
     <EmailLayout
-      previewText="Reset your Pain Clinics Directory password"
+      previewText="Reset your Painclinics.com Listings password"
     >
       <Text style={headingStyle}>Reset Your Password</Text>
 
@@ -62,7 +62,7 @@ export function PasswordReset({
       <Text style={signatureStyle}>
         Stay secure,
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

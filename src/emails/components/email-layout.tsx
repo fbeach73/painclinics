@@ -40,7 +40,7 @@ export function EmailLayout({
           <Hr style={hrStyle} />
           <Section style={footerStyle}>
             <Text style={footerTextStyle}>
-              Pain Clinics Directory
+              Painclinics.com Listings
               <br />
               Connecting patients with quality pain management care
             </Text>
@@ -50,7 +50,7 @@ export function EmailLayout({
               </Link>
             )}
             <Text style={copyrightStyle}>
-              &copy; {new Date().getFullYear()} Pain Clinics Directory. All
+              &copy; {new Date().getFullYear()} Painclinics.com Listings. All
               rights reserved.
             </Text>
             <Text style={footerNoteStyle}>

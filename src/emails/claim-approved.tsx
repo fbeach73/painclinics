@@ -52,7 +52,7 @@ export function ClaimApproved({
       <Text style={signatureStyle}>
         Congratulations!
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

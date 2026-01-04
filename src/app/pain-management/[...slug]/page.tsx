@@ -66,31 +66,21 @@ interface Props {
   params: Promise<{ slug: string[] }>;
 }
 
-// Generate static params for state and city pages at build time
+// Generate static params for state pages only at build time
+// City and clinic pages are generated on-demand with ISR (revalidate = 3600)
+// This keeps build times fast while still benefiting from caching
 export async function generateStaticParams() {
   try {
-    const { getAllStatesWithClinics, getAllCitiesWithClinics } = await import(
-      "@/lib/clinic-queries"
-    );
+    const { getAllStatesWithClinics } = await import("@/lib/clinic-queries");
     const states = await getAllStatesWithClinics();
 
-    // Generate paths for all states with clinics
+    // Only generate paths for state pages (~50 pages)
+    // City pages (hundreds) are generated on-demand to avoid build timeouts
     const stateParams = states.map((state) => ({
       slug: [state.toLowerCase()],
     }));
 
-    // Generate paths for all cities with clinics
-    const cities = await getAllCitiesWithClinics();
-    const cityParams = cities
-      .filter((c) => c.stateAbbreviation && c.city) // Filter out nulls
-      .map((c) => ({
-        slug: [
-          c.stateAbbreviation!.toLowerCase(),
-          c.city.toLowerCase().replace(/\s+/g, "-"),
-        ],
-      }));
-
-    return [...stateParams, ...cityParams];
+    return stateParams;
   } catch (error) {
     // If database is unavailable (e.g., in CI), return empty array
     // Pages will be generated on-demand at runtime instead

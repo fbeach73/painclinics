@@ -115,18 +115,18 @@ export function BroadcastEmail({
           <Hr style={hrStyle} />
           <Section style={footerStyle}>
             <Text style={footerTextStyle}>
-              Pain Clinics Directory
+              Painclinics.com Listings
               <br />
               Connecting patients with quality pain management care
             </Text>
             <Text style={unsubscribeTextStyle}>
-              You&apos;re receiving this because your clinic is listed on Pain Clinics Directory.
+              You&apos;re receiving this because your clinic is listed on Painclinics.com Listings.
             </Text>
             <Link href={unsubscribeUrl} style={unsubscribeLinkStyle}>
               Unsubscribe from marketing emails
             </Link>
             <Text style={copyrightStyle}>
-              &copy; {new Date().getFullYear()} Pain Clinics Directory. All
+              &copy; {new Date().getFullYear()} Painclinics.com Listings. All
               rights reserved.
             </Text>
           </Section>

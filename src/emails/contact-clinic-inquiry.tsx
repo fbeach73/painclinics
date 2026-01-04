@@ -94,14 +94,14 @@ export function ContactClinicInquiry({
       <Hr style={hrStyle} />
 
       <Text style={footerNoteStyle}>
-        This inquiry was submitted on {submittedAt} through Pain Clinics Directory.
+        This inquiry was submitted on {submittedAt} through Painclinics.com Listings.
         Please respond to the patient within 24-48 hours for best results.
       </Text>
 
       <Text style={signatureStyle}>
         Best regards,
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

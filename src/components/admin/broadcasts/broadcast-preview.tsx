@@ -38,7 +38,7 @@ export function BroadcastPreview({
       ${htmlContent}
       <hr style="margin-top: 32px; border: none; border-top: 1px solid #eee;" />
       <p style="font-size: 12px; color: #666; margin-top: 16px;">
-        You're receiving this because your clinic is listed on Pain Clinics Directory.
+        You're receiving this because your clinic is listed on Painclinics.com Listings.
         <br />
         <a href="#" style="color: #666;">Unsubscribe</a>
       </p>
@@ -78,7 +78,7 @@ export function BroadcastPreview({
           <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground font-medium w-20">From:</span>
-              <span>Pain Clinics Directory &lt;hello@painclinics.com&gt;</span>
+              <span>Painclinics.com Listings &lt;hello@painclinics.com&gt;</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground font-medium w-20">To:</span>

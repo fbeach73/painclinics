@@ -76,7 +76,7 @@ export function SubscriptionCanceled({
       <Text style={signatureStyle}>
         Thank you for being a valued member,
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

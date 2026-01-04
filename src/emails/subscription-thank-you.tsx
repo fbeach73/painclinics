@@ -21,13 +21,13 @@ export function SubscriptionThankYou({
 
   return (
     <EmailLayout
-      previewText={`Thank You for Subscribing! - Pain Clinics Directory`}
+      previewText={`Thank You for Subscribing! - Painclinics.com Listings`}
       {...(unsubscribeUrl ? { unsubscribeUrl } : {})}
     >
       <Text style={headingStyle}>Thank You for Subscribing!</Text>
 
       <Text style={paragraphStyle}>
-        We truly appreciate your trust in Pain Clinics Directory. Your{" "}
+        We truly appreciate your trust in Painclinics.com Listings. Your{" "}
         <strong>{tierLabel}</strong> subscription for <strong>{clinicName}</strong> is
         now active, and your listing is already getting enhanced visibility.
       </Text>
@@ -63,7 +63,7 @@ export function SubscriptionThankYou({
       <Text style={signatureStyle}>
         Warm regards,
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

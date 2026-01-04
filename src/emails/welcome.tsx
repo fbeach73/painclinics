@@ -19,17 +19,17 @@ export function Welcome({
 
   return (
     <EmailLayout
-      previewText="Welcome to Pain Clinics Directory!"
+      previewText="Welcome to Painclinics.com Listings!"
       {...(unsubscribeUrl ? { unsubscribeUrl } : {})}
     >
-      <Text style={headingStyle}>Welcome to Pain Clinics Directory!</Text>
+      <Text style={headingStyle}>Welcome to Painclinics.com Listings!</Text>
 
       <Text style={paragraphStyle}>
         Hi {userName},
       </Text>
 
       <Text style={paragraphStyle}>
-        Thank you for joining Pain Clinics Directory! We&apos;re excited to have
+        Thank you for joining Painclinics.com Listings! We&apos;re excited to have
         you as part of our community dedicated to connecting patients with
         quality pain management care.
       </Text>
@@ -74,7 +74,7 @@ export function Welcome({
       <Text style={signatureStyle}>
         Welcome aboard!
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

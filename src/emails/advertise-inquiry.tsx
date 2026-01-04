@@ -64,7 +64,7 @@ export function AdvertiseInquiry({
       <Text style={signatureStyle}>
         Best regards,
         <br />
-        Pain Clinics Directory
+        Painclinics.com Listings
       </Text>
     </EmailLayout>
   );

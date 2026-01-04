@@ -50,7 +50,7 @@ export function ClaimVerification({
       <Text style={signatureStyle}>
         Best regards,
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

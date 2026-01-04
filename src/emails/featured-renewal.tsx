@@ -66,7 +66,7 @@ export function FeaturedRenewal({
       <Text style={signatureStyle}>
         Thank you for your business!
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );

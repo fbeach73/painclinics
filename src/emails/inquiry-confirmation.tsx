@@ -23,7 +23,7 @@ export function InquiryConfirmation({
     <EmailLayout previewText={`Your inquiry to ${clinicName} has been received`}>
       <Section style={logoContainerStyle}>
         <Text style={medicalIconStyle}>⚕️</Text>
-        <Text style={brandTextStyle}>Pain Clinics Directory</Text>
+        <Text style={brandTextStyle}>Painclinics.com Listings</Text>
       </Section>
 
       <Text style={headingStyle}>We Received Your Inquiry!</Text>
@@ -31,7 +31,7 @@ export function InquiryConfirmation({
       <Text style={paragraphStyle}>Hi {patientName},</Text>
 
       <Text style={paragraphStyle}>
-        Thank you for reaching out through Pain Clinics Directory. Your inquiry
+        Thank you for reaching out through Painclinics.com Listings. Your inquiry
         has been successfully submitted to{" "}
         <strong>
           {clinicName}
@@ -73,7 +73,7 @@ export function InquiryConfirmation({
       <Text style={signatureStyle}>
         Wishing you well on your journey to better pain management,
         <br />
-        <strong>The Pain Clinics Directory Team</strong>
+        <strong>The Painclinics.com Listings Team</strong>
       </Text>
     </EmailLayout>
   );

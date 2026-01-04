@@ -83,14 +83,14 @@ export function FeaturedWelcome({
       </EmailCard>
 
       <Text style={paragraphStyle}>
-        Thank you for choosing Pain Clinics Directory to grow your practice.
+        Thank you for choosing Painclinics.com Listings to grow your practice.
         If you have any questions, our support team is here to help.
       </Text>
 
       <Text style={signatureStyle}>
         Best regards,
         <br />
-        The Pain Clinics Directory Team
+        The Painclinics.com Listings Team
       </Text>
     </EmailLayout>
   );
