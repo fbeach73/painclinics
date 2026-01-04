@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut, Settings, Building2 } from "lucide-react";
+import { User, LogOut, Settings, Building2, LayoutDashboard, FileCheck } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -88,18 +88,32 @@ export function UserProfile() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
+          <Link href="/dashboard" className="flex items-center">
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link href="/profile" className="flex items-center">
             <User className="mr-2 h-4 w-4" />
             Your Profile
           </Link>
         </DropdownMenuItem>
         {isClinicOwner && (
-          <DropdownMenuItem asChild>
-            <Link href="/my-clinics" className="flex items-center">
-              <Building2 className="mr-2 h-4 w-4" />
-              My Clinics
-            </Link>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/my-clinics" className="flex items-center">
+                <Building2 className="mr-2 h-4 w-4" />
+                My Clinics
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/my-clinics/claims" className="flex items-center">
+                <FileCheck className="mr-2 h-4 w-4" />
+                Claim Status
+              </Link>
+            </DropdownMenuItem>
+          </>
         )}
         {isAdmin && (
           <>

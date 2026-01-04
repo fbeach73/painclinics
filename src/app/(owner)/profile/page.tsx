@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Mail, Calendar, Shield, ArrowLeft, Lock, Smartphone } from "lucide-react";
+import { Mail, Calendar, Shield, Lock, Smartphone } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,20 +24,18 @@ import { useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
   const { data: session, isPending } = useSession();
-  const router = useRouter();
   const [securityOpen, setSecurityOpen] = useState(false);
   const [emailPrefsOpen, setEmailPrefsOpen] = useState(false);
 
   if (isPending) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <div>Loading...</div>
       </div>
     );
   }
 
   if (!session) {
-    router.push("/");
     return null;
   }
 
@@ -52,21 +49,15 @@ export default function ProfilePage() {
     : null;
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="flex items-center gap-4 mb-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-        <h1 className="text-3xl font-bold">Your Profile</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences
+        </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-6 max-w-4xl">
         {/* Profile Overview Card */}
         <Card>
           <CardHeader>

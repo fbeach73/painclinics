@@ -1,12 +1,14 @@
 import { OwnerSidebar } from "@/components/owner/owner-sidebar";
-import { requireOwner } from "@/lib/session";
+import { requireAuth } from "@/lib/session";
 
-export default async function OwnerLayout({
+export default async function UserLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireOwner();
+  // Only require authentication, not owner role
+  // Individual pages can add additional role checks if needed
+  await requireAuth();
 
   return (
     <div className="flex min-h-screen">
