@@ -88,7 +88,7 @@ export function OwnerSidebar() {
         </nav>
         <div className="p-4 border-t space-y-1">
           <Link
-            href="/my-clinics"
+            href="/for-clinics"
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950/30 transition-colors"
           >
             <Star className="h-4 w-4 flex-shrink-0" />
@@ -153,7 +153,7 @@ export function OwnerSidebar() {
       {/* Footer */}
       <div className={cn("p-4 border-t space-y-1", isCollapsed && "p-2")}>
         <Link
-          href="/my-clinics"
+          href="/for-clinics"
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-amber-950/30 transition-colors",
             isCollapsed && "justify-center px-2"
