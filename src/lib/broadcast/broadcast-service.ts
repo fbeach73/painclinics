@@ -11,7 +11,7 @@ import {
   type TargetFilters,
   type TargetAudience,
 } from "./broadcast-queries";
-import { getTargetClinics, type ClinicEmail } from "./clinic-targeting";
+import { getTargetClinics, MERGE_TAGS, type ClinicEmail } from "./clinic-targeting";
 
 // ============================================
 // Constants
@@ -73,12 +73,104 @@ async function getOrCreateUnsubscribeToken(userId: string | null): Promise<strin
   return token;
 }
 
+/**
+ * Build full address from clinic data
+ */
+function buildFullAddress(clinic: ClinicEmail): string {
+  const parts = [
+    clinic.streetAddress,
+    clinic.city,
+    clinic.stateAbbreviation || clinic.state,
+    clinic.postalCode,
+  ].filter(Boolean);
+  return parts.join(", ");
+}
+
+/**
+ * Get the base URL for the application
+ */
+function getBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+}
+
+/**
+ * Substitute merge tags in content with actual clinic data
+ */
+export function substituteMergeTags(content: string, clinic: ClinicEmail): string {
+  const baseUrl = getBaseUrl();
+  const clinicUrl = clinic.permalink
+    ? `${baseUrl}/pain-management/${clinic.permalink}`
+    : "";
+  const claimUrl = clinic.permalink
+    ? `${baseUrl}/pain-management/${clinic.permalink}#claim`
+    : "";
+
+  const replacements: Record<string, string> = {
+    "{{clinic_name}}": clinic.clinicName || "",
+    "{{clinic_url}}": clinicUrl,
+    "{{claim_url}}": claimUrl,
+    "{{city}}": clinic.city || "",
+    "{{state}}": clinic.state || "",
+    "{{state_abbr}}": clinic.stateAbbreviation || "",
+    "{{address}}": clinic.streetAddress || "",
+    "{{full_address}}": buildFullAddress(clinic),
+    "{{postal_code}}": clinic.postalCode || "",
+    "{{phone}}": clinic.phone || "",
+    "{{website}}": clinic.website || "",
+    "{{rating}}": clinic.rating?.toFixed(1) || "",
+    "{{review_count}}": clinic.reviewCount?.toString() || "",
+  };
+
+  let result = content;
+  for (const [tag, value] of Object.entries(replacements)) {
+    result = result.replaceAll(tag, value);
+  }
+
+  return result;
+}
+
+/**
+ * Get sample clinic data for preview/test emails
+ */
+export function getSampleClinicData(): ClinicEmail {
+  return {
+    clinicId: "sample-id",
+    clinicName: "Sample Pain Clinic",
+    email: "sample@example.com",
+    ownerUserId: null,
+    permalink: "sample-pain-clinic",
+    city: "Los Angeles",
+    state: "California",
+    stateAbbreviation: "CA",
+    streetAddress: "123 Medical Center Drive",
+    postalCode: "90001",
+    phone: "(555) 123-4567",
+    website: "https://samplepain.com",
+    rating: 4.8,
+    reviewCount: 127,
+    isFeatured: false,
+    featuredTier: null,
+  };
+}
+
+/**
+ * Get merge tag examples for UI display
+ */
+export function getMergeTagExamples(): Array<{ tag: string; label: string; example: string }> {
+  return Object.entries(MERGE_TAGS).map(([key, value]) => ({
+    tag: `{{${key}}}`,
+    label: value.label,
+    example: value.example,
+  }));
+}
+
 // ============================================
 // Main Service Functions
 // ============================================
 
 /**
  * Send a test email for a broadcast
+ * Uses sample clinic data to demonstrate merge tag substitution
  */
 export async function sendTestEmail(
   broadcastId: string,
@@ -89,14 +181,24 @@ export async function sendTestEmail(
     return { success: false, error: "Broadcast not found" };
   }
 
+  // Use sample clinic data to show how merge tags will render
+  const sampleClinic = getSampleClinicData();
+
+  // Substitute merge tags with sample data
+  const personalizedSubject = substituteMergeTags(broadcast.subject, sampleClinic);
+  const personalizedContent = substituteMergeTags(broadcast.htmlContent, sampleClinic);
+  const personalizedPreview = broadcast.previewText
+    ? substituteMergeTags(broadcast.previewText, sampleClinic)
+    : undefined;
+
   // Generate a test unsubscribe URL (won't actually work for unsubscribing)
   const unsubscribeUrl = getUnsubscribeUrl("test-token");
 
   const result = await sendBroadcastEmail({
     to: testEmail,
-    subject: broadcast.subject,
-    htmlContent: broadcast.htmlContent,
-    previewText: broadcast.previewText ?? undefined,
+    subject: personalizedSubject,
+    htmlContent: personalizedContent,
+    previewText: personalizedPreview,
     broadcastId: broadcast.id,
     unsubscribeUrl,
     isTest: true,
@@ -206,6 +308,7 @@ export async function sendBroadcast(broadcastId: string): Promise<SendBroadcastR
 
 /**
  * Send broadcast email to a single clinic
+ * Substitutes merge tags with actual clinic data
  */
 async function sendBroadcastToClinic(
   broadcast: Broadcast,
@@ -215,12 +318,19 @@ async function sendBroadcastToClinic(
   const unsubscribeToken = await getOrCreateUnsubscribeToken(clinic.ownerUserId);
   const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken);
 
+  // Substitute merge tags with actual clinic data
+  const personalizedSubject = substituteMergeTags(broadcast.subject, clinic);
+  const personalizedContent = substituteMergeTags(broadcast.htmlContent, clinic);
+  const personalizedPreview = broadcast.previewText
+    ? substituteMergeTags(broadcast.previewText, clinic)
+    : undefined;
+
   // Send email using the broadcast email helper
   const result = await sendBroadcastEmail({
     to: clinic.email,
-    subject: broadcast.subject,
-    htmlContent: broadcast.htmlContent,
-    previewText: broadcast.previewText ?? undefined,
+    subject: personalizedSubject,
+    htmlContent: personalizedContent,
+    previewText: personalizedPreview,
     broadcastId: broadcast.id,
     clinicId: clinic.clinicId,
     unsubscribeUrl,

@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { TargetAudience, TargetFilters, Broadcast } from "@/lib/broadcast/broadcast-queries";
 import { AttachmentUploader, type Attachment } from "./attachment-uploader";
 import { BroadcastPreview, BroadcastPreviewCard } from "./broadcast-preview";
+import { MergeTagHelper, MergeTagList } from "./merge-tag-helper";
 import { RecipientSelector } from "./recipient-selector";
 import { SendConfirmation } from "./send-confirmation";
 
@@ -494,7 +495,10 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
 
               {/* Email content editor */}
               <div className="space-y-2">
-                <Label>Email Content</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Email Content</Label>
+                  <MergeTagHelper />
+                </div>
                 <TiptapEditor
                   content={formData.htmlContent}
                   onChange={(html) => updateFormData("htmlContent", html)}
@@ -505,6 +509,16 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Personalization */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Personalization</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MergeTagList />
+                </CardContent>
+              </Card>
+
               {/* Attachments */}
               <Card>
                 <CardHeader>
