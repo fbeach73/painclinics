@@ -115,8 +115,8 @@ export function AttachmentUploader({ attachments, onChange }: AttachmentUploader
         const formData = new FormData();
         formData.append("file", file);
 
-        // Use the blog upload endpoint for now (can be replaced with dedicated broadcast upload)
-        const response = await fetch("/api/admin/blog/upload", {
+        // Use the dedicated broadcast upload endpoint
+        const response = await fetch("/api/admin/broadcasts/upload", {
           method: "POST",
           body: formData,
         });

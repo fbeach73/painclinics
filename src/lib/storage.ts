@@ -55,6 +55,8 @@ const ALLOWED_EXTENSIONS = new Set([
   ".txt",
   ".csv",
   ".json",
+  ".doc",
+  ".docx",
 ]);
 
 /**
