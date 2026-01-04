@@ -17,10 +17,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+interface RecipientPreview {
+  clinicName: string;
+  email: string;
+  city?: string;
+  state?: string;
+}
+
 interface SendConfirmationProps {
   broadcastName: string;
   subject: string;
   recipientCount: number;
+  sampleRecipients?: RecipientPreview[];
   onSend: () => Promise<void>;
   onTestSend: (email: string) => Promise<void>;
   disabled?: boolean;
@@ -30,6 +38,7 @@ export function SendConfirmation({
   broadcastName,
   subject,
   recipientCount,
+  sampleRecipients = [],
   onSend,
   onTestSend,
   disabled = false,
@@ -199,6 +208,28 @@ export function SendConfirmation({
               <span className="text-2xl font-bold">{recipientCount.toLocaleString()}</span>
               <span className="text-muted-foreground">recipients</span>
             </div>
+
+            {/* Sample recipients preview */}
+            {sampleRecipients.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Sample recipients ({sampleRecipients.length} of {recipientCount.toLocaleString()}):
+                </p>
+                <div className="space-y-1.5 text-sm bg-muted/50 rounded-lg p-3 max-h-32 overflow-y-auto">
+                  {sampleRecipients.map((r, i) => (
+                    <div key={i} className="flex items-center justify-between gap-2">
+                      <span className="font-medium truncate">{r.clinicName}</span>
+                      <span className="text-muted-foreground text-xs truncate">{r.email}</span>
+                    </div>
+                  ))}
+                  {recipientCount > sampleRecipients.length && (
+                    <p className="text-xs text-muted-foreground pt-1 border-t">
+                      ...and {(recipientCount - sampleRecipients.length).toLocaleString()} more
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {result && (
               <div

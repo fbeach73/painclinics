@@ -83,6 +83,12 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [recipientCount, setRecipientCount] = useState<number>(0);
+  const [sampleRecipients, setSampleRecipients] = useState<Array<{
+    clinicName: string;
+    email: string;
+    city?: string;
+    state?: string;
+  }>>([]);
 
   // Update form data helper
   const updateFormData = useCallback(<K extends keyof BroadcastFormState>(
@@ -131,9 +137,9 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
     return () => clearTimeout(timer);
   }, [broadcast?.id, formData, hasChanges]);
 
-  // Fetch recipient count when targeting changes
+  // Fetch recipient count and sample recipients when targeting changes
   useEffect(() => {
-    const fetchCount = async () => {
+    const fetchRecipients = async () => {
       try {
         const params = new URLSearchParams({ audience: formData.targetAudience });
         if (formData.targetFilters.states?.length) {
@@ -149,15 +155,25 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
           params.set("manualEmails", formData.targetFilters.manualEmails.join(","));
         }
 
-        const res = await fetch(`/api/admin/broadcasts/preview-count?${params}`);
-        const data = await res.json();
-        setRecipientCount(data.count || 0);
+        // Fetch both count and sample recipients in parallel
+        const [countRes, previewRes] = await Promise.all([
+          fetch(`/api/admin/broadcasts/preview-count?${params}`),
+          fetch(`/api/admin/broadcasts/preview-recipients?${params}&limit=5`),
+        ]);
+
+        const countData = await countRes.json();
+        setRecipientCount(countData.count || 0);
+
+        if (previewRes.ok) {
+          const previewData = await previewRes.json();
+          setSampleRecipients(previewData.recipients || []);
+        }
       } catch (error) {
-        console.error("Failed to fetch recipient count:", error);
+        console.error("Failed to fetch recipient data:", error);
       }
     };
 
-    const timer = setTimeout(fetchCount, 300);
+    const timer = setTimeout(fetchRecipients, 300);
     return () => clearTimeout(timer);
   }, [formData.targetAudience, formData.targetFilters]);
 
@@ -424,6 +440,7 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
               broadcastName={formData.name}
               subject={formData.subject}
               recipientCount={recipientCount}
+              sampleRecipients={sampleRecipients}
               onSend={handleSend}
               onTestSend={handleTestSend}
               disabled={!canSend}
