@@ -37,7 +37,7 @@ export default async function MyClinicsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Featured</CardTitle>
-            <Star className="h-4 w-4 text-amber-500" />
+            <Star className="h-4 w-4 text-featured-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.featuredCount}</div>
@@ -92,7 +92,7 @@ export default async function MyClinicsPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-lg">{clinic.title}</h3>
                       {clinic.isFeatured && (
-                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                        <Badge variant="secondary" className="bg-featured text-featured-foreground border-featured-border">
                           <Star className="h-3 w-3 mr-1" />
                           {clinic.featuredTier === "premium" ? "Premium" : "Featured"}
                         </Badge>
@@ -169,7 +169,7 @@ export default async function MyClinicsPage() {
                       clinicId={clinic.id}
                     />
                   ) : (
-                    <Button variant="ghost" size="sm" className="text-amber-600" asChild>
+                    <Button variant="ghost" size="sm" className="text-featured-foreground" asChild>
                       <Link href={`/my-clinics/${clinic.id}/featured`}>
                         <Star className="h-4 w-4 mr-1" />
                         Get Featured

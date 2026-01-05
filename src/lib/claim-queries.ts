@@ -1,4 +1,4 @@
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { db } from "./db";
 import { sendClaimApprovedEmail, sendClaimRejectedEmail } from "./email";
 import { clinicClaims, clinics, user } from "./schema";
@@ -554,7 +554,7 @@ export async function deleteClaims(claimIds: string[]) {
 
   const result = await db
     .delete(clinicClaims)
-    .where(sql`${clinicClaims.id} = ANY(${claimIds})`)
+    .where(inArray(clinicClaims.id, claimIds))
     .returning({ id: clinicClaims.id });
 
   return { deleted: result.length };

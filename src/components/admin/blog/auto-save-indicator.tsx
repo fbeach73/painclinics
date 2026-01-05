@@ -56,7 +56,7 @@ export function AutoSaveIndicator({
         return {
           icon: Cloud,
           text: "Unsaved changes",
-          color: "text-amber-600 dark:text-amber-400",
+          color: "text-featured-foreground",
           animate: false,
         };
       case "error":

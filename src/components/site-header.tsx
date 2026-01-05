@@ -178,7 +178,7 @@ export function SiteHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/for-clinics" className="text-amber-600 dark:text-amber-400">
+                <Link href="/for-clinics" className="text-featured-foreground font-medium">
                   Get Featured
                 </Link>
               </DropdownMenuItem>

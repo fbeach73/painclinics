@@ -173,7 +173,7 @@ export function ClinicFeaturedTab({ clinicId, initialData }: ClinicFeaturedTabPr
               <Label className="text-muted-foreground">Tier</Label>
               <div className="flex items-center gap-2 mt-1">
                 {initialData?.featuredTier === "premium" ? (
-                  <Badge variant="default" className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white">
+                  <Badge variant="default" className="bg-gradient-to-r from-featured-border to-featured-foreground text-featured">
                     <Crown className="h-3 w-3 mr-1" />
                     Premium
                   </Badge>
@@ -272,7 +272,7 @@ export function ClinicFeaturedTab({ clinicId, initialData }: ClinicFeaturedTabPr
                 </SelectItem>
                 <SelectItem value="premium">
                   <div className="flex items-center gap-2">
-                    <Crown className="h-4 w-4 text-amber-500" />
+                    <Crown className="h-4 w-4 text-featured-foreground" />
                     <span>Premium</span>
                   </div>
                 </SelectItem>

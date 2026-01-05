@@ -85,7 +85,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
               <span className="text-sm text-muted-foreground">Plan</span>
               <Badge
                 variant={isPremium ? "default" : "secondary"}
-                className={isPremium ? "bg-amber-500 hover:bg-amber-600" : ""}
+                className={isPremium ? "bg-featured-foreground text-featured hover:bg-featured-border" : ""}
               >
                 {isPremium && <Sparkles className="h-3 w-3 mr-1" />}
                 {tier}

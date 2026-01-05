@@ -165,7 +165,7 @@ export default async function ClinicDetailPage({ params }: PageProps) {
               {featuredInfo?.isFeatured ? (
                 <>
                   {featuredInfo.featuredTier === "premium" ? (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white">
+                    <Badge className="bg-gradient-to-r from-featured-border to-featured-foreground text-featured">
                       <Crown className="h-3 w-3 mr-1" />
                       Premium
                     </Badge>

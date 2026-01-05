@@ -135,7 +135,7 @@ export function PublishSettings({
           </SelectContent>
         </Select>
         {isScheduled && (
-          <p className="text-xs text-amber-600 dark:text-amber-400">
+          <p className="text-xs text-featured-foreground">
             This post is scheduled for future publication
           </p>
         )}

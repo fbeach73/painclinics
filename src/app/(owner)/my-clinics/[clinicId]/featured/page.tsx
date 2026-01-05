@@ -50,7 +50,7 @@ export default async function FeaturedPage({
       {/* Header */}
       <div>
         <div className="flex items-center gap-2">
-          <Star className="h-6 w-6 text-amber-500" />
+          <Star className="h-6 w-6 text-featured-foreground" />
           <h1 className="text-3xl font-bold tracking-tight">Featured Listing</h1>
         </div>
         <p className="text-muted-foreground mt-1">
@@ -79,10 +79,10 @@ export default async function FeaturedPage({
 
       {/* Current Subscription */}
       {hasActiveSubscription && subscriptionData?.subscription && (
-        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30">
+        <Card className="border-featured-border bg-featured">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+              <Star className="h-5 w-5 text-featured-foreground fill-featured-foreground" />
               Current Subscription
             </CardTitle>
           </CardHeader>
@@ -92,7 +92,7 @@ export default async function FeaturedPage({
                 <p className="text-sm text-muted-foreground">Plan</p>
                 <p className="font-medium capitalize flex items-center gap-1">
                   {subscriptionData.subscription.tier === "premium" && (
-                    <Sparkles className="h-4 w-4 text-amber-500" />
+                    <Sparkles className="h-4 w-4 text-featured-foreground" />
                   )}
                   {subscriptionData.subscription.tier}
                 </p>
@@ -136,8 +136,8 @@ export default async function FeaturedPage({
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardContent className="p-4 flex items-start gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-featured">
+                <TrendingUp className="h-5 w-5 text-featured-foreground" />
               </div>
               <div>
                 <h3 className="font-medium">Higher Visibility</h3>

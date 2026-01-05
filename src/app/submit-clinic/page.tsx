@@ -58,12 +58,12 @@ export default function SubmitClinicPage() {
             </AlertDescription>
           </Alert>
 
-          <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
-            <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <AlertTitle className="text-amber-800 dark:text-amber-200">Get Featured</AlertTitle>
-            <AlertDescription className="text-amber-700 dark:text-amber-300">
+          <Alert variant="featured">
+            <Star className="h-4 w-4" />
+            <AlertTitle>Get Featured</AlertTitle>
+            <AlertDescription>
               Stand out with a Featured Listing! Get priority placement, enhanced visibility, and more patient inquiries.{" "}
-              <Link href="/for-clinics" className="underline font-medium hover:text-amber-900 dark:hover:text-amber-100">
+              <Link href="/for-clinics" className="underline font-medium hover:opacity-80">
                 Learn more
               </Link>
             </AlertDescription>

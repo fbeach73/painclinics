@@ -9,6 +9,7 @@ import type { OperatingHours, DayHours } from '@/types/clinic';
 
 interface ClinicHoursProps {
   hours: OperatingHours;
+  timezone?: string | null | undefined;
   className?: string;
 }
 
@@ -35,10 +36,10 @@ function hasHoursData(hours: OperatingHours): boolean {
   });
 }
 
-export function ClinicHours({ hours, className }: ClinicHoursProps) {
+export function ClinicHours({ hours, timezone, className }: ClinicHoursProps) {
   const currentDay = getCurrentDay();
   const hasData = hasHoursData(hours);
-  const { isOpen, statusText } = isCurrentlyOpen(hours);
+  const { isOpen, statusText } = isCurrentlyOpen(hours, timezone);
 
   // If no hours data available, show a simpler card
   if (!hasData) {
@@ -67,10 +68,10 @@ export function ClinicHours({ hours, className }: ClinicHoursProps) {
           <CardTitle>Hours of Operation</CardTitle>
           <div
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full",
+              "flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/30",
               isOpen
-                ? "bg-green-600 dark:bg-green-950/50"
-                : "bg-red-600 dark:bg-red-950/50"
+                ? "bg-green-600 dark:bg-green-800/50"
+                : "bg-red-600 dark:bg-red-800/50"
             )}
           >
             <span

@@ -21,6 +21,7 @@ interface ClinicSummary {
   streetAddress: string | null;
   postalCode: string;
   clinicHours: unknown; // JSONB from database
+  timezone: string | null; // IANA timezone for accurate open/closed status
   isFeatured: boolean | null;
   featuredTier: string | null;
 }
@@ -148,7 +149,7 @@ export function StatePainManagementPageContent({
                         href={`/${clinic.permalink}/`}
                         className={cn(
                           "block p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors",
-                          featuredTier === 'premium' && "border-amber-300 bg-amber-50/30 dark:border-amber-700/50 dark:bg-amber-950/20 ring-1 ring-amber-200/50 dark:ring-amber-800/30",
+                          featuredTier === 'premium' && "border-featured-border bg-featured ring-1 ring-featured-border/50",
                           featuredTier === 'basic' && "border-yellow-200 bg-yellow-50/20 dark:border-yellow-800/50 dark:bg-yellow-950/10"
                         )}
                       >
@@ -159,7 +160,7 @@ export function StatePainManagementPageContent({
                           <FeaturedBadge tier={featuredTier} size="sm" className="flex-shrink-0" />
                         </div>
                         {/* Open/Closed Status */}
-                        <OpenClosedStatus clinicHours={clinic.clinicHours} className="mb-2" />
+                        <OpenClosedStatus clinicHours={clinic.clinicHours} timezone={clinic.timezone} className="mb-2" />
                         {clinic.rating !== null && clinic.rating > 0 && (
                           <div className="flex items-center gap-1 mb-2">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />

@@ -44,10 +44,7 @@ export default async function PhotosManagementPage({
         {tier !== "none" && (
           <Badge
             variant="secondary"
-            className={tier === "premium"
-              ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-            }
+            className="bg-featured text-featured-foreground border-featured-border"
           >
             {currentPhotos.length} / {photoLimit} photos
           </Badge>

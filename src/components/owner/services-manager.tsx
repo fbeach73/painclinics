@@ -310,7 +310,7 @@ export function ServicesManager({
                             {clinicService.service?.name}
                           </span>
                           {clinicService.isFeatured && (
-                            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                            <Badge variant="secondary" className="bg-featured text-featured-foreground border-featured-border">
                               <Star className="h-3 w-3 mr-1" />
                               Featured
                             </Badge>
@@ -334,7 +334,7 @@ export function ServicesManager({
                               <Star
                                 className={`h-4 w-4 ${
                                   clinicService.isFeatured
-                                    ? "fill-amber-400 text-amber-400"
+                                    ? "fill-featured-foreground text-featured-foreground"
                                     : "text-muted-foreground"
                                 }`}
                               />

@@ -70,7 +70,7 @@ function getTierBadge(tier: string) {
   switch (tier) {
     case "premium":
       return (
-        <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0">
+        <Badge className="bg-gradient-to-r from-featured-border to-featured-foreground text-featured border-0">
           <Star className="h-3 w-3 mr-1 fill-current" />
           Premium
         </Badge>

@@ -27,11 +27,11 @@ export function FeaturedSidebarCard({ clinic, className }: FeaturedSidebarCardPr
       <Card
         className={cn(
           'overflow-hidden transition-all duration-200',
-          'border border-yellow-300 dark:border-yellow-600',
-          'hover:shadow-md hover:border-yellow-400 dark:hover:border-yellow-500',
+          'border border-featured-border',
+          'hover:shadow-md hover:border-featured-foreground',
           isPremium
-            ? 'bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-950/20 dark:to-background'
-            : 'bg-yellow-50/30 dark:bg-yellow-950/10',
+            ? 'bg-featured'
+            : 'bg-featured/50',
           className
         )}
       >

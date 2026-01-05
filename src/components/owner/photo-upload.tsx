@@ -289,14 +289,14 @@ export function PhotoUpload({
 
       {/* Limit reached message */}
       {tier !== "none" && remainingSlots <= 0 && (
-        <div className="border rounded-lg p-4 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+        <div className="border rounded-lg p-4 bg-featured border-featured-border">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-featured-foreground mt-0.5" />
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
+              <p className="font-medium text-featured-foreground">
                 Photo limit reached
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">
+              <p className="text-sm text-featured-muted">
                 {tier === "basic"
                   ? "Upgrade to Premium for up to 50 photos"
                   : "Maximum photos reached. Delete some to upload more."}

@@ -49,7 +49,7 @@ export default async function ClinicOverviewPage({
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-bold tracking-tight">{clinic.title}</h1>
             {clinic.isFeatured && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              <Badge variant="secondary" className="bg-featured text-featured-foreground border-featured-border">
                 <Star className="h-3 w-3 mr-1" />
                 {clinic.featuredTier === "premium" ? "Premium" : "Featured"}
               </Badge>
@@ -119,8 +119,8 @@ export default async function ClinicOverviewPage({
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
           <Link href={`/my-clinics/${clinicId}/featured`}>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900">
-                <Star className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-featured">
+                <Star className="h-5 w-5 text-featured-foreground" />
               </div>
               <div>
                 <h3 className="font-medium">Featured</h3>
@@ -372,10 +372,10 @@ export default async function ClinicOverviewPage({
 
       {/* Featured Status */}
       {subscriptionData?.subscription && (
-        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30">
+        <Card className="border-featured-border bg-featured">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
+              <Star className="h-5 w-5 text-featured-foreground" />
               Featured Subscription
             </CardTitle>
           </CardHeader>

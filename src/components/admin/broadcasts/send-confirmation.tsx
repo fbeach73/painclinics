@@ -191,13 +191,13 @@ export function SendConfirmation({
           </TabsContent>
 
           <TabsContent value="send" className="space-y-4 mt-4">
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
-              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-featured border border-featured-border">
+              <AlertTriangle className="h-5 w-5 text-featured-foreground shrink-0" />
               <div>
-                <p className="font-medium text-amber-800 dark:text-amber-200">
+                <p className="font-medium text-featured-foreground">
                   Ready to send?
                 </p>
-                <p className="text-sm text-amber-700 dark:text-amber-300">
+                <p className="text-sm text-featured-muted">
                   This will send the broadcast to all selected recipients. This action cannot be undone.
                 </p>
               </div>

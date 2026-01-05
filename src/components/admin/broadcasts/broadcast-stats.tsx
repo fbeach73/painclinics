@@ -100,7 +100,7 @@ export function BroadcastStats({
         value={openedCount}
         rate={deliveredCount > 0 ? openRate : undefined}
         icon={<Eye className="h-5 w-5" />}
-        colorClass="text-amber-600 dark:text-amber-400"
+        colorClass="text-featured-foreground"
       />
       <StatCard
         label="Clicked"

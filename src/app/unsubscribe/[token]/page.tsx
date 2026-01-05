@@ -79,10 +79,10 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
               : "You have been successfully unsubscribed from Pain Clinics Directory marketing emails."}
           </p>
 
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+          <div className="rounded-lg bg-featured border border-featured-border p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-amber-800 text-left">
+              <AlertCircle className="h-5 w-5 text-featured-foreground mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-featured-foreground text-left">
                 <p className="font-medium mb-1">Important Notice</p>
                 <p>
                   You will still receive essential transactional emails about your account, such as:

@@ -35,8 +35,8 @@ export default async function ClinicAnalyticsPage({
         {/* Upgrade Prompt */}
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center mb-4">
-              <Lock className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+            <div className="mx-auto w-16 h-16 rounded-full bg-featured flex items-center justify-center mb-4">
+              <Lock className="h-8 w-8 text-featured-foreground" />
             </div>
             <CardTitle className="text-2xl">Premium Analytics</CardTitle>
             <CardDescription className="text-base">
@@ -48,30 +48,30 @@ export default async function ClinicAnalyticsPage({
               <h3 className="font-medium text-center">What you get with Premium Analytics:</h3>
               <ul className="space-y-2 max-w-md mx-auto">
                 <li className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
+                  <Star className="h-4 w-4 text-featured-foreground" />
                   <span>Daily page view tracking</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
+                  <Star className="h-4 w-4 text-featured-foreground" />
                   <span>Unique visitor counts</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
+                  <Star className="h-4 w-4 text-featured-foreground" />
                   <span>Traffic source breakdown</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
+                  <Star className="h-4 w-4 text-featured-foreground" />
                   <span>Period-over-period comparison</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
+                  <Star className="h-4 w-4 text-featured-foreground" />
                   <span>Up to 90 days of historical data</span>
                 </li>
               </ul>
             </div>
 
             <div className="flex flex-col items-center gap-3 pt-4">
-              <Button asChild size="lg" className="bg-amber-600 hover:bg-amber-700">
+              <Button asChild size="lg" className="bg-featured-foreground hover:bg-featured-border text-featured">
                 <Link href={`/my-clinics/${clinicId}/featured`}>
                   <Crown className="h-4 w-4 mr-2" />
                   Upgrade to Premium

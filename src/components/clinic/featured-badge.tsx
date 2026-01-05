@@ -36,8 +36,8 @@ export function FeaturedBadge({ tier, size = 'md', animated = false, className }
       className={cn(
         'gap-1 font-semibold',
         isPremium
-          ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 hover:from-amber-500 hover:to-yellow-600 dark:from-amber-500 dark:to-yellow-600 dark:text-amber-950'
-          : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800',
+          ? 'bg-gradient-to-r from-featured-border to-featured-foreground text-featured hover:from-featured-foreground hover:to-featured-border'
+          : 'bg-featured text-featured-foreground border border-featured-border hover:bg-featured-border/20',
         sizeClasses[size],
         animated && 'badge-animate',
         className

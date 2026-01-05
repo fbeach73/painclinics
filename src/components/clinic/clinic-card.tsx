@@ -35,10 +35,10 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
       className={cn(
         'flex flex-col h-full relative',
         isVariantFeatured && 'overflow-hidden',
-        // Featured clinic styling - gold border and subtle background
-        isFeaturedClinic && 'border-2 border-yellow-400 dark:border-yellow-500',
-        isPremiumClinic && 'bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-950/20 dark:to-background shadow-lg shadow-amber-500/10',
-        isFeaturedClinic && !isPremiumClinic && 'bg-yellow-50/30 dark:bg-yellow-950/10',
+        // Featured clinic styling - semantic featured colors
+        isFeaturedClinic && 'border-2 border-featured-border',
+        isPremiumClinic && 'bg-featured shadow-lg',
+        isFeaturedClinic && !isPremiumClinic && 'bg-featured/50',
         className
       )}
     >

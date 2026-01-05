@@ -36,7 +36,7 @@ export function ClinicMarker({
         markerSize,
         isSelected && 'scale-110 ring-2 ring-offset-2',
         isPremium
-          ? 'bg-gradient-to-br from-amber-400 to-yellow-500 ring-yellow-500 shadow-lg shadow-amber-500/30'
+          ? 'bg-gradient-to-br from-featured-border to-featured-foreground ring-featured-border shadow-lg'
           : isBasicFeatured
             ? 'bg-yellow-500 ring-yellow-500'
             : isSelected
@@ -46,7 +46,7 @@ export function ClinicMarker({
       aria-label={isPremium ? 'Premium clinic location' : isFeatured ? 'Featured clinic location' : 'Clinic location'}
     >
       {isPremium ? (
-        <Star className={cn(iconSize, 'text-amber-950 fill-current')} />
+        <Star className={cn(iconSize, 'text-featured fill-current')} />
       ) : (
         <svg
           className={cn(iconSize, isPremium || isBasicFeatured ? 'text-yellow-950' : 'text-primary-foreground')}

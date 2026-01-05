@@ -236,6 +236,7 @@ export const clinics = pgTable(
     clinicHours: jsonb("clinic_hours"),
     closedOn: text("closed_on"),
     popularTimes: jsonb("popular_times"),
+    timezone: text("timezone"), // IANA timezone e.g. "America/New_York", derived from lat/lng
 
     // Content
     content: text("content"),

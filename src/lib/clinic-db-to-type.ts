@@ -56,6 +56,7 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
     ...(email ? { email } : {}),
     ...(website ? { website } : {}),
     hours: transformClinicHours(dbClinic.clinicHours as ClinicHour[] | null),
+    timezone: dbClinic.timezone,
     services,
     insuranceAccepted: [], // Insurance data not stored in current schema
     rating: dbClinic.rating || 0,

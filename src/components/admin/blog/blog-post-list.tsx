@@ -173,7 +173,7 @@ export function BlogPostList({
         return <Badge variant="outline">Archived</Badge>;
       case "scheduled":
         return (
-          <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+          <Badge className="bg-featured text-featured-foreground border-featured-border">
             Scheduled
           </Badge>
         );

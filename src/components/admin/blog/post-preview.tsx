@@ -57,7 +57,7 @@ export function PostPreview({
   return (
     <div className="max-w-4xl mx-auto">
       {/* Preview Banner */}
-      <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-center py-2 px-4 rounded-t-lg text-sm font-medium">
+      <div className="bg-featured text-featured-foreground text-center py-2 px-4 rounded-t-lg text-sm font-medium">
         Preview Mode - This is how your post will appear to readers
       </div>
 

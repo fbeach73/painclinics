@@ -21,8 +21,8 @@ export function SubscriptionStatusBadge({
       className={cn(
         "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all hover:opacity-90",
         isPremium
-          ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-sm"
-          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200",
+          ? "bg-gradient-to-r from-featured-border to-featured-foreground text-featured shadow-sm"
+          : "bg-featured text-featured-foreground border-featured-border",
         className
       )}
     >

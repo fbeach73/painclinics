@@ -77,7 +77,7 @@ function getStatusBadge(recipient: Recipient) {
   }
   if (recipient.openedAt) {
     return (
-      <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+      <Badge variant="secondary" className="bg-featured text-featured-foreground border-featured-border">
         <Eye className="h-3 w-3 mr-1" />
         Opened
       </Badge>

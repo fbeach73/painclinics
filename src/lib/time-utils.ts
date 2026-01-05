@@ -170,13 +170,83 @@ export interface OpenStatus {
 }
 
 /**
+ * Get the current time in a specific timezone.
+ * Returns an object with day of week (0-6), hours (0-23), and minutes (0-59).
+ *
+ * @param timezone - IANA timezone string (e.g., "America/New_York")
+ * @returns Object with dayOfWeek, hours, and minutes in the specified timezone
+ */
+function getCurrentTimeInTimezone(timezone?: string | null): {
+  dayOfWeek: number;
+  hours: number;
+  minutes: number;
+} {
+  const now = new Date();
+
+  if (!timezone) {
+    // Fallback to user's local time if no timezone specified
+    return {
+      dayOfWeek: now.getDay(),
+      hours: now.getHours(),
+      minutes: now.getMinutes(),
+    };
+  }
+
+  try {
+    // Get the current time formatted in the clinic's timezone
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      weekday: "short",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(now);
+    const weekdayPart = parts.find((p) => p.type === "weekday")?.value ?? "";
+    const hourPart = parts.find((p) => p.type === "hour")?.value ?? "0";
+    const minutePart = parts.find((p) => p.type === "minute")?.value ?? "0";
+
+    // Map weekday abbreviation to day number
+    const dayMap: Record<string, number> = {
+      Sun: 0,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
+    };
+
+    return {
+      dayOfWeek: dayMap[weekdayPart] ?? now.getDay(),
+      hours: parseInt(hourPart, 10),
+      minutes: parseInt(minutePart, 10),
+    };
+  } catch {
+    // If timezone is invalid, fall back to local time
+    return {
+      dayOfWeek: now.getDay(),
+      hours: now.getHours(),
+      minutes: now.getMinutes(),
+    };
+  }
+}
+
+/**
  * Determine if a clinic is currently open based on operating hours.
+ * Uses the clinic's timezone to accurately determine local time at the clinic.
  *
  * @param hours - OperatingHours object with hours for each day
+ * @param timezone - IANA timezone string (e.g., "America/New_York"). If not provided, uses user's local time.
  * @returns Object with isOpen boolean and descriptive statusText
  */
-export function isCurrentlyOpen(hours: OperatingHours): OpenStatus {
-  const now = new Date();
+export function isCurrentlyOpen(
+  hours: OperatingHours,
+  timezone?: string | null
+): OpenStatus {
+  const { dayOfWeek, hours: currentHours, minutes } = getCurrentTimeInTimezone(timezone);
+
   const dayNames: (keyof OperatingHours)[] = [
     "sunday",
     "monday",
@@ -186,7 +256,7 @@ export function isCurrentlyOpen(hours: OperatingHours): OpenStatus {
     "friday",
     "saturday",
   ];
-  const currentDay = dayNames[now.getDay()]!;
+  const currentDay = dayNames[dayOfWeek]!;
   const dayHours = hours[currentDay];
 
   if (dayHours.closed) {
@@ -194,12 +264,23 @@ export function isCurrentlyOpen(hours: OperatingHours): OpenStatus {
   }
 
   // Convert current time to HHMM number for comparison
-  const currentTime = now.getHours() * 100 + now.getMinutes();
+  const currentTime = currentHours * 100 + minutes;
 
   // Convert 24-hour time strings (HH:MM) to HHMM numbers
   const openTime = parseInt(dayHours.open.replace(":", ""), 10);
   const closeTime = parseInt(dayHours.close.replace(":", ""), 10);
 
+  // Handle overnight hours (e.g., 9:30 AM - 1:00 AM where close < open)
+  if (closeTime < openTime) {
+    // Overnight: open if current time >= open OR current time < close
+    if (currentTime >= openTime || currentTime < closeTime) {
+      return { isOpen: true, statusText: `Open until ${formatTime(dayHours.close)}` };
+    }
+    // Before opening time
+    return { isOpen: false, statusText: `Opens at ${formatTime(dayHours.open)}` };
+  }
+
+  // Normal hours (e.g., 9:00 AM - 5:00 PM)
   if (currentTime >= openTime && currentTime < closeTime) {
     return { isOpen: true, statusText: `Open until ${formatTime(dayHours.close)}` };
   }

@@ -19,6 +19,40 @@ interface ClinicHeaderProps {
   className?: string;
 }
 
+/**
+ * Get current time in the clinic's timezone.
+ */
+function getCurrentTimeInTimezone(timezone?: string | null): { dayIndex: number; hours: number; minutes: number } {
+  const now = new Date();
+
+  if (!timezone) {
+    return { dayIndex: now.getDay(), hours: now.getHours(), minutes: now.getMinutes() };
+  }
+
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      weekday: "short",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(now);
+    const weekdayPart = parts.find((p) => p.type === "weekday")?.value ?? "";
+    const hourPart = parts.find((p) => p.type === "hour")?.value ?? "0";
+    const minutePart = parts.find((p) => p.type === "minute")?.value ?? "0";
+
+    const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return {
+      dayIndex: dayMap[weekdayPart] ?? now.getDay(),
+      hours: parseInt(hourPart, 10),
+      minutes: parseInt(minutePart, 10),
+    };
+  } catch {
+    return { dayIndex: now.getDay(), hours: now.getHours(), minutes: now.getMinutes() };
+  }
+}
+
 function getNextOpenDay(clinic: Clinic, startDayIndex: number): { dayName: DayName; daysAway: number } | null {
   // Check up to 7 days ahead
   for (let i = 1; i <= 7; i++) {
@@ -34,8 +68,7 @@ function getNextOpenDay(clinic: Clinic, startDayIndex: number): { dayName: DayNa
 }
 
 function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string } {
-  const now = new Date();
-  const currentDayIndex = now.getDay();
+  const { dayIndex: currentDayIndex, hours: currentHours, minutes } = getCurrentTimeInTimezone(clinic.timezone);
   const currentDay = WEEKDAY_INDEX_TO_NAME[currentDayIndex] as DayName;
   const dayHours = clinic.hours[currentDay];
 
@@ -52,10 +85,21 @@ function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string 
     return { isOpen: false, statusText: 'Closed' };
   }
 
-  const currentTime = now.getHours() * 100 + now.getMinutes();
+  const currentTime = currentHours * 100 + minutes;
   const openTime = parseInt(dayHours.open.replace(':', ''), 10);
   const closeTime = parseInt(dayHours.close.replace(':', ''), 10);
 
+  // Handle overnight hours (e.g., 9:30 AM - 1:00 AM where close < open)
+  if (closeTime < openTime) {
+    // Overnight: open if current time >= open OR current time < close
+    if (currentTime >= openTime || currentTime < closeTime) {
+      return { isOpen: true, statusText: `Open until ${formatTime(dayHours.close)}` };
+    }
+    // Before opening time
+    return { isOpen: false, statusText: `Opens at ${formatTime(dayHours.open)}` };
+  }
+
+  // Normal hours
   if (currentTime >= openTime && currentTime < closeTime) {
     return { isOpen: true, statusText: `Open until ${formatTime(dayHours.close)}` };
   }
@@ -127,9 +171,24 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <Badge variant={isOpen ? 'default' : 'secondary'}>
-            {isOpen ? 'Open' : 'Closed'}
-          </Badge>
+          <div
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/30",
+              isOpen
+                ? "bg-green-600 dark:bg-green-800/50"
+                : "bg-red-600 dark:bg-red-800/50"
+            )}
+          >
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full flex-shrink-0",
+                isOpen ? "bg-green-300 dark:bg-green-400" : "bg-red-300 dark:bg-red-400"
+              )}
+            />
+            <span className="text-xs font-medium text-white">
+              {isOpen ? 'Open' : 'Closed'}
+            </span>
+          </div>
           <span className="text-sm text-muted-foreground">{statusText}</span>
         </div>
       </div>

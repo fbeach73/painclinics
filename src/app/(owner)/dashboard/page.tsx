@@ -113,7 +113,7 @@ export default async function DashboardPage() {
                       {clinic.isFeatured && (
                         <Badge
                           variant="secondary"
-                          className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 shrink-0"
+                          className="bg-featured text-featured-foreground border-featured-border shrink-0"
                         >
                           <Star className="h-3 w-3 mr-1" />
                           {clinic.featuredTier === "premium"

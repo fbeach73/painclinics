@@ -70,26 +70,26 @@ export default function BillingTogglePricing({
   return (
     <div className="space-y-6">
       {/* Early Adopter Banner */}
-      <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 dark:border-amber-700">
+      <Card className="border-featured-border bg-featured">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex-shrink-0">
-              <Zap className="h-6 w-6 text-amber-600 fill-amber-600" />
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-featured-border/30 flex-shrink-0">
+              <Zap className="h-6 w-6 text-featured-foreground fill-featured-foreground" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-amber-800 dark:text-amber-200">
+                <h3 className="font-bold text-featured-foreground">
                   Early Adopter Pricing
                 </h3>
                 <Badge className="bg-red-500 text-white hover:bg-red-500">
                   50% OFF
                 </Badge>
               </div>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+              <p className="text-sm text-featured-muted mt-1">
                 Lock in these special launch prices before they go up. This offer won&apos;t last long!
               </p>
             </div>
-            <div className="hidden sm:flex items-center gap-1 text-amber-600 dark:text-amber-400">
+            <div className="hidden sm:flex items-center gap-1 text-featured-foreground">
               <Clock className="h-4 w-4" />
               <span className="text-xs font-medium">Limited Time</span>
             </div>
@@ -127,10 +127,10 @@ export default function BillingTogglePricing({
       {/* Pricing Cards */}
       <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
         {/* Basic Plan */}
-        <Card className={`relative ${hasActiveSubscription && currentTier === "basic" ? "ring-2 ring-amber-400" : ""}`}>
+        <Card className={`relative ${hasActiveSubscription && currentTier === "basic" ? "ring-2 ring-featured-border" : ""}`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
+              <Star className="h-5 w-5 text-featured-foreground" />
               Basic
             </CardTitle>
             <CardDescription>
@@ -198,15 +198,15 @@ export default function BillingTogglePricing({
         </Card>
 
         {/* Premium Plan */}
-        <Card className={`relative ${hasActiveSubscription && currentTier === "premium" ? "ring-2 ring-amber-400" : "border-amber-200 dark:border-amber-700"}`}>
+        <Card className={`relative ${hasActiveSubscription && currentTier === "premium" ? "ring-2 ring-featured-border" : "border-featured-border"}`}>
           <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <Badge className="bg-amber-500 text-white font-bold shadow-md hover:bg-amber-500">
+            <Badge className="bg-featured-foreground text-featured font-bold shadow-md hover:bg-featured-foreground">
               Most Popular
             </Badge>
           </div>
           <CardHeader className="pt-6">
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-amber-500" />
+              <Sparkles className="h-5 w-5 text-featured-foreground" />
               Premium
             </CardTitle>
             <CardDescription>

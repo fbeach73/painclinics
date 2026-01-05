@@ -505,6 +505,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
         streetAddress: clinic.streetAddress,
         postalCode: clinic.postalCode,
         clinicHours: clinic.clinicHours,
+        timezone: clinic.timezone,
         isFeatured: clinic.isFeatured,
         featuredTier: clinic.featuredTier,
       }));
@@ -716,7 +717,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
               </Card>
 
               {/* Hours of Operation */}
-              <ClinicHours hours={clinic.hours} />
+              <ClinicHours hours={clinic.hours} timezone={clinic.timezone} />
 
               {/* Amenities */}
               {clinic.amenities && clinic.amenities.length > 0 && (

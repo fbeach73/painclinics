@@ -91,6 +91,7 @@ export interface Clinic {
   email?: string;
   website?: string;
   hours: OperatingHours;
+  timezone?: string | null; // IANA timezone e.g. "America/New_York"
   services: ServiceType[];
   insuranceAccepted: InsuranceType[];
   rating: number;
