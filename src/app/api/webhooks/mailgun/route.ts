@@ -54,7 +54,44 @@ function extractMessageId(eventData: Record<string, unknown>): string | null {
 
 export async function POST(request: NextRequest) {
   try {
-    // Mailgun sends webhooks as form data
+    const contentType = request.headers.get("content-type") || "";
+
+    // Handle JSON format (modern Mailgun webhooks)
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+
+      // Extract signature from JSON body
+      const signatureData = body.signature as Record<string, string> | undefined;
+      if (signatureData && process.env.MAILGUN_WEBHOOK_SIGNING_KEY) {
+        const timestamp = signatureData.timestamp || "";
+        const token = signatureData.token || "";
+        const signature = signatureData.signature || "";
+        if (timestamp && token && signature && !verifyWebhookSignature(timestamp, token, signature)) {
+          console.error("Invalid Mailgun webhook signature (JSON)");
+          return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+        }
+      }
+
+      // Extract event data from JSON body
+      const eventData = body["event-data"] as Record<string, unknown>;
+      if (!eventData) {
+        console.warn("No event-data in JSON webhook");
+        return NextResponse.json({ received: true });
+      }
+
+      const messageId = extractMessageId(eventData);
+      const event = eventData.event as string;
+
+      if (!messageId) {
+        console.warn("Webhook received without message ID:", event);
+        return NextResponse.json({ received: true });
+      }
+
+      await processEvent(event, messageId, eventData);
+      return NextResponse.json({ received: true });
+    }
+
+    // Handle form data format (legacy Mailgun webhooks)
     const formData = await request.formData();
 
     // Extract signature fields
