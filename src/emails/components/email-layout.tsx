@@ -30,7 +30,7 @@ export function EmailLayout({
         <Container style={containerStyle}>
           {/* Header */}
           <Section style={headerStyle}>
-            <Text style={logoStyle}>Painclinics.com</Text>
+            <Link href="https://painclinics.com" style={logoStyle}>Painclinics.com</Link>
           </Section>
 
           {/* Main Content */}
@@ -91,6 +91,7 @@ const logoStyle: React.CSSProperties = {
   fontSize: "24px",
   fontWeight: "bold",
   margin: 0,
+  textDecoration: "none",
 };
 
 const contentStyle: React.CSSProperties = {
