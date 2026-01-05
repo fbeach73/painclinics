@@ -44,6 +44,9 @@ export function EmailLayout({
               <br />
               Connecting patients with quality pain management care
             </Text>
+            <Link href="https://painclinics.com/for-clinics" style={getFeaturedLinkStyle}>
+              Get Featured - Boost Your Clinic&apos;s Visibility
+            </Link>
             {unsubscribeUrl && (
               <Link href={unsubscribeUrl} style={unsubscribeLinkStyle}>
                 Unsubscribe from marketing emails
@@ -117,6 +120,15 @@ const footerTextStyle: React.CSSProperties = {
   color: "#6b7280",
   lineHeight: "1.6",
   margin: "0 0 12px 0",
+};
+
+const getFeaturedLinkStyle: React.CSSProperties = {
+  display: "block",
+  color: "#d97706",
+  fontSize: "13px",
+  fontWeight: "500",
+  textDecoration: "none",
+  marginBottom: "12px",
 };
 
 const unsubscribeLinkStyle: React.CSSProperties = {

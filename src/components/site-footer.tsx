@@ -25,7 +25,7 @@ const companyLinks = [
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
   { label: "Submit a Clinic", href: "/submit-clinic" },
-  { label: "Advertise With Us", href: "/advertise" },
+  { label: "Advertise With Us", href: "/for-clinics" },
   { label: "FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap-page" },
 ];

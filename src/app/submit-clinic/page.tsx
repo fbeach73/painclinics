@@ -1,5 +1,6 @@
-import { CheckCircle2, ClipboardList, Clock, Mail } from "lucide-react";
+import Link from "next/link";
 import { Metadata } from "next";
+import { CheckCircle2, ClipboardList, Clock, Mail, Star } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubmitClinicForm } from "./submit-clinic-form";
@@ -47,14 +48,27 @@ export default function SubmitClinicPage() {
           </p>
         </div>
 
-        <Alert className="mb-8">
-          <Mail className="h-4 w-4" />
-          <AlertTitle>Free Listing</AlertTitle>
-          <AlertDescription>
-            Basic listings in our directory are completely free. We believe in connecting patients with
-            pain management providers without barriers.
-          </AlertDescription>
-        </Alert>
+        <div className="grid gap-4 md:grid-cols-2 mb-8">
+          <Alert>
+            <Mail className="h-4 w-4" />
+            <AlertTitle>Free Listing</AlertTitle>
+            <AlertDescription>
+              Basic listings in our directory are completely free. We believe in connecting patients with
+              pain management providers without barriers.
+            </AlertDescription>
+          </Alert>
+
+          <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+            <Star className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <AlertTitle className="text-amber-800 dark:text-amber-200">Get Featured</AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-300">
+              Stand out with a Featured Listing! Get priority placement, enhanced visibility, and more patient inquiries.{" "}
+              <Link href="/for-clinics" className="underline font-medium hover:text-amber-900 dark:hover:text-amber-100">
+                Learn more
+              </Link>
+            </AlertDescription>
+          </Alert>
+        </div>
 
         {/* Submission Process */}
         <section className="mb-8">

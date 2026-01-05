@@ -85,18 +85,18 @@ export function SiteHeader() {
           <NavigationMenu className="hidden lg:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link href="/pain-tracking" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/pain-tracking">
                     Pain Tracking
-                  </NavigationMenuLink>
-                </Link>
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link href="/pain-relief-tool" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/pain-relief-tool">
                     Pain Relief Tool
-                  </NavigationMenuLink>
-                </Link>
+                  </Link>
+                </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
@@ -175,6 +175,12 @@ export function SiteHeader() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/treatment-options">Treatment Options</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/for-clinics" className="text-amber-600 dark:text-amber-400">
+                  Get Featured
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
