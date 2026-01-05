@@ -1,59 +1,12 @@
-import Link from "next/link";
-import { Shield, Clock, CheckCircle, XCircle, AlertCircle, Search } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Shield, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { getClaims, getClaimsCountByStatus } from "@/lib/claim-queries";
 import { ClaimsFilterTabs } from "./claims-filter-tabs";
+import { ClaimsTable } from "./claims-table";
 
 interface PageProps {
   searchParams: Promise<{ status?: string }>;
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "pending":
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
-    case "approved":
-      return <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
-    case "rejected":
-      return <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
-    case "expired":
-      return <Badge variant="secondary" className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"><AlertCircle className="h-3 w-3 mr-1" />Expired</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function getRoleLabel(role: string) {
-  switch (role) {
-    case "owner":
-      return "Owner";
-    case "manager":
-      return "Manager";
-    case "authorized_representative":
-      return "Authorized Rep";
-    default:
-      return role;
-  }
 }
 
 export default async function ClaimsPage({ searchParams }: PageProps) {
@@ -105,58 +58,8 @@ export default async function ClaimsPage({ searchParams }: PageProps) {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Clinic</TableHead>
-                    <TableHead>Claimant</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {claimsData.claims.map((claim) => (
-                    <TableRow key={claim.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell>
-                        <Link
-                          href={`/admin/claims/${claim.id}`}
-                          className="font-medium hover:underline block"
-                        >
-                          {claim.clinic.title}
-                        </Link>
-                        <span className="text-sm text-muted-foreground">
-                          {claim.clinic.city}, {claim.clinic.state}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={claim.claimant.image || undefined} />
-                            <AvatarFallback>
-                              {claim.claimant.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{claim.fullName}</div>
-                            <div className="text-sm text-muted-foreground">{claim.businessEmail}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{getRoleLabel(claim.role)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(claim.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(claim.status)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="mt-4">
+              <ClaimsTable claims={claimsData.claims} />
             </div>
           )}
 

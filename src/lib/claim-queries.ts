@@ -538,3 +538,24 @@ export async function getClaimsCountByStatus() {
 
   return counts;
 }
+
+// ============================================
+// Delete Claims (Admin)
+// ============================================
+
+/**
+ * Delete claims by IDs (admin only)
+ * This removes claim records from the database - use for cleanup of old/test data
+ */
+export async function deleteClaims(claimIds: string[]) {
+  if (claimIds.length === 0) {
+    return { deleted: 0 };
+  }
+
+  const result = await db
+    .delete(clinicClaims)
+    .where(sql`${clinicClaims.id} = ANY(${claimIds})`)
+    .returning({ id: clinicClaims.id });
+
+  return { deleted: result.length };
+}

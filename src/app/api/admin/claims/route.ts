@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
-import { getClaims, getClaimsCountByStatus } from "@/lib/claim-queries";
+import { getClaims, getClaimsCountByStatus, deleteClaims } from "@/lib/claim-queries";
 
 /**
  * GET /api/admin/claims
@@ -49,6 +49,60 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching claims:", error);
     return NextResponse.json(
       { error: "Failed to fetch claims" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/admin/claims
+ * Delete claims by IDs (for cleanup of old/test data)
+ *
+ * Body: {
+ *   claimIds: string[]  // Array of claim IDs to delete
+ * }
+ */
+export async function DELETE(request: NextRequest) {
+  const adminCheck = await checkAdminApi();
+  if ("error" in adminCheck) {
+    return adminErrorResponse(adminCheck);
+  }
+
+  try {
+    const body = await request.json();
+    const { claimIds } = body;
+
+    if (!Array.isArray(claimIds) || claimIds.length === 0) {
+      return NextResponse.json(
+        { error: "claimIds must be a non-empty array" },
+        { status: 400 }
+      );
+    }
+
+    // Audit log for claim deletion
+    console.warn("[API] Claims deletion initiated", {
+      claimIds,
+      count: claimIds.length,
+      adminId: adminCheck.user.id,
+    });
+
+    const result = await deleteClaims(claimIds);
+
+    console.warn("[API] Claims deletion completed", {
+      requested: claimIds.length,
+      deleted: result.deleted,
+      adminId: adminCheck.user.id,
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully deleted ${result.deleted} claim(s)`,
+      deleted: result.deleted,
+    });
+  } catch (error) {
+    console.error("Error deleting claims:", error);
+    return NextResponse.json(
+      { error: "Failed to delete claims" },
       { status: 500 }
     );
   }
