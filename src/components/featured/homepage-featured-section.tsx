@@ -44,7 +44,7 @@ export function HomepageFeaturedSection({ className }: HomepageFeaturedSectionPr
       }}
     >
       {/* Fixed min-height container prevents CLS during loading */}
-      <div className="py-12 bg-gradient-to-b from-emerald-50/80 via-teal-50/40 to-transparent dark:from-emerald-950/20 dark:via-teal-950/10 dark:to-transparent min-h-[520px]">
+      <div className="pt-4 pb-12 bg-gradient-to-b from-emerald-50/80 via-teal-50/40 to-transparent dark:from-emerald-950/20 dark:via-teal-950/10 dark:to-transparent min-h-[520px]">
         <div className="container mx-auto px-4">
           {/* Section header with improved contrast */}
           <div className="flex items-center gap-3 mb-2">

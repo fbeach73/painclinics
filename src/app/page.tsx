@@ -44,7 +44,7 @@ export default async function Home() {
       />
       <main className="flex-1">
         {/* Hero Section with Title */}
-        <section className="bg-gradient-to-b from-primary/5 to-background py-12 md:py-16">
+        <section className="bg-gradient-to-b from-primary/5 to-background pt-12 pb-6 md:pt-16 md:pb-8">
           <div className="container mx-auto">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
