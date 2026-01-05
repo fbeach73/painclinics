@@ -595,7 +595,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
       <PageTracker clinicId={clinic.id} />
 
       <main className="flex-1">
-        <div className="container mx-auto py-8 md:py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {/* Edit Listing Button - Client component handles auth check */}
           <ClinicEditButton
             clinicId={clinic.id}
