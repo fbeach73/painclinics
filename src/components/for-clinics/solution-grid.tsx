@@ -46,16 +46,19 @@ const solutions = [
   {
     title: "Premium Visibility",
     description:
-      "Upgrade to get featured placement at the top of search results, homepage features, and priority support.",
+      "Upgrade to get featured placement at the top of search results, homepage features, and priority support. Your listing page goes ad-free and distraction-free, meaning you'll get leads at a much higher rate than traditional listings!",
     icon: <TrendingUp className="h-6 w-6 text-emerald-400" />,
     className: "md:col-span-2",
     header: (
-      <div className="flex h-full min-h-[8rem] w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20">
+      <div className="flex h-full min-h-[8rem] w-full items-center justify-center gap-3 flex-wrap rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 px-4">
         <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-medium border border-emerald-500/30">
           Featured
         </span>
         <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-medium border border-emerald-500/30">
           Top Placement
+        </span>
+        <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-medium border border-emerald-500/30">
+          Ad-Free Page
         </span>
         <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-medium border border-emerald-500/30">
           Priority Support
