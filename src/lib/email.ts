@@ -121,9 +121,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
       ...(bcc && { bcc }),
     });
 
+    // Only update the message ID - status stays "queued" until webhook confirms delivery
     await updateEmailLog(logId, {
       mailgunMessageId: result.id,
-      status: "delivered",
     });
 
     return { success: true, messageId: result.id, logId };

@@ -74,7 +74,8 @@ export async function GET(
 
     const total = countResult[0]?.count || 0;
 
-    // Calculate stats
+    // Calculate stats using timestamps (more accurate than status which can be overwritten)
+    // Count by status for queued, complained, failed
     const statsResult = await db
       .select({
         status: emailLogs.status,
@@ -95,25 +96,31 @@ export async function GET(
       failed: 0,
     };
 
+    // Get status-based counts for queued, complained, failed
     for (const row of statsResult) {
-      if (row.status && row.status in stats) {
-        stats[row.status as keyof typeof stats] = row.count;
+      if (row.status === "queued" || row.status === "complained" || row.status === "failed") {
+        stats[row.status] = row.count;
       }
     }
 
-    // Count opened and clicked separately (from timestamps)
-    const openedResult = await db
-      .select({ count: sql<number>`count(*)::int` })
+    // Count delivered, opened, clicked, bounced by timestamps (more accurate)
+    // An email with deliveredAt is delivered, even if status later changed to "opened"
+    const timestampCounts = await db
+      .select({
+        delivered: sql<number>`count(*) FILTER (WHERE ${emailLogs.deliveredAt} IS NOT NULL)::int`,
+        opened: sql<number>`count(*) FILTER (WHERE ${emailLogs.openedAt} IS NOT NULL)::int`,
+        clicked: sql<number>`count(*) FILTER (WHERE ${emailLogs.clickedAt} IS NOT NULL)::int`,
+        bounced: sql<number>`count(*) FILTER (WHERE ${emailLogs.bouncedAt} IS NOT NULL)::int`,
+      })
       .from(emailLogs)
-      .where(sql`${emailLogs.metadata}->>'broadcastId' = ${id} AND ${emailLogs.openedAt} IS NOT NULL`);
+      .where(sql`${emailLogs.metadata}->>'broadcastId' = ${id}`);
 
-    const clickedResult = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(emailLogs)
-      .where(sql`${emailLogs.metadata}->>'broadcastId' = ${id} AND ${emailLogs.clickedAt} IS NOT NULL`);
-
-    stats.opened = openedResult[0]?.count || 0;
-    stats.clicked = clickedResult[0]?.count || 0;
+    if (timestampCounts[0]) {
+      stats.delivered = timestampCounts[0].delivered;
+      stats.opened = timestampCounts[0].opened;
+      stats.clicked = timestampCounts[0].clicked;
+      stats.bounced = timestampCounts[0].bounced;
+    }
 
     return NextResponse.json({
       recipients,
