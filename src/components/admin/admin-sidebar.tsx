@@ -18,6 +18,7 @@ import {
   Activity,
   Send,
   Users,
+  UserCheck,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/admin/blog", label: "Blog Posts", icon: PenSquare },
   { href: "/admin/claims", label: "Claims", icon: Shield },
   { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin/users", label: "User Activity", icon: UserCheck },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/stats", label: "Site Stats", icon: Activity },

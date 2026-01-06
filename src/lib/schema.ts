@@ -115,6 +115,8 @@ export const user = pgTable(
     unsubscribeToken: text("unsubscribe_token").unique(),
     // Stripe integration
     stripeCustomerId: text("stripe_customer_id"),
+    // Activity tracking
+    lastLoginAt: timestamp("last_login_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

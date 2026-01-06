@@ -201,6 +201,12 @@ export const auth = betterAuth({
     session: {
       create: {
         after: async (session) => {
+          // Update last login timestamp
+          await db
+            .update(schema.user)
+            .set({ lastLoginAt: new Date() })
+            .where(eq(schema.user.id, session.userId))
+
           // Check if user should be promoted to admin on each session creation
           // This handles cases where ADMIN_EMAIL is set after user was created
           const adminEmail = process.env.ADMIN_EMAIL
