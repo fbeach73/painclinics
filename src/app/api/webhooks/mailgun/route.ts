@@ -174,11 +174,15 @@ async function processEvent(
     case "opened":
       updates.status = "opened";
       updates.openedAt = new Date();
+      // If opened, it must have been delivered (Mailgun sometimes skips delivered event)
+      updates.deliveredAt = new Date();
       break;
 
     case "clicked":
       updates.status = "clicked";
       updates.clickedAt = new Date();
+      // If clicked, it must have been delivered (Mailgun sometimes skips delivered event)
+      updates.deliveredAt = new Date();
       break;
 
     case "bounced":

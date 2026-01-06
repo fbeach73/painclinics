@@ -1,6 +1,6 @@
 import { count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { emailBroadcasts } from "@/lib/schema";
+import { emailBroadcasts, emailLogs } from "@/lib/schema";
 
 // ============================================
 // Types
@@ -203,51 +203,55 @@ export async function updateBroadcastStatus(
 }
 
 /**
- * Increment sent count
+ * Increment sent count (atomic to prevent race conditions)
  */
 export async function incrementSentCount(id: string): Promise<void> {
-  const broadcast = await getBroadcast(id);
-  if (broadcast) {
-    await updateBroadcast(id, {
-      sentCount: (broadcast.sentCount || 0) + 1,
-    });
-  }
+  await db
+    .update(emailBroadcasts)
+    .set({
+      sentCount: sql`COALESCE(${emailBroadcasts.sentCount}, 0) + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(emailBroadcasts.id, id));
 }
 
 /**
- * Increment failed count
+ * Increment failed count (atomic to prevent race conditions)
  */
 export async function incrementFailedCount(id: string): Promise<void> {
-  const broadcast = await getBroadcast(id);
-  if (broadcast) {
-    await updateBroadcast(id, {
-      failedCount: (broadcast.failedCount || 0) + 1,
-    });
-  }
+  await db
+    .update(emailBroadcasts)
+    .set({
+      failedCount: sql`COALESCE(${emailBroadcasts.failedCount}, 0) + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(emailBroadcasts.id, id));
 }
 
 /**
- * Increment opened count (called from webhook)
+ * Increment opened count (called from webhook, atomic)
  */
 export async function incrementOpenedCount(id: string): Promise<void> {
-  const broadcast = await getBroadcast(id);
-  if (broadcast) {
-    await updateBroadcast(id, {
-      openedCount: (broadcast.openedCount || 0) + 1,
-    });
-  }
+  await db
+    .update(emailBroadcasts)
+    .set({
+      openedCount: sql`COALESCE(${emailBroadcasts.openedCount}, 0) + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(emailBroadcasts.id, id));
 }
 
 /**
- * Increment clicked count (called from webhook)
+ * Increment clicked count (called from webhook, atomic)
  */
 export async function incrementClickedCount(id: string): Promise<void> {
-  const broadcast = await getBroadcast(id);
-  if (broadcast) {
-    await updateBroadcast(id, {
-      clickedCount: (broadcast.clickedCount || 0) + 1,
-    });
-  }
+  await db
+    .update(emailBroadcasts)
+    .set({
+      clickedCount: sql`COALESCE(${emailBroadcasts.clickedCount}, 0) + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(emailBroadcasts.id, id));
 }
 
 /**
@@ -285,4 +289,57 @@ export async function getBroadcastCountsByStatus(): Promise<{
   }
 
   return counts;
+}
+
+/**
+ * Get email delivery stats for a broadcast from email_logs
+ * Uses timestamps for accurate counts (status can be overwritten by webhooks)
+ */
+export async function getBroadcastEmailStats(broadcastId: string): Promise<{
+  total: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  queued: number;
+  failed: number;
+}> {
+  // Count total and by timestamps for delivered, opened, clicked, bounced
+  const timestampCounts = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      delivered: sql<number>`count(*) FILTER (WHERE ${emailLogs.deliveredAt} IS NOT NULL)::int`,
+      opened: sql<number>`count(*) FILTER (WHERE ${emailLogs.openedAt} IS NOT NULL)::int`,
+      clicked: sql<number>`count(*) FILTER (WHERE ${emailLogs.clickedAt} IS NOT NULL)::int`,
+      bounced: sql<number>`count(*) FILTER (WHERE ${emailLogs.bouncedAt} IS NOT NULL)::int`,
+    })
+    .from(emailLogs)
+    .where(sql`${emailLogs.metadata}->>'broadcastId' = ${broadcastId}`);
+
+  // Count queued and failed by status
+  const statusCounts = await db
+    .select({
+      status: emailLogs.status,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(emailLogs)
+    .where(sql`${emailLogs.metadata}->>'broadcastId' = ${broadcastId}`)
+    .groupBy(emailLogs.status);
+
+  let queued = 0;
+  let failed = 0;
+  for (const row of statusCounts) {
+    if (row.status === "queued") queued = row.count;
+    if (row.status === "failed") failed = row.count;
+  }
+
+  return {
+    total: timestampCounts[0]?.total ?? 0,
+    delivered: timestampCounts[0]?.delivered ?? 0,
+    opened: timestampCounts[0]?.opened ?? 0,
+    clicked: timestampCounts[0]?.clicked ?? 0,
+    bounced: timestampCounts[0]?.bounced ?? 0,
+    queued,
+    failed,
+  };
 }

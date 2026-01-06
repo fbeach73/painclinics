@@ -12,7 +12,7 @@ import { BroadcastStats, BroadcastPreviewCard, BroadcastRecipientList, Broadcast
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getBroadcast } from "@/lib/broadcast/broadcast-queries";
+import { getBroadcast, getBroadcastEmailStats } from "@/lib/broadcast/broadcast-queries";
 import { BroadcastDetailActions } from "./broadcast-detail-actions";
 
 interface PageProps {
@@ -96,6 +96,9 @@ export default async function BroadcastDetailPage({ params }: PageProps) {
   const isComplete = broadcast.status === "completed" || broadcast.status === "failed";
   const duration = formatDuration(broadcast.startedAt, broadcast.completedAt);
   const targetFilters = broadcast.targetFilters as { states?: string[]; tiers?: string[] } | null;
+
+  // Fetch actual email delivery stats from email_logs (only if not draft)
+  const emailStats = !isDraft ? await getBroadcastEmailStats(id) : null;
 
   return (
     <div className="space-y-6">
@@ -188,16 +191,16 @@ export default async function BroadcastDetailPage({ params }: PageProps) {
       </div>
 
       {/* Stats - only show if not draft */}
-      {!isDraft && (
+      {!isDraft && emailStats && (
         <BroadcastStats
           recipientCount={broadcast.recipientCount || 0}
-          sentCount={broadcast.sentCount || 0}
-          failedCount={broadcast.failedCount || 0}
+          sentCount={emailStats.total}
+          failedCount={emailStats.failed + emailStats.bounced}
           status={broadcast.status || "draft"}
-          deliveredCount={0} // These will be fetched by recipient list
-          openedCount={broadcast.openedCount || 0}
-          clickedCount={broadcast.clickedCount || 0}
-          bouncedCount={0}
+          deliveredCount={emailStats.delivered}
+          openedCount={emailStats.opened}
+          clickedCount={emailStats.clicked}
+          bouncedCount={emailStats.bounced}
         />
       )}
 
