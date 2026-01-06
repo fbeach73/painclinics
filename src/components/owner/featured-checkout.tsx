@@ -55,9 +55,15 @@ export default function FeaturedCheckout({
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to start checkout. Please try again."
-      );
+      const errorMessage = error instanceof Error ? error.message : "Failed to start checkout";
+      toast.error(errorMessage);
+      // Also log to console for debugging
+      console.error("Full checkout error details:", {
+        error,
+        clinicId,
+        tier,
+        annual,
+      });
     } finally {
       setIsLoading(false);
     }

@@ -174,6 +174,17 @@ export async function POST(request: NextRequest) {
     // Generate idempotency key to prevent duplicate charges from retries
     const idempotencyKey = `checkout-${clinicId}-${userId}-${Date.now()}`
 
+    // Log for debugging (remove in production once working)
+    console.log("[Checkout] Creating session with:", {
+      priceId,
+      stripeCustomerId,
+      plan: planName,
+      annual,
+      keyType: process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_")
+        ? "LIVE"
+        : "TEST",
+    })
+
     const checkoutSession = await stripe.checkout.sessions.create(
       {
         customer: stripeCustomerId,
@@ -215,7 +226,29 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch (error) {
+    // Detailed error logging for Stripe errors
     console.error("[Checkout] Error creating checkout session:", error)
+
+    // Return more specific error message in development/for debugging
+    if (error instanceof Stripe.errors.StripeError) {
+      console.error("[Checkout] Stripe error details:", {
+        type: error.type,
+        code: error.code,
+        message: error.message,
+        param: error.param,
+      })
+
+      // Return the actual Stripe error for easier debugging
+      return NextResponse.json(
+        {
+          error: `Stripe error: ${error.message}`,
+          code: error.code,
+          type: error.type,
+        },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { error: "Failed to create checkout session" },
       { status: 500 }
