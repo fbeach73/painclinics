@@ -23,6 +23,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
   ];
 
   // Try to get dynamic pages from database
@@ -33,6 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       getAllStatesWithClinics,
       getAllCityPermalinks,
     } = await import("@/lib/clinic-queries");
+    const { getAllBlogPostsForSitemap } = await import("@/lib/blog/blog-queries");
 
     // State landing pages
     const allStates = await getAllStatesWithClinics();
@@ -63,7 +70,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticPages, ...statePages, ...cityPages, ...clinicPages];
+    // Blog post pages
+    const allBlogPosts = await getAllBlogPostsForSitemap();
+    const blogPages: MetadataRoute.Sitemap = allBlogPosts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt || new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+
+    return [...staticPages, ...statePages, ...cityPages, ...clinicPages, ...blogPages];
   } catch (error) {
     console.warn("Sitemap: Database unavailable, returning static pages only:", error);
     return staticPages;

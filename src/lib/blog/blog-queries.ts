@@ -185,6 +185,27 @@ export async function getAllPublishedPostSlugs(): Promise<string[]> {
 }
 
 /**
+ * Get all published blog posts for sitemap generation
+ * Returns slug and updatedAt for each published post
+ */
+export async function getAllBlogPostsForSitemap(): Promise<
+  { slug: string; updatedAt: Date | null }[]
+> {
+  return db
+    .select({
+      slug: schema.blogPosts.slug,
+      updatedAt: schema.blogPosts.updatedAt,
+    })
+    .from(schema.blogPosts)
+    .where(
+      and(
+        eq(schema.blogPosts.status, "published"),
+        sql`(${schema.blogPosts.publishedAt} IS NULL OR ${schema.blogPosts.publishedAt} <= NOW())`
+      )
+    );
+}
+
+/**
  * Get all categories
  */
 export async function getAllCategories() {
