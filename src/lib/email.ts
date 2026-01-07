@@ -837,6 +837,7 @@ export interface SendBroadcastEmailOptions {
   clinicId?: string | undefined;
   unsubscribeUrl: string;
   isTest?: boolean | undefined;
+  bcc?: string | undefined;
 }
 
 export async function sendBroadcastEmail(
@@ -851,6 +852,7 @@ export async function sendBroadcastEmail(
     clinicId,
     unsubscribeUrl,
     isTest = false,
+    bcc,
   } = options;
 
   const props: BroadcastEmailProps = {
@@ -871,5 +873,6 @@ export async function sendBroadcastEmail(
       ...(clinicId && { clinicId }),
       ...(isTest && { isTest: "true" }),
     },
+    ...(bcc && { bcc }),
   });
 }

@@ -137,6 +137,7 @@ export function getSampleClinicData(): ClinicEmail {
     clinicId: "sample-id",
     clinicName: "Sample Pain Clinic",
     email: "sample@example.com",
+    bccEmails: null,
     ownerUserId: null,
     permalink: "sample-pain-clinic",
     city: "Los Angeles",
@@ -326,6 +327,7 @@ async function sendBroadcastToClinic(
     : undefined;
 
   // Send email using the broadcast email helper
+  // BCC additional clinic emails if present
   const result = await sendBroadcastEmail({
     to: clinic.email,
     subject: personalizedSubject,
@@ -334,6 +336,7 @@ async function sendBroadcastToClinic(
     broadcastId: broadcast.id,
     clinicId: clinic.clinicId,
     unsubscribeUrl,
+    bcc: clinic.bccEmails || undefined,
   });
 
   return result.success;

@@ -11,6 +11,7 @@ export interface ClinicEmail {
   clinicId: string;
   clinicName: string;
   email: string;
+  bccEmails: string | null; // Additional emails as comma-separated string for BCC
   ownerUserId: string | null;
   // Additional fields for merge tag personalization
   permalink: string;
@@ -100,6 +101,7 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
           clinicId: "",
           clinicName: "Your Clinic",
           email,
+          bccEmails: null,
           ownerUserId: null,
           permalink: "",
           city: "",
@@ -141,13 +143,14 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
     .from(clinics)
     .where(and(...conditions));
 
-  // Process results to get single email per clinic
+  // Process results to get single email per clinic with additional emails as BCC
   let targetClinics: ClinicEmail[] = result
     .filter((c) => c.emails && c.emails.length > 0 && c.emails[0])
     .map((c) => ({
       clinicId: c.clinicId,
       clinicName: c.clinicName,
       email: c.emails![0] as string,
+      bccEmails: c.emails!.length > 1 ? c.emails!.slice(1).join(",") : null,
       ownerUserId: c.ownerUserId,
       permalink: c.permalink,
       city: c.city,
@@ -311,13 +314,14 @@ async function getSubscriberClinics(
       )
     );
 
-  // Process results
+  // Process results with additional emails as BCC
   let targetClinics: ClinicEmail[] = result
     .filter((c) => c.emails && c.emails.length > 0 && c.emails[0])
     .map((c) => ({
       clinicId: c.clinicId,
       clinicName: c.clinicName,
       email: c.emails![0] as string,
+      bccEmails: c.emails!.length > 1 ? c.emails!.slice(1).join(",") : null,
       ownerUserId: c.ownerUserId,
       permalink: c.permalink,
       city: c.city,
@@ -411,6 +415,7 @@ async function getClaimedNonSubscriberClinics(
       clinicId: c.clinicId,
       clinicName: c.clinicName,
       email: c.emails![0] as string,
+      bccEmails: c.emails!.length > 1 ? c.emails!.slice(1).join(",") : null,
       ownerUserId: c.ownerUserId,
       permalink: c.permalink,
       city: c.city,
