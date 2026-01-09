@@ -15,8 +15,8 @@ import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { ContactClinicButton } from "@/components/clinic/contact-clinic-button";
-import { SearchFeaturedSection } from "@/components/featured/search-featured-section";
-import { EmbeddedMap } from "@/components/map/embedded-map";
+import { LazySearchFeaturedSection } from "@/components/featured/lazy-search-featured-section";
+import { LazyEmbeddedMap } from "@/components/map/lazy-embedded-map";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
@@ -712,7 +712,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <EmbeddedMap clinic={clinic} className="h-[250px]" />
+                  <LazyEmbeddedMap clinic={clinic} className="h-[250px]" />
                 </CardContent>
               </Card>
 
@@ -815,7 +815,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
             )}
 
             {/* Featured Clinics Section - Horizontal carousel below gallery */}
-            <SearchFeaturedSection
+            <LazySearchFeaturedSection
               stateAbbrev={clinic.address.state}
               city={clinic.address.city}
             />
