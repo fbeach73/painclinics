@@ -215,6 +215,41 @@ iframe[name^="google_ads"] {
   max-width: 100% !important;
 }
 
+/*
+ * CLS Prevention for AdSense Auto Ads
+ * Reserve space for common ad formats to prevent layout shift
+ */
+
+/* In-article ads injected by Auto Ads - reserve minimum height */
+.adsbygoogle[data-ad-format="auto"],
+.adsbygoogle[data-ad-format="fluid"] {
+  min-height: 100px;
+  contain: layout style;
+}
+
+/* Anchor/vignette ads - these are overlays and don't cause CLS */
+.adsbygoogle[data-ad-format="autorelaxed"] {
+  contain: layout style;
+}
+
+/* Before ads load, reserve space with aspect ratio for responsive ads */
+ins.adsbygoogle:not([data-ad-status]) {
+  min-height: 90px;
+  display: block;
+}
+
+/* Once ad loads and has content, let it size naturally */
+ins.adsbygoogle[data-ad-status="filled"] {
+  min-height: auto;
+}
+
+/* Unfilled ads should collapse gracefully */
+ins.adsbygoogle[data-ad-status="unfilled"] {
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden;
+}
+
 /* Container padding for proper responsive gutters */
 .container {
   padding-left: 1rem;
