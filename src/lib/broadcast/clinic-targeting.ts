@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, inArray, sql, SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { clinics, user, featuredSubscriptions } from "@/lib/schema";
+import { clinics, user, featuredSubscriptions, emailUnsubscribes } from "@/lib/schema";
 import type { TargetAudience, TargetFilters } from "./broadcast-queries";
 
 // ============================================
@@ -166,20 +166,38 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       featuredTier: c.featuredTier,
     }));
 
-  // Exclude unsubscribed users if requested
+  // Exclude unsubscribed users/emails if requested
   if (filters?.excludeUnsubscribed) {
-    // Get unsubscribed user IDs
+    // Get unsubscribed user IDs (users with accounts who unsubscribed)
     const unsubscribedUsers = await db
       .select({ id: user.id })
       .from(user)
       .where(isNotNull(user.emailUnsubscribedAt));
 
-    const unsubscribedIds = new Set(unsubscribedUsers.map((u) => u.id));
+    const unsubscribedUserIds = new Set(unsubscribedUsers.map((u) => u.id));
 
-    // Filter out clinics owned by unsubscribed users
-    targetClinics = targetClinics.filter(
-      (c) => !c.ownerUserId || !unsubscribedIds.has(c.ownerUserId)
-    );
+    // Get unsubscribed emails (emails without accounts that unsubscribed)
+    const unsubscribedEmails = await db
+      .select({ email: emailUnsubscribes.email })
+      .from(emailUnsubscribes)
+      .where(isNotNull(emailUnsubscribes.unsubscribedAt));
+
+    const unsubscribedEmailSet = new Set(unsubscribedEmails.map((e) => e.email.toLowerCase()));
+
+    // Filter out:
+    // 1. Clinics owned by unsubscribed users
+    // 2. Clinics whose email is in the unsubscribes list
+    targetClinics = targetClinics.filter((c) => {
+      // Check if owner has unsubscribed
+      if (c.ownerUserId && unsubscribedUserIds.has(c.ownerUserId)) {
+        return false;
+      }
+      // Check if email address has unsubscribed
+      if (unsubscribedEmailSet.has(c.email.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
   }
 
   return targetClinics;
@@ -337,18 +355,31 @@ async function getSubscriberClinics(
       featuredTier: c.featuredTier,
     }));
 
-  // Exclude unsubscribed users if requested
+  // Exclude unsubscribed users/emails if requested
   if (filters?.excludeUnsubscribed) {
     const unsubscribedUsers = await db
       .select({ id: user.id })
       .from(user)
       .where(isNotNull(user.emailUnsubscribedAt));
 
-    const unsubscribedIds = new Set(unsubscribedUsers.map((u) => u.id));
+    const unsubscribedUserIds = new Set(unsubscribedUsers.map((u) => u.id));
 
-    targetClinics = targetClinics.filter(
-      (c) => !c.ownerUserId || !unsubscribedIds.has(c.ownerUserId)
-    );
+    const unsubscribedEmails = await db
+      .select({ email: emailUnsubscribes.email })
+      .from(emailUnsubscribes)
+      .where(isNotNull(emailUnsubscribes.unsubscribedAt));
+
+    const unsubscribedEmailSet = new Set(unsubscribedEmails.map((e) => e.email.toLowerCase()));
+
+    targetClinics = targetClinics.filter((c) => {
+      if (c.ownerUserId && unsubscribedUserIds.has(c.ownerUserId)) {
+        return false;
+      }
+      if (unsubscribedEmailSet.has(c.email.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
   }
 
   return targetClinics;
@@ -431,18 +462,31 @@ async function getClaimedNonSubscriberClinics(
       featuredTier: c.featuredTier,
     }));
 
-  // Exclude unsubscribed users if requested
+  // Exclude unsubscribed users/emails if requested
   if (filters?.excludeUnsubscribed) {
     const unsubscribedUsers = await db
       .select({ id: user.id })
       .from(user)
       .where(isNotNull(user.emailUnsubscribedAt));
 
-    const unsubscribedIds = new Set(unsubscribedUsers.map((u) => u.id));
+    const unsubscribedUserIds = new Set(unsubscribedUsers.map((u) => u.id));
 
-    targetClinics = targetClinics.filter(
-      (c) => !c.ownerUserId || !unsubscribedIds.has(c.ownerUserId)
-    );
+    const unsubscribedEmails = await db
+      .select({ email: emailUnsubscribes.email })
+      .from(emailUnsubscribes)
+      .where(isNotNull(emailUnsubscribes.unsubscribedAt));
+
+    const unsubscribedEmailSet = new Set(unsubscribedEmails.map((e) => e.email.toLowerCase()));
+
+    targetClinics = targetClinics.filter((c) => {
+      if (c.ownerUserId && unsubscribedUserIds.has(c.ownerUserId)) {
+        return false;
+      }
+      if (unsubscribedEmailSet.has(c.email.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
   }
 
   return targetClinics;

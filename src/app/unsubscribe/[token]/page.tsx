@@ -3,31 +3,91 @@ import { eq } from "drizzle-orm";
 import { CheckCircle, Mail, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
-import { user } from "@/lib/schema";
+import { user, emailUnsubscribes } from "@/lib/schema";
 
 interface PageProps {
   params: Promise<{ token: string }>;
   searchParams: Promise<{ resubscribe?: string }>;
 }
 
-export default async function UnsubscribePage({ params, searchParams }: PageProps) {
-  const { token } = await params;
-  const { resubscribe } = await searchParams;
+type UnsubscribeTarget =
+  | { type: "user"; id: string; email: string; unsubscribedAt: Date | null }
+  | { type: "email"; id: string; email: string; unsubscribedAt: Date | null };
 
-  // Find user by unsubscribe token
+async function findByToken(token: string): Promise<UnsubscribeTarget | null> {
+  // First, check if token belongs to a user
   const userData = await db.query.user.findFirst({
     where: eq(user.unsubscribeToken, token),
   });
 
-  if (!userData) {
+  if (userData) {
+    return {
+      type: "user",
+      id: userData.id,
+      email: userData.email,
+      unsubscribedAt: userData.emailUnsubscribedAt,
+    };
+  }
+
+  // Then, check the emailUnsubscribes table
+  const emailRecord = await db.query.emailUnsubscribes.findFirst({
+    where: eq(emailUnsubscribes.token, token),
+  });
+
+  if (emailRecord) {
+    return {
+      type: "email",
+      id: emailRecord.id,
+      email: emailRecord.email,
+      unsubscribedAt: emailRecord.unsubscribedAt,
+    };
+  }
+
+  return null;
+}
+
+async function unsubscribe(target: UnsubscribeTarget): Promise<void> {
+  if (target.type === "user") {
+    await db
+      .update(user)
+      .set({ emailUnsubscribedAt: new Date() })
+      .where(eq(user.id, target.id));
+  } else {
+    await db
+      .update(emailUnsubscribes)
+      .set({ unsubscribedAt: new Date() })
+      .where(eq(emailUnsubscribes.id, target.id));
+  }
+}
+
+async function resubscribe(target: UnsubscribeTarget): Promise<void> {
+  if (target.type === "user") {
+    await db
+      .update(user)
+      .set({ emailUnsubscribedAt: null })
+      .where(eq(user.id, target.id));
+  } else {
+    await db
+      .update(emailUnsubscribes)
+      .set({ unsubscribedAt: null })
+      .where(eq(emailUnsubscribes.id, target.id));
+  }
+}
+
+export default async function UnsubscribePage({ params, searchParams }: PageProps) {
+  const { token } = await params;
+  const { resubscribe: shouldResubscribe } = await searchParams;
+
+  // Find the unsubscribe target (user or email record)
+  const target = await findByToken(token);
+
+  if (!target) {
     notFound();
   }
 
   // Handle resubscribe action
-  if (resubscribe === "true") {
-    await db.update(user)
-      .set({ emailUnsubscribedAt: null })
-      .where(eq(user.id, userData.id));
+  if (shouldResubscribe === "true") {
+    await resubscribe(target);
 
     return (
       <div className="container max-w-md mx-auto py-12">
@@ -43,7 +103,7 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
               You have been successfully resubscribed to Pain Clinics Directory emails.
             </p>
             <p className="text-sm text-muted-foreground">
-              You will now receive updates about your claimed clinics, subscription status, and important account notifications.
+              You will now receive updates about your clinic listing and important notifications.
             </p>
           </CardContent>
         </Card>
@@ -52,14 +112,15 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
   }
 
   // Check if already unsubscribed
-  const alreadyUnsubscribed = userData.emailUnsubscribedAt !== null;
+  const alreadyUnsubscribed = target.unsubscribedAt !== null;
 
   // Mark as unsubscribed if not already
   if (!alreadyUnsubscribed) {
-    await db.update(user)
-      .set({ emailUnsubscribedAt: new Date() })
-      .where(eq(user.id, userData.id));
+    await unsubscribe(target);
   }
+
+  // Mask email for privacy
+  const maskedEmail = maskEmail(target.email);
 
   return (
     <div className="container max-w-md mx-auto py-12">
@@ -75,8 +136,8 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
         <CardContent className="text-center space-y-4">
           <p className="text-muted-foreground">
             {alreadyUnsubscribed
-              ? "You were already unsubscribed from Pain Clinics Directory marketing emails."
-              : "You have been successfully unsubscribed from Pain Clinics Directory marketing emails."}
+              ? `${maskedEmail} was already unsubscribed from Pain Clinics Directory marketing emails.`
+              : `${maskedEmail} has been successfully unsubscribed from Pain Clinics Directory marketing emails.`}
           </p>
 
           <div className="rounded-lg bg-featured border border-featured-border p-4">
@@ -110,6 +171,26 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
       </Card>
     </div>
   );
+}
+
+/**
+ * Mask email for privacy (e.g., "john@example.com" -> "j***@e***.com")
+ */
+function maskEmail(email: string): string {
+  const [localPart, domain] = email.split("@");
+  if (!localPart || !domain) return email;
+
+  const maskedLocal = localPart.length > 1
+    ? localPart[0] + "***"
+    : localPart;
+
+  const domainParts = domain.split(".");
+  const firstPart = domainParts[0];
+  const maskedDomain = domainParts.length > 1 && firstPart
+    ? firstPart[0] + "***." + domainParts.slice(1).join(".")
+    : domain;
+
+  return `${maskedLocal}@${maskedDomain}`;
 }
 
 export function generateMetadata() {

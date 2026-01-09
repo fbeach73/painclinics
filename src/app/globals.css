@@ -264,18 +264,21 @@ iframe[name^="google_ads"] {
   z-index: 0;
 }
 
-/* Featured badge pulse animation */
+/* Featured badge pulse animation - GPU-composited for better performance */
 @keyframes badge-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4);
+    transform: scale(1);
+    opacity: 1;
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(250, 204, 21, 0);
+    transform: scale(1.05);
+    opacity: 0.9;
   }
 }
 
 .badge-animate {
   animation: badge-pulse 2s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 /* Premium badge shimmer animation */
@@ -322,22 +325,23 @@ iframe[name^="google_ads"] {
     0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Contact CTA pulse animation */
+/* Contact CTA pulse animation - GPU-composited for better performance */
 @keyframes contact-pulse {
   0%, 100% {
-    box-shadow:
-      0 10px 15px -3px rgba(20, 184, 166, 0.3),
-      0 0 0 0 rgba(20, 184, 166, 0.4);
+    transform: scale(1);
+    opacity: 1;
   }
   50% {
-    box-shadow:
-      0 10px 15px -3px rgba(20, 184, 166, 0.3),
-      0 0 0 12px rgba(20, 184, 166, 0);
+    transform: scale(1.03);
+    opacity: 0.9;
   }
 }
 
 .contact-cta-pulse {
   animation: contact-pulse 2s ease-in-out infinite;
+  will-change: transform, opacity;
+  /* Static shadow instead of animated - better performance */
+  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.3);
 }
 
 /* Aceternity UI - Infinite scroll animation */

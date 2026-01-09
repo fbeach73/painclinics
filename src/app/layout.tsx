@@ -1,13 +1,14 @@
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
-import { VercelAnalytics } from "@/components/analytics/vercel-analytics";
-import "./globals.css";
+import { DeferredAdSense } from "@/components/ads/deferred-adsense";
+import { DeferredGTM } from "@/components/analytics/deferred-gtm";
 import { PageTracker } from "@/components/analytics/page-tracker";
+import { VercelAnalytics } from "@/components/analytics/vercel-analytics";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import type { Metadata } from "next";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,28 +77,23 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preconnect hints for faster font loading */}
+        {/* Preconnect hints for faster resource loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://events.mapbox.com" />
+        <link rel="preconnect" href="https://api.mapbox.com" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Google Tag Manager */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-ZGCKNRS');`,
-          }}
-        />
+        {/* GTM and AdSense loaded via deferred components in body for better PageSpeed */}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Google Tag Manager (noscript) */}
+        {/* GTM noscript fallback - iframe hidden for non-JS browsers */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-ZGCKNRS"
@@ -106,13 +102,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        {/* Google AdSense - Auto Ads */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5028121986513144"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -130,6 +119,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <PageTracker />
         </ThemeProvider>
         <VercelAnalytics />
+        {/* Deferred third-party scripts for better PageSpeed scores */}
+        <DeferredGTM gtmId="GTM-ZGCKNRS" delayMs={2000} />
+        <DeferredAdSense clientId="ca-pub-5028121986513144" delayMs={3000} />
       </body>
     </html>
   );

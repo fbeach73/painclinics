@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sendBroadcastEmail, generateUnsubscribeToken, getUnsubscribeUrl } from "@/lib/email";
-import { user } from "@/lib/schema";
+import { user, emailUnsubscribes } from "@/lib/schema";
 import {
   getBroadcast,
   updateBroadcastStatus,
@@ -49,26 +49,48 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * Get or create unsubscribe token for a user
+ * Get or create unsubscribe token
+ * For users with accounts: uses user.unsubscribeToken
+ * For emails without accounts: uses emailUnsubscribes table
  */
-async function getOrCreateUnsubscribeToken(userId: string | null): Promise<string> {
-  if (!userId) {
-    // For clinics without an owner, generate a one-time token
-    return generateUnsubscribeToken();
+async function getOrCreateUnsubscribeToken(
+  userId: string | null,
+  email: string,
+  clinicId: string | null
+): Promise<string> {
+  // If user has an account, use user-based unsubscribe
+  if (userId) {
+    const existingUser = await db.query.user.findFirst({
+      where: eq(user.id, userId),
+    });
+
+    if (existingUser?.unsubscribeToken) {
+      return existingUser.unsubscribeToken;
+    }
+
+    // Generate and save new token on user
+    const token = generateUnsubscribeToken();
+    await db.update(user).set({ unsubscribeToken: token }).where(eq(user.id, userId));
+    return token;
   }
 
-  // Check if user already has a token
-  const existingUser = await db.query.user.findFirst({
-    where: eq(user.id, userId),
+  // For emails without user accounts, use emailUnsubscribes table
+  // Check if token already exists for this email
+  const existing = await db.query.emailUnsubscribes.findFirst({
+    where: eq(emailUnsubscribes.email, email),
   });
 
-  if (existingUser?.unsubscribeToken) {
-    return existingUser.unsubscribeToken;
+  if (existing) {
+    return existing.token;
   }
 
-  // Generate and save new token
+  // Create new unsubscribe record
   const token = generateUnsubscribeToken();
-  await db.update(user).set({ unsubscribeToken: token }).where(eq(user.id, userId));
+  await db.insert(emailUnsubscribes).values({
+    email,
+    token,
+    clinicId: clinicId || undefined,
+  });
 
   return token;
 }
@@ -315,8 +337,12 @@ async function sendBroadcastToClinic(
   broadcast: Broadcast,
   clinic: ClinicEmail
 ): Promise<boolean> {
-  // Get or create unsubscribe token
-  const unsubscribeToken = await getOrCreateUnsubscribeToken(clinic.ownerUserId);
+  // Get or create unsubscribe token (pass email and clinicId for non-user emails)
+  const unsubscribeToken = await getOrCreateUnsubscribeToken(
+    clinic.ownerUserId,
+    clinic.email,
+    clinic.clinicId || null
+  );
   const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken);
 
   // Substitute merge tags with actual clinic data

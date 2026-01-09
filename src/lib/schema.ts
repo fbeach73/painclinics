@@ -561,6 +561,31 @@ export const emailBroadcasts = pgTable(
 );
 
 // ============================================
+// Email Unsubscribes Table
+// ============================================
+// Tracks unsubscribes for emails that don't have user accounts
+// (e.g., clinic emails without claimed owners)
+
+export const emailUnsubscribes = pgTable(
+  "email_unsubscribes",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    email: text("email").notNull(),
+    token: text("token").notNull().unique(),
+    clinicId: text("clinic_id").references(() => clinics.id), // Optional link to clinic
+    unsubscribedAt: timestamp("unsubscribed_at"), // null = token created but not yet used
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("email_unsubscribes_email_idx").on(table.email),
+    index("email_unsubscribes_token_idx").on(table.token),
+    index("email_unsubscribes_clinic_idx").on(table.clinicId),
+  ]
+);
+
+// ============================================
 // Blog Tables
 // ============================================
 

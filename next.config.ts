@@ -147,6 +147,13 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "50mb",
     },
+    // Optimize CSS to reduce render-blocking
+    optimizeCss: true,
+  },
+
+  // Remove console.log in production for smaller bundles
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
   },
 
   // Image optimization configuration
