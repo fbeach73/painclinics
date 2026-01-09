@@ -19,6 +19,7 @@ const legalLinks = [
   { label: "Cookie Policy", href: "/cookies" },
   { label: "Accessibility", href: "/accessibility" },
   { label: "Medical Disclaimer", href: "/medical-disclaimer" },
+  { label: "Email Preferences", href: "/email-preferences" },
 ];
 
 const companyLinks = [
