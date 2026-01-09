@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
 import { LazyHomepageFeaturedSection } from '@/components/featured';
-import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
+import {
+  FindClinicSection,
+  type PopularState,
+} from '@/components/home/find-clinic-section';
+import { STATE_NAMES } from '@/components/home/state-combobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -18,12 +22,25 @@ export default async function Home() {
   // Fetch states and counts with fallback for CI builds
   let states: string[] = [];
   let totalClinics = 0;
+  let popularStates: PopularState[] = [];
 
   try {
     const { getAllStatesWithClinics, getClinicCountsByState } = await import('@/lib/clinic-queries');
     states = await getAllStatesWithClinics();
     const stateCounts = await getClinicCountsByState();
     totalClinics = stateCounts.reduce((sum, s) => sum + s.count, 0);
+
+    // Prepare top 6 states by clinic count for the FindClinicSection
+    popularStates = stateCounts
+      .filter((s) => s.stateAbbreviation !== null)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6)
+      .map((s) => ({
+        abbrev: s.stateAbbreviation!,
+        name: STATE_NAMES[s.stateAbbreviation!] || s.stateAbbreviation!,
+        slug: s.stateAbbreviation!.toLowerCase(),
+        count: s.count,
+      }));
   } catch (error) {
     console.warn("Homepage: Database unavailable, using empty data:", error);
   }
@@ -61,8 +78,8 @@ export default async function Home() {
         {/* Featured Clinics Section - Lazy loaded for PageSpeed */}
         <LazyHomepageFeaturedSection />
 
-        {/* Interactive Map Section */}
-        <NearbyClinicsSection />
+        {/* Find Clinic Section - State selector and popular states */}
+        <FindClinicSection popularStates={popularStates} />
 
         {/* Trust Indicators */}
         <section className="border-y bg-muted/30 py-12">

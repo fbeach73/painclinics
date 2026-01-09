@@ -17,6 +17,7 @@ import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 import { ContactClinicButton } from "@/components/clinic/contact-clinic-button";
 import { LazySearchFeaturedSection } from "@/components/featured/lazy-search-featured-section";
 import { LazyEmbeddedMap } from "@/components/map/lazy-embedded-map";
+import type { StateClinicMarker } from "@/components/map/state-map-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
@@ -356,6 +357,18 @@ export default async function PainManagementClinicPage({ params }: Props) {
     const cityCount = Object.keys(clinicsByCity).length;
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
 
+    // Create clinic markers for the map (only clinics with valid coordinates)
+    const clinicMarkers: StateClinicMarker[] = stateClinics
+      .filter((c) => c.mapLatitude && c.mapLongitude)
+      .map((c) => ({
+        id: c.id,
+        title: c.title,
+        lat: c.mapLatitude,
+        lng: c.mapLongitude,
+        city: c.city,
+        permalink: c.permalink,
+      }));
+
     // Generate state page structured data
     const stateStructuredData = {
       "@context": "https://schema.org",
@@ -425,6 +438,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
           clinicsByCity={clinicsByCity}
           totalClinics={stateClinics.length}
           cityCount={cityCount}
+          clinicMarkers={clinicMarkers}
         />
       </>
     );

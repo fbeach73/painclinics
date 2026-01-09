@@ -5,6 +5,10 @@ import { MapPin, Phone, Star, Building2 } from "lucide-react";
 import { FeaturedBadge, type FeaturedTier } from "@/components/clinic/featured-badge";
 import { OpenClosedStatus } from "@/components/clinic/open-closed-status";
 import { SearchFeaturedSection } from "@/components/featured";
+import {
+  StateMapToggle,
+  type StateClinicMarker,
+} from "@/components/map/state-map-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -32,6 +36,7 @@ interface StatePainManagementPageProps {
   clinicsByCity: Record<string, ClinicSummary[]>;
   totalClinics: number;
   cityCount: number;
+  clinicMarkers: StateClinicMarker[];
 }
 
 export function StatePainManagementPageContent({
@@ -40,6 +45,7 @@ export function StatePainManagementPageContent({
   clinicsByCity,
   totalClinics,
   cityCount,
+  clinicMarkers,
 }: StatePainManagementPageProps) {
   const cities = Object.keys(clinicsByCity).sort();
 
@@ -115,6 +121,9 @@ export function StatePainManagementPageContent({
             </CardContent>
           </Card>
         </div>
+
+        {/* Map Toggle */}
+        <StateMapToggle clinics={clinicMarkers} stateName={stateName} />
 
         {/* Featured Clinics Section */}
         <SearchFeaturedSection stateAbbrev={stateAbbrev} />
