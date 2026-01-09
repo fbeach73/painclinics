@@ -281,29 +281,11 @@ iframe[name^="google_ads"] {
   will-change: transform, opacity;
 }
 
-/* Premium badge shimmer animation */
-@keyframes premium-shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
+/* Premium badge - simplified for better performance (no animation) */
 .premium-badge-shimmer {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    90deg,
-    #10b981 0%,
-    #10b981 40%,
-    #6ee7b7 50%,
-    #10b981 60%,
-    #10b981 100%
-  );
-  background-size: 200% 100%;
-  animation: premium-shimmer 3s ease-in-out infinite;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 /* Premium badge glow effect */

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
-import { HomepageFeaturedSection } from '@/components/featured';
+import { LazyHomepageFeaturedSection } from '@/components/featured';
 import { NearbyClinicsSection } from '@/components/home/nearby-clinics-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -58,8 +58,8 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Featured Clinics Section */}
-        <HomepageFeaturedSection />
+        {/* Featured Clinics Section - Lazy loaded for PageSpeed */}
+        <LazyHomepageFeaturedSection />
 
         {/* Interactive Map Section */}
         <NearbyClinicsSection />

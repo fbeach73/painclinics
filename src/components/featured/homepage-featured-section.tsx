@@ -6,9 +6,9 @@ import {
   featuredToClinicWithDistance,
 } from '@/hooks/use-featured-clinics';
 import {
-  FeaturedClinicsCarousel,
-  FeaturedClinicsCarouselSkeleton,
-} from './featured-clinics-carousel';
+  FeaturedClinicsGrid,
+  FeaturedClinicsGridSkeleton,
+} from './featured-clinics-grid';
 
 interface HomepageFeaturedSectionProps {
   className?: string;
@@ -69,9 +69,9 @@ export function HomepageFeaturedSection({ className }: HomepageFeaturedSectionPr
           </div>
 
           {isLoading ? (
-            <FeaturedClinicsCarouselSkeleton count={3} />
+            <FeaturedClinicsGridSkeleton count={6} />
           ) : (
-            <FeaturedClinicsCarousel clinics={clinicsWithDistance} />
+            <FeaturedClinicsGrid clinics={clinicsWithDistance} maxClinics={6} />
           )}
         </div>
       </div>
