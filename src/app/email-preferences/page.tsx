@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { user } from "@/lib/schema";
 import { getOptionalSession } from "@/lib/session";
 import { EmailPreferencesForm } from "./email-preferences-form";
+import { UnsubscribeForm } from "./unsubscribe-form";
 
 export const metadata: Metadata = {
   title: "Email Preferences - Pain Clinics Directory",
@@ -16,55 +17,29 @@ export const metadata: Metadata = {
 export default async function EmailPreferencesPage() {
   const session = await getOptionalSession();
 
-  // If not logged in, show info about how to unsubscribe
+  // If not logged in, show simple unsubscribe form
   if (!session?.user) {
     return (
-      <div className="container max-w-lg mx-auto py-12 px-4">
+      <div className="container max-w-md mx-auto py-12 px-4">
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
               <Mail className="h-8 w-8 text-blue-600" />
             </div>
-            <CardTitle className="text-2xl">Email Preferences</CardTitle>
+            <CardTitle className="text-2xl">Unsubscribe</CardTitle>
             <CardDescription>
-              Manage your email subscription settings
+              Enter your email to unsubscribe from marketing emails
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <UnsubscribeForm />
+
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                To manage your email preferences, please use the unsubscribe link at the bottom of any email you&apos;ve received from us.
+                You&apos;ll still receive important emails like payment receipts and security alerts.
               </AlertDescription>
             </Alert>
-
-            <div className="space-y-4 text-sm text-muted-foreground">
-              <p>
-                Each email we send includes a personalized unsubscribe link in the footer.
-                Click that link to instantly unsubscribe from marketing emails.
-              </p>
-              <p>
-                If you have an account with us, you can also{" "}
-                <a href="/sign-in" className="text-primary hover:underline font-medium">
-                  sign in
-                </a>{" "}
-                to manage your preferences here.
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-muted p-4">
-              <h3 className="font-medium mb-2">Types of emails we send:</h3>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="font-medium text-foreground">Marketing emails</span>
-                  <span>- Updates about your listing, tips, and promotions (can be unsubscribed)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-medium text-foreground">Transactional emails</span>
-                  <span>- Payment receipts, claim updates, security alerts (cannot be unsubscribed)</span>
-                </li>
-              </ul>
-            </div>
           </CardContent>
         </Card>
       </div>
