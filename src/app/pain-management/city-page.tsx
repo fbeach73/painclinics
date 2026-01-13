@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2, ChevronRight } from "lucide-react";
+import { InPageAd, AdPlacement } from "@/components/ads";
 import { FeaturedBadge, type FeaturedTier } from "@/components/clinic/featured-badge";
 import { OpenClosedStatus } from "@/components/clinic/open-closed-status";
 import { SearchFeaturedSection } from "@/components/featured";
@@ -139,6 +140,11 @@ export function CityPainManagementPageContent({
             </CardContent>
           </Card>
         </div>
+
+        {/* In-Page Ad */}
+        <AdPlacement className="my-8">
+          <InPageAd />
+        </AdPlacement>
 
         {/* Featured Clinics Section */}
         <SearchFeaturedSection stateAbbrev={stateAbbrev} city={cityName} />

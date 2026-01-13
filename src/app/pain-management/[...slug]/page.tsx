@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
+import { InPageAd, AdPlacement } from "@/components/ads";
 import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -669,6 +670,11 @@ export default async function PainManagementClinicPage({ params }: Props) {
                 </ol>
               </nav>
 
+              {/* In-Page Ad - Above fold for better viewability */}
+              <AdPlacement className="mt-4 mb-6">
+                <InPageAd />
+              </AdPlacement>
+
               <ClinicHeader clinic={clinic} />
               {clinic.services.length > 0 && (
                 <div>
@@ -698,6 +704,11 @@ export default async function PainManagementClinicPage({ params }: Props) {
                   enhancedAbout={clinic.enhancedAbout}
                 />
               )}
+
+              {/* In-Page Ad - Content break */}
+              <AdPlacement>
+                <InPageAd />
+              </AdPlacement>
 
               {/* FAQ Section */}
               {clinic.questions && clinic.questions.length > 0 && (

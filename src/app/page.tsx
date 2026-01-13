@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
+import { InPageAd, AdPlacement } from '@/components/ads';
 import { LazyHomepageFeaturedSection } from '@/components/featured';
 import {
   FindClinicSection,
@@ -77,6 +78,13 @@ export default async function Home() {
 
         {/* Featured Clinics Section - Lazy loaded for PageSpeed */}
         <LazyHomepageFeaturedSection />
+
+        {/* Single In-Page Ad */}
+        <section className="container mx-auto py-6">
+          <AdPlacement>
+            <InPageAd />
+          </AdPlacement>
+        </section>
 
         {/* Find Clinic Section - State selector and popular states */}
         <FindClinicSection popularStates={popularStates} />

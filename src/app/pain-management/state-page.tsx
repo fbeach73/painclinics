@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MapPin, Phone, Star, Building2 } from "lucide-react";
+import { InPageAd, AdPlacement } from "@/components/ads";
 import { FeaturedBadge, type FeaturedTier } from "@/components/clinic/featured-badge";
 import { OpenClosedStatus } from "@/components/clinic/open-closed-status";
 import { SearchFeaturedSection } from "@/components/featured";
@@ -121,6 +122,11 @@ export function StatePainManagementPageContent({
             </CardContent>
           </Card>
         </div>
+
+        {/* In-Page Ad */}
+        <AdPlacement className="my-8">
+          <InPageAd />
+        </AdPlacement>
 
         {/* Map Toggle */}
         <StateMapToggle clinics={clinicMarkers} stateName={stateName} />
