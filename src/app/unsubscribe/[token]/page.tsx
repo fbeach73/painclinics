@@ -1,9 +1,9 @@
-import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { CheckCircle, Mail, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { user, emailUnsubscribes } from "@/lib/schema";
+import { UnsubscribeFallbackForm } from "./unsubscribe-fallback-form";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -81,8 +81,9 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
   // Find the unsubscribe target (user or email record)
   const target = await findByToken(token);
 
+  // Show fallback form if token is invalid or expired
   if (!target) {
-    notFound();
+    return <UnsubscribeFallbackForm />;
   }
 
   // Handle resubscribe action

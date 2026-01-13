@@ -395,6 +395,15 @@ const nextConfig: NextConfig = {
         destination: "/treatment-options",
         permanent: true,
       },
+
+      // ===========================================
+      // Malformed /clinic/ prefix URLs (likely from old sitemap)
+      // ===========================================
+      {
+        source: "/clinic/pain-management/:path*",
+        destination: "/pain-management/:path*",
+        permanent: true,
+      },
     ];
   },
 };
