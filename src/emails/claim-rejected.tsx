@@ -17,7 +17,7 @@ export function ClaimRejected({
   supportUrl,
   unsubscribeUrl,
 }: ClaimRejectedProps) {
-  const defaultSupportUrl = supportUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/contact`;
+  const defaultSupportUrl = supportUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/contact`;
 
   return (
     <EmailLayout

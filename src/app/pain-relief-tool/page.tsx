@@ -9,7 +9,7 @@ import {
 } from '@/lib/structured-data';
 import { PainReliefComparison } from './pain-relief-comparison';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://painclinics.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.painclinics.com';
 
 export const metadata: Metadata = {
   title: 'Pain Relief Comparison Tool | Ice vs Heat, OTC Medications',

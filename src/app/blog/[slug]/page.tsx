@@ -96,11 +96,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     publisher: {
       "@type": "Organization",
       name: "Pain Clinics",
-      url: "https://painclinics.com",
+      url: "https://www.painclinics.com",
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://painclinics.com/blog/${post.slug}`,
+      "@id": `https://www.painclinics.com/blog/${post.slug}`,
     },
     articleSection: categories[0]?.name,
     keywords:

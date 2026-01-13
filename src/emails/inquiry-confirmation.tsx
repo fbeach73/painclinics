@@ -60,7 +60,7 @@ export function InquiryConfirmation({
       </EmailCard>
 
       <Section style={buttonContainerStyle}>
-        <EmailButton href="https://painclinics.com" variant="primary">
+        <EmailButton href="https://www.painclinics.com" variant="primary">
           Browse More Clinics
         </EmailButton>
       </Section>

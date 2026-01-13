@@ -40,7 +40,7 @@ export function ContactClinicInquiry({
   insuranceStatus,
   submittedAt,
 }: ContactClinicInquiryProps) {
-  const baseUrl = "https://painclinics.com";
+  const baseUrl = "https://www.painclinics.com";
   const clinicUrl = clinicPermalink ? `${baseUrl}/clinic/${clinicPermalink}` : undefined;
 
   return (

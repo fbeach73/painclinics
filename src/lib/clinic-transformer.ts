@@ -642,7 +642,7 @@ export function extractPermalinkSlug(fullUrl: string | undefined): string {
 
 /**
  * Extract permalink path from full URL, preserving the pain-management/ prefix
- * @example "https://painclinics.com/pain-management/clinic-name-al-35243/" => "pain-management/clinic-name-al-35243"
+ * @example "https://www.painclinics.com/pain-management/clinic-name-al-35243/" => "pain-management/clinic-name-al-35243"
  */
 export function extractPermalinkPath(fullUrl: string | undefined): string {
   if (!fullUrl) return "";

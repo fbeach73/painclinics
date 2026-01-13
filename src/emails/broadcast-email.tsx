@@ -100,7 +100,7 @@ export function BroadcastEmail({
         <Container style={containerStyle}>
           {/* Header */}
           <Section style={headerStyle}>
-            <Link href="https://painclinics.com" style={logoStyle}>Painclinics.com</Link>
+            <Link href="https://www.painclinics.com" style={logoStyle}>Painclinics.com</Link>
           </Section>
 
           {/* Main Content - Dynamic HTML from Tiptap editor */}

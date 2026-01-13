@@ -93,7 +93,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   // Check if this is a state page (single segment, 2-char state abbrev)
   const firstSlug = slug[0];
@@ -356,7 +356,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
     }
 
     const cityCount = Object.keys(clinicsByCity).length;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
     // Create clinic markers for the map (only clinics with valid coordinates)
     const clinicMarkers: StateClinicMarker[] = stateClinics
@@ -465,7 +465,7 @@ export default async function PainManagementClinicPage({ params }: Props) {
       }
 
       const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+        process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
       // Generate city page structured data
       const cityStructuredData = generateCityPageSchema(

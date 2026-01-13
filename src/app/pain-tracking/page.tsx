@@ -16,7 +16,7 @@ import {
 } from "@/lib/structured-data";
 import { DownloadTemplates } from "./download-templates";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
 export const metadata: Metadata = {
   title: "Free Pain Tracking Template | Printable Pain Diary PDF",

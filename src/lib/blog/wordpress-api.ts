@@ -1,6 +1,6 @@
 import type { WPPost, WPCategory, WPTag } from "./types";
 
-const WP_BASE_URL = "https://painclinics.com";
+const WP_BASE_URL = "https://www.painclinics.com";
 const WP_API_BASE = `${WP_BASE_URL}/wp-json/wp/v2`;
 
 interface FetchPostsResponse {

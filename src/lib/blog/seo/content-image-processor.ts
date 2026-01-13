@@ -67,7 +67,7 @@ async function downloadImage(
       headers: {
         // Some CDNs require a user agent
         "User-Agent":
-          "Mozilla/5.0 (compatible; PainClinicsBot/1.0; +https://painclinics.com)",
+          "Mozilla/5.0 (compatible; PainClinicsBot/1.0; +https://www.painclinics.com)",
       },
       // Timeout after 30 seconds
       signal: AbortSignal.timeout(30000),

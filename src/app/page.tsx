@@ -18,7 +18,7 @@ import {
 export const revalidate = 3600;
 
 export default async function Home() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   // Fetch states and counts with fallback for CI builds
   let states: string[] = [];

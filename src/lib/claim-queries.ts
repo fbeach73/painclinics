@@ -379,7 +379,7 @@ export async function approveClaim(
   });
 
   // Email sending AFTER transaction commits (failures won't rollback DB)
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics/${claim.clinicId}`;
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/my-clinics/${claim.clinicId}`;
 
   let emailSent = false;
   try {

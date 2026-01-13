@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
  * @see https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps
  */
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   let clinicsData: Awaited<ReturnType<typeof import("@/lib/clinic-queries").getClinicsWithImages>> = [];
   try {

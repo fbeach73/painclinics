@@ -31,7 +31,7 @@ const SERVICE_MAPPING: Record<string, { name: string; procedureType: string }> =
  * Uses MedicalBusiness and LocalBusiness types for optimal SEO.
  */
 export function generateClinicStructuredData(clinic: DbClinic) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   // Clean description - remove HTML tags and truncate
   const cleanDescription = clinic.content
@@ -229,7 +229,7 @@ export function generateBreadcrumbStructuredData(
   stateName?: string,
   includeCity: boolean = true
 ) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
   const stateSlug = (clinic.stateAbbreviation || clinic.state).toLowerCase();
   const citySlug = clinic.city.toLowerCase().replace(/\s+/g, "-");
 
@@ -438,7 +438,7 @@ export function generateHowToSchema(data: {
   steps: Array<{ name: string; text: string }>;
   baseUrl?: string;
 }) {
-  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   return {
     "@context": "https://schema.org",
@@ -474,7 +474,7 @@ export function generateItemListSchema(data: {
   }>;
   baseUrl?: string;
 }) {
-  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   return {
     "@context": "https://schema.org",
@@ -512,7 +512,7 @@ export function generateMedicalWebPageSchema(data: {
   about?: string[];
   baseUrl?: string;
 }) {
-  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   return {
     "@context": "https://schema.org",
@@ -548,7 +548,7 @@ export function generateResourceBreadcrumbSchema(data: {
   pageUrl: string;
   baseUrl?: string;
 }) {
-  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   return {
     "@context": "https://schema.org",
@@ -581,7 +581,7 @@ export function generateBlogBreadcrumbSchema(data: {
   categorySlug?: string;
   baseUrl?: string;
 }) {
-  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
   const itemListElement: Array<{
     "@type": "ListItem";

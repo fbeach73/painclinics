@@ -122,7 +122,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn",
-    "playwright",
     "next-devtools"
   ]
 }

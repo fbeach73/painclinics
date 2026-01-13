@@ -189,7 +189,7 @@ function parseQuestions(questions: string, answers: string): Question[] | null {
 
 function extractPermalink(fullUrl: string): string | null {
   if (!fullUrl) return null;
-  // Extract path from full URL like https://painclinics.com/pain-management/clinic-name/
+  // Extract path from full URL like https://www.painclinics.com/pain-management/clinic-name/
   if (fullUrl.includes("painclinics.com/")) {
     const path = fullUrl.split("painclinics.com/")[1]?.replace(/\/$/, "");
     return path || null;

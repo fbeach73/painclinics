@@ -15,7 +15,7 @@ export function Welcome({
   dashboardUrl,
   unsubscribeUrl,
 }: WelcomeProps) {
-  const defaultDashboardUrl = dashboardUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/dashboard`;
+  const defaultDashboardUrl = dashboardUrl || `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/dashboard`;
 
   return (
     <EmailLayout

@@ -66,7 +66,7 @@ export default async function PainManagementDirectoryPage() {
     name: "Pain Management Clinics Directory",
     description:
       "Browse pain management clinics across all 50 states. Find verified pain specialists near you.",
-    url: `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/pain-management`,
+    url: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/pain-management`,
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: states.length,
@@ -74,7 +74,7 @@ export default async function PainManagementDirectoryPage() {
         "@type": "ListItem",
         position: index + 1,
         name: `${state.name} Pain Management Clinics`,
-        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/pain-management/${state.abbrev.toLowerCase()}`,
+        url: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/pain-management/${state.abbrev.toLowerCase()}`,
       })),
     },
   };

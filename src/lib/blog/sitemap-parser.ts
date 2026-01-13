@@ -57,7 +57,7 @@ export async function discoverPostUrls(baseUrl: string): Promise<SitemapDiscover
 /**
  * Extract the post slug from a WordPress URL
  * @example
- * extractSlugFromUrl("https://painclinics.com/chronic-pain-management/") => "chronic-pain-management"
+ * extractSlugFromUrl("https://www.painclinics.com/chronic-pain-management/") => "chronic-pain-management"
  */
 export function extractSlugFromUrl(wpUrl: string): string {
   try {

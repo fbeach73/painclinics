@@ -66,7 +66,7 @@ export function generateUnsubscribeToken(): string {
 }
 
 export function getUnsubscribeUrl(token: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
   return `${baseUrl}/unsubscribe/${token}`;
 }
 
@@ -333,7 +333,7 @@ export async function sendFeaturedConfirmedEmail(
     unsubscribeToken?: string | undefined;
   }
 ): Promise<SendEmailResult> {
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/my-clinics`;
   const subject = `Featured Listing Activated - ${clinicName}`;
   const props: FeaturedWelcomeProps = {
     clinicName,
@@ -410,7 +410,7 @@ export async function sendPaymentFailedEmail(
     unsubscribeToken?: string | undefined;
   }
 ): Promise<SendEmailResult> {
-  const updatePaymentUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const updatePaymentUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/my-clinics`;
   const subject = `Payment Failed - Action Required for ${clinicName}`;
   const props: PaymentFailedProps = {
     clinicName,
@@ -452,7 +452,7 @@ export async function sendSubscriptionCanceledEmail(
     day: "numeric",
   });
   const subject = `Subscription Canceled - ${clinicName}`;
-  const reactivateUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const reactivateUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/my-clinics`;
   const props: SubscriptionCanceledProps = {
     clinicName,
     endDate: formattedDate,
@@ -488,7 +488,7 @@ export async function sendSubscriptionAdminNotificationEmail(
     subscriptionId?: string | undefined;
   }
 ): Promise<SendEmailResult> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
   const clinicUrl = `${baseUrl}/pain-management/${clinicSlug}`;
   const adsenseExclusionUrl =
     process.env.ADSENSE_EXCLUSION_URL ||
@@ -543,7 +543,7 @@ export async function sendSubscriptionThankYouEmail(
     unsubscribeToken?: string | undefined;
   }
 ): Promise<SendEmailResult> {
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/my-clinics`;
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/my-clinics`;
   const subject = "Thank You for Subscribing! - Pain Clinics Directory";
   const props: SubscriptionThankYouProps = {
     clinicName,
@@ -578,7 +578,7 @@ export async function sendWelcomeEmail(
     unsubscribeToken?: string | undefined;
   }
 ): Promise<SendEmailResult> {
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com"}/dashboard`;
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com"}/dashboard`;
   const subject = "Welcome to Pain Clinics Directory!";
   const props: WelcomeProps = {
     userName,
@@ -638,7 +638,7 @@ export async function sendClaimPendingAdminNotificationEmail(
     claimId?: string | undefined;
   }
 ): Promise<SendEmailResult> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
   const reviewUrl = `${baseUrl}/admin/claims`;
   const submittedAt = new Date().toLocaleDateString("en-US", {
     year: "numeric",

@@ -4,8 +4,8 @@
  */
 export const MERGE_TAGS = {
   clinic_name: { label: "Clinic Name", example: "ABC Pain Clinic" },
-  clinic_url: { label: "Clinic Page URL", example: "https://painclinics.com/pain-management/abc-pain-clinic" },
-  claim_url: { label: "Claim Listing URL", example: "https://painclinics.com/pain-management/abc-pain-clinic#claim" },
+  clinic_url: { label: "Clinic Page URL", example: "https://www.painclinics.com/pain-management/abc-pain-clinic" },
+  claim_url: { label: "Claim Listing URL", example: "https://www.painclinics.com/pain-management/abc-pain-clinic#claim" },
   city: { label: "City", example: "Los Angeles" },
   state: { label: "State (Full)", example: "California" },
   state_abbr: { label: "State (Abbrev)", example: "CA" },

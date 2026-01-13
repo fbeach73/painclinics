@@ -34,7 +34,7 @@ const CSV_DIR = path.join(
 
 /**
  * Extract slug from CSV permalink
- * @example "https://painclinics.com/pain-management/clinic-name-al-35243/" => "clinic-name-al-35243"
+ * @example "https://www.painclinics.com/pain-management/clinic-name-al-35243/" => "clinic-name-al-35243"
  */
 function extractSlug(permalink: string): string | null {
   const match = permalink.match(/\/pain-management\/([^/]+)\/?$/);

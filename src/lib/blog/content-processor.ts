@@ -57,7 +57,7 @@ export function processContent(
   );
 
   // 3. Update internal blog links (root-level posts → /blog/)
-  // Match: href="https://painclinics.com/post-slug/"
+  // Match: href="https://www.painclinics.com/post-slug/"
   // Result: href="/blog/post-slug"
   const blogLinkRegex = new RegExp(
     `href=["']https?://${escapeRegExp(wpDomain)}/([a-z0-9-]+)/?["']`,
@@ -72,7 +72,7 @@ export function processContent(
   });
 
   // 4. Update clinic links (keep at /pain-management/)
-  // Match: href="https://painclinics.com/pain-management/city-name/"
+  // Match: href="https://www.painclinics.com/pain-management/city-name/"
   // Result: href="/pain-management/city-name"
   const clinicLinkRegex = new RegExp(
     `href=["']https?://${escapeRegExp(wpDomain)}/pain-management/([^"']+)/?["']`,
@@ -85,7 +85,7 @@ export function processContent(
   });
 
   // 5. Update category links
-  // Match: href="https://painclinics.com/category/some-category/"
+  // Match: href="https://www.painclinics.com/category/some-category/"
   // Result: href="/blog/category/some-category"
   const categoryLinkRegex = new RegExp(
     `href=["']https?://${escapeRegExp(wpDomain)}/category/([^"']+)/?["']`,
@@ -97,7 +97,7 @@ export function processContent(
   });
 
   // 6. Update tag links
-  // Match: href="https://painclinics.com/tag/some-tag/"
+  // Match: href="https://www.painclinics.com/tag/some-tag/"
   // Result: href="/blog/tag/some-tag"
   const tagLinkRegex = new RegExp(
     `href=["']https?://${escapeRegExp(wpDomain)}/tag/([^"']+)/?["']`,

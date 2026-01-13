@@ -112,7 +112,7 @@ function buildFullAddress(clinic: ClinicEmail): string {
  * Get the base URL for the application
  */
 function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  return process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 }
 
 /**

@@ -30,7 +30,7 @@ export function EmailLayout({
         <Container style={containerStyle}>
           {/* Header */}
           <Section style={headerStyle}>
-            <Link href="https://painclinics.com" style={logoStyle}>Painclinics.com</Link>
+            <Link href="https://www.painclinics.com" style={logoStyle}>Painclinics.com</Link>
           </Section>
 
           {/* Main Content */}
@@ -44,7 +44,7 @@ export function EmailLayout({
               <br />
               Connecting patients with quality pain management care
             </Text>
-            <Link href="https://painclinics.com/for-clinics" style={getFeaturedLinkStyle}>
+            <Link href="https://www.painclinics.com/for-clinics" style={getFeaturedLinkStyle}>
               Get Featured - Boost Your Clinic&apos;s Visibility
             </Link>
             {unsubscribeUrl && (

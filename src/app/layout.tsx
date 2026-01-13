@@ -66,7 +66,7 @@ const jsonLd = {
   name: "Pain Clinics Directory",
   description:
     "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com",
 };
 
 export default function RootLayout({
