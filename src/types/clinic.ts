@@ -118,6 +118,10 @@ export interface Clinic {
 
   // Enhanced content
   enhancedAbout?: string | undefined; // AI-generated, stored in newPostContent
+
+  // Import tracking (for NEW/UPDATED badges)
+  importedAt?: Date | string | null | undefined; // When clinic was first imported
+  importUpdatedAt?: Date | string | null | undefined; // When existing clinic was last updated via import
 }
 
 export interface ClinicWithDistance extends Clinic {

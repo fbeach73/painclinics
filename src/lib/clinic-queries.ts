@@ -292,6 +292,7 @@ export async function getClinicsForAdmin(limit = 100, offset = 0) {
       featuredTier: clinics.featuredTier,
       status: clinics.status,
       hasEnhancedContent: sql<boolean>`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN true ELSE false END`,
+      importUpdatedAt: clinics.importUpdatedAt,
     })
     .from(clinics)
     .orderBy(desc(clinics.createdAt))

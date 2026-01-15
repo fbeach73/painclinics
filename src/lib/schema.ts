@@ -271,6 +271,8 @@ export const clinics = pgTable(
 
     // Metadata
     importBatchId: text("import_batch_id"),
+    importedAt: timestamp("imported_at"), // When clinic was first imported (for NEW badge)
+    importUpdatedAt: timestamp("import_updated_at"), // When existing clinic was updated via import (for UPDATED badge)
     status: clinicStatusEnum("status").default("published").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

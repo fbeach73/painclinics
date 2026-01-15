@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils';
 import type { ClinicWithDistance } from '@/types/clinic';
 import type { ClinicService } from '@/types/service';
+import { ClinicImportBadge } from '@/components/clinics/clinic-import-badge';
 import { FeaturedBadge, type FeaturedTier } from './featured-badge';
 import { ServiceIcons, DynamicServiceIcons } from './service-icons';
 import { StarRating } from './star-rating';
@@ -54,6 +55,11 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
           />
           <div className="absolute top-3 left-3 flex gap-2">
             <FeaturedBadge tier={featuredTier} size="sm" />
+            <ClinicImportBadge
+              importedAt={clinic.importedAt}
+              importUpdatedAt={clinic.importUpdatedAt}
+              size="sm"
+            />
             <Badge variant="secondary">{clinic.distanceFormatted}</Badge>
           </div>
           {clinic.isVerified && (
@@ -67,10 +73,15 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
         </div>
       )}
 
-      {/* Featured badge for default variant */}
-      {!isVariantFeatured && isFeaturedClinic && (
-        <div className="absolute top-3 right-3 z-10">
-          <FeaturedBadge tier={featuredTier} size="sm" />
+      {/* Featured badge and import badge for default variant */}
+      {!isVariantFeatured && (
+        <div className="absolute top-3 right-3 z-10 flex gap-1">
+          {isFeaturedClinic && <FeaturedBadge tier={featuredTier} size="sm" />}
+          <ClinicImportBadge
+            importedAt={clinic.importedAt}
+            importUpdatedAt={clinic.importUpdatedAt}
+            size="sm"
+          />
         </div>
       )}
 

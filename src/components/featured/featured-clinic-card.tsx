@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { MapPin, Phone, Building2, Star, BadgeCheck } from 'lucide-react';
 import type { FeaturedTier } from '@/components/clinic/featured-badge';
 import { StarRating } from '@/components/clinic/star-rating';
+import { ClinicImportBadge } from '@/components/clinics/clinic-import-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -81,6 +82,13 @@ export function FeaturedClinicCard({ clinic, className }: FeaturedClinicCardProp
                 {clinic.distanceFormatted}
               </Badge>
             )}
+
+            {/* NEW/UPDATED badge */}
+            <ClinicImportBadge
+              importedAt={clinic.importedAt}
+              importUpdatedAt={clinic.importUpdatedAt}
+              size="sm"
+            />
           </div>
 
           {/* Verified badge */}

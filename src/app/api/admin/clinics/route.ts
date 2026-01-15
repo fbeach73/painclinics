@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured");
     const status = searchParams.get("status")?.trim();
     const enhanced = searchParams.get("enhanced");
+    const updated = searchParams.get("updated");
     const sortBy = (searchParams.get("sortBy") || "createdAt") as SortColumn;
     const sortDir = (searchParams.get("sortDir") || "desc") as SortDirection;
     const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
@@ -82,6 +83,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Recently Updated (via import) filter
+    if (updated === "updated") {
+      // Any clinic with importUpdatedAt set (ever updated via import)
+      conditions.push(isNotNull(clinics.importUpdatedAt));
+    } else if (updated === "updated-7") {
+      // Updated via import in the last 7 days
+      conditions.push(
+        sql`${clinics.importUpdatedAt} >= NOW() - INTERVAL '7 days'`
+      );
+    } else if (updated === "updated-14") {
+      // Updated via import in the last 14 days
+      conditions.push(
+        sql`${clinics.importUpdatedAt} >= NOW() - INTERVAL '14 days'`
+      );
+    }
+
     // Build the query
     const whereCondition =
       conditions.length > 0 ? and(...conditions) : undefined;
@@ -123,6 +140,7 @@ export async function GET(request: NextRequest) {
         status: clinics.status,
         createdAt: clinics.createdAt,
         hasEnhancedContent: sql<boolean>`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN true ELSE false END`,
+        importUpdatedAt: clinics.importUpdatedAt,
       })
       .from(clinics)
       .where(whereCondition)

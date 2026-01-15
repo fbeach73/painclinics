@@ -23,14 +23,19 @@ export interface FeaturedReview {
 
 /**
  * Detailed review from Outscraper with full metadata
+ * Supports both old format (review_rating, author_title) and new format (rating, name)
  */
 export interface DetailedReview {
   review_id?: string;
   review_text?: string;
   review_rating?: number;
+  rating?: number; // New format
   author_title?: string;
+  name?: string; // New format
   author_link?: string;
+  reviewer_profile?: string; // New format
   review_datetime_utc?: string;
+  published_at_date?: string; // New format
   owner_answer?: string;
   review_likes?: number;
 }
@@ -1073,16 +1078,19 @@ export function selectFeaturedReviews(
 ): FeaturedReview[] | null {
   if (!reviews || reviews.length === 0) return null;
 
+  // Helper to get rating from either old or new format
+  const getRating = (r: DetailedReview) => r.review_rating ?? r.rating;
+
   // Filter for high-quality reviews: 5 stars with text > 50 chars
   const qualityReviews = reviews.filter(
-    (r) => r.review_rating === 5 && r.review_text && r.review_text.length > 50
+    (r) => getRating(r) === 5 && r.review_text && r.review_text.length > 50
   );
 
   // If not enough 5-star reviews, include 4-star reviews
   let candidates = qualityReviews;
   if (candidates.length < limit) {
     const fourStarReviews = reviews.filter(
-      (r) => r.review_rating === 4 && r.review_text && r.review_text.length > 50
+      (r) => getRating(r) === 4 && r.review_text && r.review_text.length > 50
     );
     candidates = [...candidates, ...fourStarReviews];
   }
@@ -1095,12 +1103,13 @@ export function selectFeaturedReviews(
   });
 
   // Take top 'limit' reviews and convert to FeaturedReview format
+  // Support both old field names (review_rating, author_title) and new (rating, name)
   const selected = sorted.slice(0, limit).map((r): FeaturedReview => ({
-    username: r.author_title || null,
-    url: r.author_link || null,
+    username: r.author_title || r.name || null,
+    url: r.author_link || r.reviewer_profile || null,
     review: r.review_text?.replace(/<[^>]*>/g, '').trim() || null,
-    date: r.review_datetime_utc || null,
-    rating: r.review_rating || null,
+    date: r.review_datetime_utc || r.published_at_date || null,
+    rating: r.review_rating ?? r.rating ?? null,
   }));
 
   return selected.length > 0 ? selected : null;

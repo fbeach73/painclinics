@@ -30,6 +30,7 @@ export default async function ClinicsPage() {
     status: clinic.status,
     createdAt: clinic.createdAt?.toISOString() ?? new Date().toISOString(),
     hasEnhancedContent: clinic.hasEnhancedContent ?? false,
+    importUpdatedAt: clinic.importUpdatedAt?.toISOString() ?? null,
   }));
 
   return (

@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BulkEnhanceModal } from './bulk-enhance-modal';
 import { BulkSyncModal } from './sync/bulk-sync-modal';
+import { ClinicImportBadge } from '@/components/clinics/clinic-import-badge';
 
 interface Clinic {
   id: string;
@@ -55,6 +56,7 @@ interface Clinic {
   status: 'draft' | 'published' | 'deleted';
   createdAt: string;
   hasEnhancedContent: boolean;
+  importUpdatedAt: string | null; // For UPDATED badge
 }
 
 type SortColumn = 'title' | 'createdAt' | 'enhanced' | 'rating' | 'reviewCount';
@@ -79,6 +81,7 @@ export function ClinicsTable({
   const [featuredFilter, setFeaturedFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [enhancedFilter, setEnhancedFilter] = useState<string>('');
+  const [updatedFilter, setUpdatedFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<SortColumn>('createdAt');
   const [sortDir, setSortDir] = useState<SortDirection>('desc');
   const [offset, setOffset] = useState(0);
@@ -167,6 +170,7 @@ export function ClinicsTable({
       if (featuredFilter) params.set('featured', featuredFilter);
       if (statusFilter) params.set('status', statusFilter);
       if (enhancedFilter) params.set('enhanced', enhancedFilter);
+      if (updatedFilter) params.set('updated', updatedFilter);
       params.set('sortBy', sortBy);
       params.set('sortDir', sortDir);
       params.set('limit', limit.toString());
@@ -183,7 +187,7 @@ export function ClinicsTable({
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, sortBy, sortDir]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, updatedFilter, sortBy, sortDir]);
 
   // Debounced search - only triggers on filter/sort changes, resets to page 1
   useEffect(() => {
@@ -192,7 +196,7 @@ export function ClinicsTable({
       fetchClinics(0);
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, sortBy, sortDir, fetchClinics]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, updatedFilter, sortBy, sortDir, fetchClinics]);
 
   // Fetch on offset change (pagination) - separate from filter changes
   useEffect(() => {
@@ -207,12 +211,13 @@ export function ClinicsTable({
     setFeaturedFilter('');
     setStatusFilter('');
     setEnhancedFilter('');
+    setUpdatedFilter('');
     setSortBy('createdAt');
     setSortDir('desc');
     setOffset(0);
   };
 
-  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter || enhancedFilter;
+  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter || enhancedFilter || updatedFilter;
 
   // Toggle sort on column header click
   const handleSort = (column: SortColumn) => {
@@ -316,6 +321,19 @@ export function ClinicsTable({
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="true">Enhanced</SelectItem>
               <SelectItem value="false">Not Enhanced</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Recently Updated Filter (Import) */}
+          <Select value={updatedFilter} onValueChange={setUpdatedFilter}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder="Import Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clinics</SelectItem>
+              <SelectItem value="updated">Recently Updated</SelectItem>
+              <SelectItem value="updated-7">Updated (7 days)</SelectItem>
+              <SelectItem value="updated-14">Updated (14 days)</SelectItem>
             </SelectContent>
           </Select>
 
@@ -478,12 +496,19 @@ export function ClinicsTable({
                       />
                     </TableCell>
                     <TableCell>
-                      <Link
-                        href={`/admin/clinics/${clinic.id}`}
-                        className="font-medium hover:underline"
-                      >
-                        {clinic.title}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/clinics/${clinic.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {clinic.title}
+                        </Link>
+                        <ClinicImportBadge
+                          importUpdatedAt={clinic.importUpdatedAt}
+                          showNew={false}
+                          size="sm"
+                        />
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {clinic.city}, {clinic.stateAbbreviation}
