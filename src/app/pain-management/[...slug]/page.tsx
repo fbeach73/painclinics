@@ -132,7 +132,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description,
         url: canonicalUrl,
         type: "website",
-        siteName: "Pain Clinics Directory",
+        siteName: "PainClinics.com",
       },
       twitter: {
         card: "summary",
@@ -208,7 +208,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             description,
             url: canonicalUrl,
             type: "website",
-            siteName: "Pain Clinics Directory",
+            siteName: "PainClinics.com",
           },
           twitter: {
             card: "summary",
@@ -280,7 +280,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: canonicalUrl,
       type: "website",
-      siteName: "Pain Clinics Directory",
+      siteName: "PainClinics.com",
       ...(clinic.imageFeatured || clinic.imageUrl
         ? {
             images: [

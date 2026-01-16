@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Pain Management Near You: Painclinics.com - \u2695\uFE0F Local Pain Clinics",
-    template: "%s | Pain Clinics Directory",
+    template: "%s | PainClinics.com",
   },
   description:
     "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Pain Clinics Directory",
+    siteName: "PainClinics.com",
     title: "Pain Management Near You: Painclinics.com - \u2695\uFE0F Local Pain Clinics",
     description:
       "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "Pain Clinics Directory",
+  name: "PainClinics.com",
   description:
     "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com",

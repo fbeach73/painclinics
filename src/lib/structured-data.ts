@@ -326,7 +326,7 @@ export function generateWebSiteSchema(baseUrl: string) {
     "@type": "WebSite",
     "@id": `${baseUrl}/#website`,
     url: baseUrl,
-    name: "Pain Clinics Directory",
+    name: "PainClinics.com",
     description: "Find pain management clinics near you",
     publisher: { "@id": `${baseUrl}/#organization` },
     potentialAction: {
@@ -349,7 +349,7 @@ export function generateOrganizationSchema(baseUrl: string) {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${baseUrl}/#organization`,
-    name: "Pain Clinics Directory",
+    name: "PainClinics.com",
     url: baseUrl,
     logo: `${baseUrl}/logo.png`,
     contactPoint: {
@@ -454,7 +454,7 @@ export function generateHowToSchema(data: {
     })),
     publisher: {
       "@type": "Organization",
-      name: "Pain Clinics Directory",
+      name: "PainClinics.com",
       url: baseUrl,
     },
   };
@@ -493,7 +493,7 @@ export function generateItemListSchema(data: {
     })),
     publisher: {
       "@type": "Organization",
-      name: "Pain Clinics Directory",
+      name: "PainClinics.com",
       url: baseUrl,
     },
   };
@@ -530,7 +530,7 @@ export function generateMedicalWebPageSchema(data: {
     }),
     publisher: {
       "@type": "Organization",
-      name: "Pain Clinics Directory",
+      name: "PainClinics.com",
       url: baseUrl,
     },
     medicalAudience: {
