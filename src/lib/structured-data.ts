@@ -92,11 +92,29 @@ export function generateClinicStructuredData(clinic: DbClinic) {
   }
 
   // Add aggregate rating if available
-  if (clinic.rating && clinic.reviewCount && clinic.reviewCount > 0) {
+  // Check for rating !== null (not just truthy) because 0 is a valid rating value
+  const featuredReviewsForRating = clinic.featuredReviews as FeaturedReview[] | null;
+  let aggregateRating = clinic.rating;
+  let aggregateReviewCount = clinic.reviewCount || 0;
+
+  // If rating is missing or 0, try to calculate from featured reviews
+  if ((!aggregateRating || aggregateRating === 0) && featuredReviewsForRating && featuredReviewsForRating.length > 0) {
+    const reviewsWithRatings = featuredReviewsForRating.filter((r) => r.rating !== null && r.rating !== undefined);
+    if (reviewsWithRatings.length > 0) {
+      const sum = reviewsWithRatings.reduce((acc, r) => acc + (r.rating || 0), 0);
+      aggregateRating = Math.round((sum / reviewsWithRatings.length) * 10) / 10; // Round to 1 decimal
+      // Use featured review count if no review count exists
+      if (aggregateReviewCount === 0) {
+        aggregateReviewCount = reviewsWithRatings.length;
+      }
+    }
+  }
+
+  if (aggregateRating && aggregateRating > 0 && aggregateReviewCount > 0) {
     structuredData.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: clinic.rating,
-      reviewCount: clinic.reviewCount,
+      ratingValue: aggregateRating,
+      reviewCount: aggregateReviewCount,
       bestRating: 5,
       worstRating: 1,
     };
@@ -110,9 +128,10 @@ export function generateClinicStructuredData(clinic: DbClinic) {
     structuredData.openingHoursSpecification = openingHours;
   }
 
-  // Add featured reviews (up to 10)
+  // Add featured reviews (up to 10) - ONLY if we have an aggregateRating
+  // Google requires aggregateRating when individual reviews are present
   const featuredReviews = clinic.featuredReviews as FeaturedReview[] | null;
-  if (featuredReviews && featuredReviews.length > 0) {
+  if (structuredData.aggregateRating && featuredReviews && featuredReviews.length > 0) {
     structuredData.review = featuredReviews
       .slice(0, 10)
       .filter((r) => r.review)
