@@ -120,14 +120,14 @@ export function ServiceEnhanceModal({
 
       setSuggestions(data);
 
-      // Pre-select high confidence services
-      const highConfidence = new Set<string>();
+      // Pre-select high and medium confidence services (matches bulk enhance behavior)
+      const highMediumConfidence = new Set<string>();
       data.existingServices.forEach((s: ServiceSuggestion) => {
-        if (s.confidence === "high" && s.serviceId) {
-          highConfidence.add(s.serviceId);
+        if ((s.confidence === "high" || s.confidence === "medium") && s.serviceId) {
+          highMediumConfidence.add(s.serviceId);
         }
       });
-      setSelectedServices(highConfidence);
+      setSelectedServices(highMediumConfidence);
 
       // Pre-select featured recommendations
       setSelectedFeatured(new Set(data.featuredRecommendations || []));

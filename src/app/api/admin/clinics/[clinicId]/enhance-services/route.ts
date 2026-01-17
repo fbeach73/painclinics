@@ -262,6 +262,10 @@ function parseServicesResponse(text: string, allServices: Service[]): {
  * Generate AI-suggested services for a clinic based on reviews and descriptions.
  * Returns suggestions for user approval - does NOT auto-save.
  * Requires admin authentication.
+ *
+ * Note: Unlike other enhancements, services don't skip if clinic already has some.
+ * The AI suggestions will exclude already-assigned services, and the caller
+ * decides which new services to add.
  */
 export async function POST(
   _request: NextRequest,

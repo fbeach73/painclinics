@@ -157,9 +157,12 @@ function parseAmenitiesResponse(text: string): string[] {
  * POST /api/admin/clinics/[clinicId]/automate-amenities
  * Generate AI-extracted amenities for a clinic based on reviews and descriptions.
  * Requires admin authentication.
+ *
+ * Query params:
+ * - force: if "true", regenerate even if amenities already exist
  */
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext
 ) {
   // Auth check (admin only)
@@ -169,6 +172,8 @@ export async function POST(
   }
 
   const { clinicId } = await context.params;
+  const { searchParams } = new URL(request.url);
+  const force = searchParams.get("force") === "true";
 
   try {
     // Fetch clinic data
@@ -178,6 +183,19 @@ export async function POST(
         { error: "Clinic not found" },
         { status: 404 }
       );
+    }
+
+    // Skip if clinic already has amenities (unless force=true)
+    const existingAmenities = Array.isArray(clinic.amenities)
+      ? (clinic.amenities as string[])
+      : [];
+    if (!force && existingAmenities.length > 0) {
+      return NextResponse.json({
+        skipped: true,
+        message: "Already has amenities",
+        amenities: existingAmenities,
+        clinicId,
+      });
     }
 
     // Check for available text content

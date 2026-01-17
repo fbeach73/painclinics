@@ -230,8 +230,11 @@ function parseFAQResponse(text: string): FAQItem[] {
  * POST /api/admin/clinics/[clinicId]/generate-faq
  * Generate AI-generated FAQs for a clinic.
  * Requires admin authentication.
+ *
+ * Query params:
+ * - force: if "true", regenerate even if FAQs already exist
  */
-export async function POST(_request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: RouteContext) {
   // Auth check (admin only)
   const adminCheck = await checkAdminApi();
   if ("error" in adminCheck) {
@@ -239,12 +242,25 @@ export async function POST(_request: NextRequest, context: RouteContext) {
   }
 
   const { clinicId } = await context.params;
+  const { searchParams } = new URL(request.url);
+  const force = searchParams.get("force") === "true";
 
   try {
     // Fetch clinic data
     const clinic = await getClinicById(clinicId);
     if (!clinic) {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 });
+    }
+
+    // Skip if clinic already has FAQs (unless force=true)
+    const existingFaqs = clinic.questions as FAQItem[] | null;
+    if (!force && Array.isArray(existingFaqs) && existingFaqs.length > 0) {
+      return NextResponse.json({
+        skipped: true,
+        message: "Already has FAQs",
+        faqCount: existingFaqs.length,
+        clinicId,
+      });
     }
 
     // Check for OpenRouter API key
