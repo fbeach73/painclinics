@@ -9,7 +9,7 @@ import {
 import { getStateName } from "@/lib/us-states";
 import type { Metadata } from "next";
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 86400; // Revalidate every hour
 
 export const metadata: Metadata = {
   title: "Pain Management Clinics by State | Find a Clinic Near You",

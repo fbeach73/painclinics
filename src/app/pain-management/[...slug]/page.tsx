@@ -44,7 +44,7 @@ import type { Metadata } from "next";
 
 // Revalidate pages every hour to pick up data changes
 // Build version: 2026-01-03-v2 (forces static page regeneration)
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 // Check if a slug is a valid US state abbreviation
 function isValidStateAbbrev(slug: string): boolean {

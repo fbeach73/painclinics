@@ -15,7 +15,7 @@ import {
 } from '@/lib/structured-data';
 
 // ISR: Revalidate every hour
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export default async function Home() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
