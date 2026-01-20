@@ -10,6 +10,7 @@ import { FeaturedRenewal } from "./featured-renewal";
 import { FeaturedWelcome } from "./featured-welcome";
 import { GeneralContact } from "./general-contact";
 import { InquiryConfirmation } from "./inquiry-confirmation";
+import { LeadFollowUp, type LeadFollowUpEmailProps } from "./lead-follow-up";
 import { PasswordReset } from "./password-reset";
 import { PaymentFailed } from "./payment-failed";
 import { SubmitClinic } from "./submit-clinic";
@@ -31,13 +32,14 @@ export {
   FeaturedRenewal,
   GeneralContact,
   InquiryConfirmation,
+  LeadFollowUp,
   PaymentFailed,
+  PasswordReset,
   SubmitClinic,
   SubscriptionAdmin,
   SubscriptionCanceled,
   SubscriptionThankYou,
   Welcome,
-  PasswordReset,
 };
 
 // Type definitions for render function props
@@ -67,6 +69,8 @@ export type { ClaimPendingAdminProps };
 export type { SubscriptionAdminProps };
 
 export type { SubscriptionThankYouProps };
+
+export type { LeadFollowUpEmailProps };
 
 export interface FeaturedWelcomeProps {
   clinicName: string;
@@ -224,6 +228,10 @@ export async function renderInquiryConfirmationEmail(props: InquiryConfirmationP
   return render(InquiryConfirmation(props));
 }
 
+export async function renderLeadFollowUpEmail(props: LeadFollowUpEmailProps): Promise<string> {
+  return render(LeadFollowUp(props));
+}
+
 export async function renderGeneralContactEmail(props: GeneralContactProps): Promise<string> {
   return render(GeneralContact(props));
 }
@@ -254,17 +262,18 @@ export const EMAIL_TEMPLATES = {
   CLAIM_PENDING_ADMIN: "claim-pending-admin",
   CLAIM_REJECTED: "claim-rejected",
   CONTACT_CLINIC_INQUIRY: "contact-clinic-inquiry",
+  FEATURED_RENEWAL: "featured-renewal",
+  FEATURED_WELCOME: "featured-welcome",
   GENERAL_CONTACT: "general-contact",
   INQUIRY_CONFIRMATION: "inquiry-confirmation",
-  FEATURED_WELCOME: "featured-welcome",
-  FEATURED_RENEWAL: "featured-renewal",
+  LEAD_FOLLOW_UP: "lead-follow-up",
+  PASSWORD_RESET: "password-reset",
   PAYMENT_FAILED: "payment-failed",
   SUBMIT_CLINIC: "submit-clinic",
   SUBSCRIPTION_ADMIN: "subscription-admin",
   SUBSCRIPTION_CANCELED: "subscription-canceled",
   SUBSCRIPTION_THANK_YOU: "subscription-thank-you",
   WELCOME: "welcome",
-  PASSWORD_RESET: "password-reset",
 } as const;
 
 export type EmailTemplateName = (typeof EMAIL_TEMPLATES)[keyof typeof EMAIL_TEMPLATES];

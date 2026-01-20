@@ -101,6 +101,13 @@ export const targetAudienceEnum = pgEnum("target_audience", [
   "manual",
 ]);
 
+export const leadStatusEnum = pgEnum("lead_status", [
+  "new",
+  "contacted",
+  "qualified",
+  "closed",
+]);
+
 export const user = pgTable(
   "user",
   {
@@ -524,6 +531,66 @@ export const emailLogs = pgTable(
 );
 
 // ============================================
+// Clinic Leads Table
+// ============================================
+
+export const clinicLeads = pgTable(
+  "clinic_leads",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+
+    // Patient Information
+    patientName: text("patient_name").notNull(),
+    patientEmail: text("patient_email").notNull(),
+    patientPhone: text("patient_phone").notNull(),
+    preferredContactTime: text("preferred_contact_time").notNull(),
+    additionalInfo: text("additional_info"),
+
+    // Medical Intake
+    painType: text("pain_type").notNull(),
+    painDuration: text("pain_duration").notNull(),
+    previousTreatment: text("previous_treatment").notNull(),
+    insurance: text("insurance").notNull(),
+
+    // Full form data for reference
+    formData: jsonb("form_data"),
+
+    // Status Management
+    status: leadStatusEnum("status").default("new").notNull(),
+
+    // Follow-up Tracking
+    followedUpAt: timestamp("followed_up_at"),
+    followUpDate: timestamp("follow_up_date"),
+
+    // Admin Notes
+    adminNotes: text("admin_notes"),
+
+    // Email Log References
+    clinicEmailLogId: text("clinic_email_log_id").references(() => emailLogs.id),
+    patientEmailLogId: text("patient_email_log_id").references(() => emailLogs.id),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("clinic_leads_clinic_idx").on(table.clinicId),
+    index("clinic_leads_status_idx").on(table.status),
+    index("clinic_leads_created_at_idx").on(table.createdAt),
+    index("clinic_leads_patient_email_idx").on(table.patientEmail),
+    index("clinic_leads_followed_up_at_idx").on(table.followedUpAt),
+  ]
+);
+
+// ============================================
 // Email Broadcasts Table
 // ============================================
 
@@ -757,6 +824,7 @@ export const clinicsRelations = relations(clinics, ({ one, many }) => ({
     references: [user.id],
   }),
   claims: many(clinicClaims),
+  leads: many(clinicLeads),
   featuredSubscription: one(featuredSubscriptions),
   clinicServices: many(clinicServices),
   analyticsEvents: many(analyticsEvents),
@@ -774,6 +842,21 @@ export const clinicClaimsRelations = relations(clinicClaims, ({ one }) => ({
   reviewer: one(user, {
     fields: [clinicClaims.reviewedBy],
     references: [user.id],
+  }),
+}));
+
+export const clinicLeadsRelations = relations(clinicLeads, ({ one }) => ({
+  clinic: one(clinics, {
+    fields: [clinicLeads.clinicId],
+    references: [clinics.id],
+  }),
+  clinicEmailLog: one(emailLogs, {
+    fields: [clinicLeads.clinicEmailLogId],
+    references: [emailLogs.id],
+  }),
+  patientEmailLog: one(emailLogs, {
+    fields: [clinicLeads.patientEmailLogId],
+    references: [emailLogs.id],
   }),
 }));
 

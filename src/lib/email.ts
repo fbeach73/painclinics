@@ -677,7 +677,7 @@ export async function sendClaimPendingAdminNotificationEmail(
 export async function sendContactClinicInquiryEmail(
   clinicEmail: string | null,
   props: ContactClinicInquiryProps
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; logId?: string }> {
   const validClinicEmail = clinicEmail && clinicEmail.trim() !== "" ? clinicEmail : null;
 
   // If clinic has email, send to clinic with BCC to all admins
@@ -711,15 +711,15 @@ export async function sendContactClinicInquiryEmail(
   const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
 
   if (errorMessage) {
-    return { success: result.success, error: errorMessage };
+    return { success: result.success, error: errorMessage, logId: result.logId };
   }
-  return { success: result.success };
+  return { success: result.success, logId: result.logId };
 }
 
 export async function sendInquiryConfirmationEmail(
   patientEmail: string,
   props: InquiryConfirmationProps
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; logId?: string }> {
   const subject = `Your inquiry to ${props.clinicName} has been received`;
 
   const html = await renderInquiryConfirmationEmail(props);
@@ -738,9 +738,9 @@ export async function sendInquiryConfirmationEmail(
   const errorMessage = result.error instanceof Error ? result.error.message : result.error ? String(result.error) : undefined;
 
   if (errorMessage) {
-    return { success: result.success, error: errorMessage };
+    return { success: result.success, error: errorMessage, logId: result.logId };
   }
-  return { success: result.success };
+  return { success: result.success, logId: result.logId };
 }
 
 export async function sendGeneralContactEmail(

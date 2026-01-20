@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getClinicById } from "@/lib/clinic-queries";
-import { sendContactClinicInquiryEmail, sendInquiryConfirmationEmail } from "@/lib/email";
+import { sendContactClinicInquiryEmail } from "@/lib/email";
+import { createLead } from "@/lib/lead-queries";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 /**
@@ -119,30 +120,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send confirmation email to patient (don't fail the request if this fails)
-    const submittedAt = new Date().toLocaleString("en-US", {
-      timeZone: "America/New_York",
-      dateStyle: "full",
-      timeStyle: "short",
-    });
-
-    const confirmationResult = await sendInquiryConfirmationEmail(
-      data.email,
-      {
+    // Create lead record for admin tracking
+    try {
+      await createLead({
+        clinicId: data.clinicId,
         patientName: data.name,
-        clinicName: clinic.title,
-        clinicCity: clinic.city,
-        clinicState: clinic.stateAbbreviation || "",
-        submittedAt,
-      }
-    );
-
-    if (!confirmationResult.success) {
-      // Log but don't fail the request - the main inquiry was sent successfully
-      console.error("Failed to send confirmation email to patient:", {
-        error: confirmationResult.error,
         patientEmail: data.email,
+        patientPhone: data.phone,
+        preferredContactTime: data.preferredContactTime,
+        additionalInfo: data.additionalInfo || null,
+        painType: data.painType,
+        painDuration: data.painDuration,
+        previousTreatment: data.previousTreatment,
+        insurance: data.insurance,
+        formData: data,
+        ...(emailResult.logId && { clinicEmailLogId: emailResult.logId }),
       });
+    } catch (leadError) {
+      // Log but don't fail the request - email was sent successfully
+      console.error("Failed to create lead record:", leadError);
     }
 
     return NextResponse.json(
