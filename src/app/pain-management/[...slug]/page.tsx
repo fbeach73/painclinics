@@ -42,9 +42,10 @@ import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
-// Revalidate pages every hour to pick up data changes
-// Build version: 2026-01-03-v2 (forces static page regeneration)
-export const revalidate = 86400;
+// Revalidate clinic pages hourly to pick up status changes (draft -> published)
+// 1 hour cache balances cost savings with timely content updates
+// Build version: 2026-01-21-v1 (fixes publish visibility issue)
+export const revalidate = 3600;
 
 // Check if a slug is a valid US state abbreviation
 function isValidStateAbbrev(slug: string): boolean {

@@ -32,9 +32,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if clinic exists and get permalink for revalidation
+    // Check if clinic exists and get data needed for revalidation
     const existing = await db
-      .select({ id: clinics.id, permalink: clinics.permalink })
+      .select({
+        id: clinics.id,
+        permalink: clinics.permalink,
+        city: clinics.city,
+        stateAbbreviation: clinics.stateAbbreviation,
+      })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
@@ -53,12 +58,36 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .where(eq(clinics.id, clinicId))
       .returning({ id: clinics.id, status: clinics.status });
 
-    // Revalidate the clinic page when status changes
-    // This ensures the page is regenerated with the new status
-    const permalink = existing[0]?.permalink;
-    if (permalink) {
-      // Revalidate the clinic page path (e.g., /pain-management/clinic-slug)
-      revalidatePath(`/${permalink}`);
+    // Revalidate all affected pages when status changes
+    // This ensures pages are regenerated with the new status
+    const clinic = existing[0];
+    if (clinic) {
+      const { permalink, stateAbbreviation, city } = clinic;
+
+      // 1. Revalidate the individual clinic page
+      if (permalink) {
+        revalidatePath(`/${permalink}`);
+      }
+
+      // 2. Revalidate the state listing page (clinic appears/disappears here)
+      if (stateAbbreviation) {
+        const statePath = `/pain-management/${stateAbbreviation.toLowerCase()}`;
+        revalidatePath(statePath);
+      }
+
+      // 3. Revalidate the city listing page (clinic appears/disappears here)
+      if (stateAbbreviation && city) {
+        const citySlug = city.toLowerCase().replace(/\s+/g, "-");
+        const cityPath = `/pain-management/${stateAbbreviation.toLowerCase()}/${citySlug}`;
+        revalidatePath(cityPath);
+      }
+
+      // 4. Revalidate the main clinics directory page
+      revalidatePath("/pain-management");
+
+      // 5. Revalidate the catch-all route layout to clear any 404 cache
+      // Using 'page' type ensures we're targeting the page specifically
+      revalidatePath("/pain-management/[...slug]", "page");
     }
 
     return NextResponse.json({
