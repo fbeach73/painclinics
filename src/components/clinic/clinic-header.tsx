@@ -4,7 +4,7 @@ import { BadgeCheck, MapPin, Phone, Navigation, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/lib/auth-client';
-import { type DayName, WEEKDAY_INDEX_TO_NAME, DAY_LABELS } from '@/lib/day-constants';
+import { type DayName, WEEKDAY_INDEX_TO_NAME, DAY_LABELS, DAY_ORDER } from '@/lib/day-constants';
 import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import { formatTime } from '@/lib/time-utils';
 import { getStateName } from '@/lib/us-states';
@@ -121,9 +121,22 @@ function isCurrentlyOpen(clinic: Clinic): { isOpen: boolean; statusText: string 
   return { isOpen: false, statusText: '' };
 }
 
+/**
+ * Check if hours data is actually available (not all days closed with empty times).
+ * When no hours data exists in the database, all days default to closed with empty open/close times.
+ */
+function hasHoursData(clinic: Clinic): boolean {
+  return DAY_ORDER.some((day) => {
+    const dayHours = clinic.hours[day];
+    // If any day has actual times or is explicitly open, we have data
+    return !dayHours.closed || (dayHours.open && dayHours.open !== '') || (dayHours.close && dayHours.close !== '');
+  });
+}
+
 export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
   const { data: session } = useSession();
-  const { isOpen, statusText } = isCurrentlyOpen(clinic);
+  const hasHours = hasHoursData(clinic);
+  const openStatus = hasHours ? isCurrentlyOpen(clinic) : null;
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(clinic.address.formatted);
 
   const currentUserId = session?.user?.id || null;
@@ -169,28 +182,30 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
             {clinic.phone}
           </a>
         </div>
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <div
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/30",
-              isOpen
-                ? "bg-green-600 dark:bg-green-800/50"
-                : "bg-red-600 dark:bg-red-800/50"
-            )}
-          >
-            <span
+        {openStatus && (
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div
               className={cn(
-                "h-2 w-2 rounded-full flex-shrink-0",
-                isOpen ? "bg-green-300 dark:bg-green-400" : "bg-red-300 dark:bg-red-400"
+                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/30",
+                openStatus.isOpen
+                  ? "bg-green-600 dark:bg-green-800/50"
+                  : "bg-red-600 dark:bg-red-800/50"
               )}
-            />
-            <span className="text-xs font-medium text-white">
-              {isOpen ? 'Open' : 'Closed'}
-            </span>
+            >
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full flex-shrink-0",
+                  openStatus.isOpen ? "bg-green-300 dark:bg-green-400" : "bg-red-300 dark:bg-red-400"
+                )}
+              />
+              <span className="text-xs font-medium text-white">
+                {openStatus.isOpen ? 'Open' : 'Closed'}
+              </span>
+            </div>
+            <span className="text-sm text-muted-foreground">{openStatus.statusText}</span>
           </div>
-          <span className="text-sm text-muted-foreground">{statusText}</span>
-        </div>
+        )}
       </div>
 
       {/* CTA buttons */}
