@@ -20,9 +20,9 @@ const DEFAULT_MESSAGE_TEMPLATE = `Hello,
 
 We're following up on a patient inquiry submitted through PainClinics.com. We want to ensure you received the patient's contact information and are able to reach out to them.
 
-If you did not receive the original inquiry or if this email address is incorrect, please let us know so we can update our records.
+If you did not receive the original inquiry or if this email address is incorrect, please let us know so we can update our records. We are actively helping patients get aligned with the proper clinics and would appreciate a reply as we are looking to assign patients to reputable local clinics.
 
-Thank you for being part of the PainClinics.com directory!`;
+Thank you in advance for your reply.`;
 
 export function FollowUpForm({
   leadId,
