@@ -1,6 +1,6 @@
 import { eq, desc, sql, and, isNull, ne, count } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { clinicLeads, emailLogs, leadStatusEnum } from "@/lib/schema";
+import { clinicLeads, clinics, emailLogs, leadStatusEnum } from "@/lib/schema";
 import { addBusinessDays, needsFollowUp } from "@/lib/lead-utils";
 
 // Re-export utility functions from lead-utils (safe for client-side use)
@@ -43,8 +43,26 @@ export interface CreateLeadData {
 
 export interface GetLeadsOptions {
   status?: LeadStatus | "all" | "needs_followup";
+  search?: string | undefined;
   limit?: number;
   offset?: number;
+}
+
+export interface PaginatedLeadsResult {
+  leads: LeadWithDetails[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface ClinicLeadSummary {
+  clinicId: string;
+  clinicTitle: string;
+  clinicCity: string;
+  clinicState: string | null;
+  leadCount: number;
+  latestLeadDate: Date;
 }
 
 // ============================================
@@ -112,12 +130,12 @@ export async function getLeadById(
 }
 
 /**
- * Get leads with filtering and pagination
+ * Get leads with filtering, search, and pagination
  */
 export async function getLeads(
   options: GetLeadsOptions = {}
 ): Promise<LeadWithDetails[]> {
-  const { status = "all", limit = 50, offset = 0 } = options;
+  const { status = "all", search, limit = 50, offset = 0 } = options;
 
   // Build conditions
   const conditions = [];
@@ -142,8 +160,8 @@ export async function getLeads(
   const leads = await db.query.clinicLeads.findMany({
     where: conditions.length > 0 ? and(...conditions) : undefined,
     orderBy: desc(clinicLeads.createdAt),
-    limit,
-    offset,
+    limit: search ? 1000 : limit, // If searching, get more to filter in JS
+    offset: search ? 0 : offset,
     with: {
       clinic: {
         columns: {
@@ -159,23 +177,74 @@ export async function getLeads(
     },
   });
 
+  let filteredLeads = leads as LeadWithDetails[];
+
   // For needs_followup, do precise business day filtering
   if (status === "needs_followup") {
-    return (leads as LeadWithDetails[]).filter((lead) => needsFollowUp(lead));
+    filteredLeads = filteredLeads.filter((lead) => needsFollowUp(lead));
   }
 
-  return leads as LeadWithDetails[];
+  // Apply search filter in JS (searches patient name, email, clinic name, city)
+  if (search) {
+    const searchLower = search.toLowerCase();
+    filteredLeads = filteredLeads.filter(
+      (lead) =>
+        lead.patientName.toLowerCase().includes(searchLower) ||
+        lead.patientEmail.toLowerCase().includes(searchLower) ||
+        lead.patientPhone.includes(search) ||
+        lead.clinic.title.toLowerCase().includes(searchLower) ||
+        lead.clinic.city.toLowerCase().includes(searchLower)
+    );
+    // Apply pagination after search filtering
+    return filteredLeads.slice(offset, offset + limit);
+  }
+
+  return filteredLeads;
 }
 
 /**
- * Get total leads count with optional status filter
+ * Get paginated leads with total count
+ */
+export async function getPaginatedLeads(
+  options: GetLeadsOptions & { page?: number; pageSize?: number }
+): Promise<PaginatedLeadsResult> {
+  const { page = 1, pageSize = 25, search, status = "all" } = options;
+  const offset = (page - 1) * pageSize;
+
+  // Get total count for the query
+  const total = await getLeadsCount(status, search);
+
+  // Get the page of leads
+  const leads = await getLeads({
+    status,
+    search,
+    limit: pageSize,
+    offset,
+  });
+
+  return {
+    leads,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
+}
+
+/**
+ * Get total leads count with optional status and search filter
  */
 export async function getLeadsCount(
-  status?: LeadStatus | "all" | "needs_followup"
+  status?: LeadStatus | "all" | "needs_followup",
+  search?: string
 ): Promise<number> {
-  if (status === "needs_followup") {
-    // Need to fetch and filter in JS for accurate business day calculation
-    const leads = await getLeads({ status: "needs_followup", limit: 10000 });
+  // If searching or needs_followup, we need to fetch and filter in JS
+  if (search || status === "needs_followup") {
+    const leads = await getLeads({
+      status: status || "all",
+      search,
+      limit: 10000
+    });
     return leads.length;
   }
 
@@ -241,6 +310,39 @@ export async function getLeadsNeedingFollowUp(
   limit = 50
 ): Promise<LeadWithDetails[]> {
   return getLeads({ status: "needs_followup", limit });
+}
+
+/**
+ * Get summary of leads grouped by clinic
+ */
+export async function getClinicLeadSummaries(): Promise<ClinicLeadSummary[]> {
+  const results = await db
+    .select({
+      clinicId: clinicLeads.clinicId,
+      clinicTitle: clinics.title,
+      clinicCity: clinics.city,
+      clinicState: clinics.stateAbbreviation,
+      leadCount: count(),
+      latestLeadDate: sql<Date>`MAX(${clinicLeads.createdAt})`,
+    })
+    .from(clinicLeads)
+    .innerJoin(clinics, eq(clinicLeads.clinicId, clinics.id))
+    .groupBy(
+      clinicLeads.clinicId,
+      clinics.title,
+      clinics.city,
+      clinics.stateAbbreviation
+    )
+    .orderBy(desc(sql`MAX(${clinicLeads.createdAt})`));
+
+  return results.map((row) => ({
+    clinicId: row.clinicId,
+    clinicTitle: row.clinicTitle,
+    clinicCity: row.clinicCity,
+    clinicState: row.clinicState,
+    leadCount: Number(row.leadCount),
+    latestLeadDate: new Date(row.latestLeadDate),
+  }));
 }
 
 // ============================================
