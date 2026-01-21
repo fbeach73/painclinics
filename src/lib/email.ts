@@ -55,7 +55,8 @@ const mg =
       })
     : null;
 
-const FROM_EMAIL = "Pain Clinics Directory <noreply@painclinics.com>";
+const DEFAULT_FROM_EMAIL = "Pain Clinics Directory <noreply@painclinics.com>";
+export const HELLO_FROM_EMAIL = "Pain Clinics Directory <hello@painclinics.com>";
 
 // ============================================
 // Unsubscribe Token Utilities
@@ -82,6 +83,7 @@ interface SendEmailOptions {
   userId?: string | undefined;
   metadata?: Record<string, string> | undefined;
   bcc?: string | undefined;
+  from?: string | undefined;
 }
 
 export interface SendEmailResult {
@@ -92,7 +94,7 @@ export interface SendEmailResult {
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
-  const { to, subject, html, templateName, userId, metadata, bcc } = options;
+  const { to, subject, html, templateName, userId, metadata, bcc, from } = options;
 
   // Create log entry
   const logId = await createEmailLog({
@@ -114,7 +116,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     }
 
     const result = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
-      from: FROM_EMAIL,
+      from: from || DEFAULT_FROM_EMAIL,
       to,
       subject,
       html,

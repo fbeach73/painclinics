@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { renderLeadFollowUpEmail, EMAIL_TEMPLATES } from "@/emails";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, HELLO_FROM_EMAIL } from "@/lib/email";
 import { getLeadById, markLeadFollowedUp } from "@/lib/lead-queries";
 
 interface RouteParams {
@@ -79,12 +79,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       customMessage: message.trim(),
     });
 
-    // Send email
+    // Send email from hello@painclinics.com for follow-ups
     const emailResult = await sendEmail({
       to: clinicEmail,
       subject: "Follow-up: Patient Inquiry from PainClinics.com",
       html,
       templateName: EMAIL_TEMPLATES.LEAD_FOLLOW_UP,
+      from: HELLO_FROM_EMAIL,
       metadata: {
         leadId,
         clinicId: lead.clinicId,
