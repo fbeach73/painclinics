@@ -587,7 +587,11 @@ export function ClinicsTable({
                       {clinic.city}, {clinic.stateAbbreviation}
                     </TableCell>
                     <TableCell className="text-center text-xs text-muted-foreground">
-                      {clinic.publishedAt ? formatDate(clinic.publishedAt) : '01/21/2026'}
+                      {clinic.publishedAt
+                        ? formatDate(clinic.publishedAt)
+                        : clinic.status === 'published'
+                          ? '01/21/2026'
+                          : '—'}
                     </TableCell>
                     <TableCell className="text-center">
                       {clinic.hasEnhancedContent ? (
