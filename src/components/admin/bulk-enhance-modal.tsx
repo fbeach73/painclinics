@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Sparkles,
   CheckCircle2,
@@ -103,6 +103,43 @@ export function BulkEnhanceModal({
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Fetch full clinic names for all selected IDs (fixes "Unknown Clinic" issue)
+  const [fetchedClinicNames, setFetchedClinicNames] = useState<Map<string, string> | null>(null);
+
+  useEffect(() => {
+    if (!open || clinicIds.length === 0) {
+      setFetchedClinicNames(null);
+      return;
+    }
+
+    const fetchClinicNames = async () => {
+      try {
+        const response = await fetch('/api/admin/clinics/bulk-names', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clinicIds }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const map = new Map<string, string>(
+            data.clinics.map((c: { id: string; title: string }) => [c.id, c.title])
+          );
+          setFetchedClinicNames(map);
+        }
+      } catch (error) {
+        console.error('Failed to fetch clinic names:', error);
+        // Fall back to the provided clinicNames map
+        setFetchedClinicNames(clinicNames);
+      }
+    };
+
+    fetchClinicNames();
+  }, [open, clinicIds]);
+
+  // Use fetched names if available, otherwise fall back to provided map
+  const effectiveClinicNames = fetchedClinicNames || clinicNames;
 
   // Enhancement selection state
   const [selectedTypes, setSelectedTypes] = useState<Set<EnhancementType>>(
@@ -319,7 +356,7 @@ export function BulkEnhanceModal({
       if (abortControllerRef.current?.signal.aborted) break;
 
       const clinicId = clinicIds[i]!;
-      const clinicName = clinicNames.get(clinicId) ?? 'Unknown Clinic';
+      const clinicName = effectiveClinicNames.get(clinicId) ?? 'Unknown Clinic';
       const results: EnhancementResult[] = [];
 
       try {
