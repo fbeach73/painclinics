@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Phone, Building2, Star, BadgeCheck } from 'lucide-react';
+import { MapPin, Phone, Star, BadgeCheck } from 'lucide-react';
 import type { FeaturedTier } from '@/components/clinic/featured-badge';
 import { StarRating } from '@/components/clinic/star-rating';
 import { ClinicImportBadge } from '@/components/clinics/clinic-import-badge';
@@ -40,22 +40,13 @@ export function FeaturedClinicCard({ clinic, className }: FeaturedClinicCardProp
     >
       {/* Image section with gradient overlay */}
       <div className="relative h-52 bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/30 overflow-hidden">
-        {hasPhoto && clinic.photos[0] ? (
-          <Image
-            src={clinic.photos[0]}
-            alt={clinic.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-2">
-            <Building2 className="h-16 w-16 text-emerald-300 dark:text-emerald-800" />
-            <span className="text-sm text-emerald-600/60 dark:text-emerald-400/40 font-medium">
-              Pain Management Clinic
-            </span>
-          </div>
-        )}
+        <Image
+          src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+          alt={clinic.name}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+        />
 
         {/* Gradient overlay for better badge readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />

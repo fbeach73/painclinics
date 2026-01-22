@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, ImageIcon, BadgeCheck } from 'lucide-react';
+import { MapPin, BadgeCheck } from 'lucide-react';
 import { FeaturedBadge, type FeaturedTier } from '@/components/clinic/featured-badge';
 import { StarRating } from '@/components/clinic/star-rating';
 import { Badge } from '@/components/ui/badge';
@@ -38,19 +38,13 @@ export function FeaturedSidebarCard({ clinic, className }: FeaturedSidebarCardPr
         <div className="flex gap-3 p-3">
           {/* Thumbnail */}
           <div className="relative h-20 w-20 shrink-0 rounded-md overflow-hidden bg-muted">
-            {hasPhoto && clinic.photos[0] ? (
-              <Image
-                src={clinic.photos[0]}
-                alt={clinic.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-200"
-                sizes="80px"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
-              </div>
-            )}
+            <Image
+              src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+              alt={clinic.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              sizes="80px"
+            />
             {/* Featured badge overlay */}
             <div className="absolute bottom-1 left-1">
               <FeaturedBadge tier={featuredTier} size="sm" />
