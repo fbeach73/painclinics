@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Calendar, Trash2, FileCheck, FilePen } from 'lucide-react';
+import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Trash2, FileCheck, FilePen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,7 +60,7 @@ interface Clinic {
   importUpdatedAt: string | null; // For UPDATED badge
 }
 
-type SortColumn = 'title' | 'createdAt' | 'publishedAt' | 'enhanced' | 'rating' | 'reviewCount';
+type SortColumn = 'title' | 'publishedAt' | 'enhanced' | 'rating' | 'reviewCount';
 type SortDirection = 'asc' | 'desc';
 
 interface ClinicsTableProps {
@@ -83,7 +83,7 @@ export function ClinicsTable({
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [enhancedFilter, setEnhancedFilter] = useState<string>('');
   const [updatedFilter, setUpdatedFilter] = useState<string>('');
-  const [sortBy, setSortBy] = useState<SortColumn>('createdAt');
+  const [sortBy, setSortBy] = useState<SortColumn>('publishedAt');
   const [sortDir, setSortDir] = useState<SortDirection>('desc');
   const [offset, setOffset] = useState(0);
   const limit = 100;
@@ -250,7 +250,7 @@ export function ClinicsTable({
     setStatusFilter('');
     setEnhancedFilter('');
     setUpdatedFilter('');
-    setSortBy('createdAt');
+    setSortBy('publishedAt');
     setSortDir('desc');
     setOffset(0);
   };
@@ -518,16 +518,6 @@ export function ClinicsTable({
                   <TableHead>Location</TableHead>
                   <TableHead className="text-center w-[80px]">
                     <button
-                      onClick={() => handleSort('createdAt')}
-                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
-                      title="Imported Date"
-                    >
-                      <Calendar className="h-3.5 w-3.5" />
-                      {getSortIcon('createdAt')}
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-center w-[80px]">
-                    <button
                       onClick={() => handleSort('publishedAt')}
                       className="flex items-center justify-center hover:text-foreground transition-colors w-full"
                       title="Published Date"
@@ -595,9 +585,6 @@ export function ClinicsTable({
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {clinic.city}, {clinic.stateAbbreviation}
-                    </TableCell>
-                    <TableCell className="text-center text-xs text-muted-foreground">
-                      {clinic.createdAt ? formatDate(clinic.createdAt) : '—'}
                     </TableCell>
                     <TableCell className="text-center text-xs text-muted-foreground">
                       {clinic.publishedAt ? formatDate(clinic.publishedAt) : '01/21/2026'}
