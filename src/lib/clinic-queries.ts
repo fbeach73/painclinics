@@ -288,6 +288,7 @@ export async function getClinicsForAdmin(limit = 100, offset = 0) {
       reviewCount: clinics.reviewCount,
       updatedAt: clinics.updatedAt,
       createdAt: clinics.createdAt,
+      publishedAt: clinics.publishedAt,
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
       status: clinics.status,

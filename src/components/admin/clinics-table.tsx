@@ -55,11 +55,12 @@ interface Clinic {
   featuredTier: string | null;
   status: 'draft' | 'published' | 'deleted';
   createdAt: string;
+  publishedAt: string | null; // When clinic was first published
   hasEnhancedContent: boolean;
   importUpdatedAt: string | null; // For UPDATED badge
 }
 
-type SortColumn = 'title' | 'createdAt' | 'enhanced' | 'rating' | 'reviewCount';
+type SortColumn = 'title' | 'createdAt' | 'publishedAt' | 'enhanced' | 'rating' | 'reviewCount';
 type SortDirection = 'asc' | 'desc';
 
 interface ClinicsTableProps {
@@ -525,6 +526,16 @@ export function ClinicsTable({
                       {getSortIcon('createdAt')}
                     </button>
                   </TableHead>
+                  <TableHead className="text-center w-[80px]">
+                    <button
+                      onClick={() => handleSort('publishedAt')}
+                      className="flex items-center justify-center hover:text-foreground transition-colors w-full"
+                      title="Published Date"
+                    >
+                      Published
+                      {getSortIcon('publishedAt')}
+                    </button>
+                  </TableHead>
                   <TableHead className="text-center w-[50px]">
                     <button
                       onClick={() => handleSort('enhanced')}
@@ -587,6 +598,9 @@ export function ClinicsTable({
                     </TableCell>
                     <TableCell className="text-center text-xs text-muted-foreground">
                       {clinic.createdAt ? formatDate(clinic.createdAt) : '—'}
+                    </TableCell>
+                    <TableCell className="text-center text-xs text-muted-foreground">
+                      {clinic.publishedAt ? formatDate(clinic.publishedAt) : '01/21/2026'}
                     </TableCell>
                     <TableCell className="text-center">
                       {clinic.hasEnhancedContent ? (

@@ -29,6 +29,7 @@ export default async function ClinicsPage() {
     featuredTier: clinic.featuredTier,
     status: clinic.status,
     createdAt: clinic.createdAt?.toISOString() ?? new Date().toISOString(),
+    publishedAt: clinic.publishedAt?.toISOString() ?? null,
     hasEnhancedContent: clinic.hasEnhancedContent ?? false,
     importUpdatedAt: clinic.importUpdatedAt?.toISOString() ?? null,
   }));

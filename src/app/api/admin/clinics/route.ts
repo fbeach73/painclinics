@@ -4,7 +4,7 @@ import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
 
-type SortColumn = "title" | "createdAt" | "enhanced" | "rating" | "reviewCount";
+type SortColumn = "title" | "createdAt" | "publishedAt" | "enhanced" | "rating" | "reviewCount";
 type SortDirection = "asc" | "desc";
 
 /**
@@ -110,6 +110,10 @@ export async function GET(request: NextRequest) {
       case "createdAt":
         orderByClause = sortFn(clinics.createdAt);
         break;
+      case "publishedAt":
+        // Sort by publishedAt, with null values treated as Jan 21, 2026
+        orderByClause = sortFn(sql`COALESCE(${clinics.publishedAt}, '2026-01-21'::timestamp)`);
+        break;
       case "enhanced":
         orderByClause = sortFn(sql`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN 1 ELSE 0 END`);
         break;
@@ -139,6 +143,7 @@ export async function GET(request: NextRequest) {
         featuredTier: clinics.featuredTier,
         status: clinics.status,
         createdAt: clinics.createdAt,
+        publishedAt: clinics.publishedAt,
         hasEnhancedContent: sql<boolean>`CASE WHEN ${clinics.newPostContent} IS NOT NULL AND ${clinics.newPostContent} != '' THEN true ELSE false END`,
         importUpdatedAt: clinics.importUpdatedAt,
       })

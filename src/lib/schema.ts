@@ -281,6 +281,7 @@ export const clinics = pgTable(
     importedAt: timestamp("imported_at"), // When clinic was first imported (for NEW badge)
     importUpdatedAt: timestamp("import_updated_at"), // When existing clinic was updated via import (for UPDATED badge)
     status: clinicStatusEnum("status").default("published").notNull(),
+    publishedAt: timestamp("published_at"), // When clinic was first published (null if never published)
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -309,6 +310,7 @@ export const clinics = pgTable(
     index("clinics_featured_idx").on(table.isFeatured),
     index("clinics_status_idx").on(table.status),
     index("clinics_created_at_idx").on(table.createdAt),
+    index("clinics_published_at_idx").on(table.publishedAt),
   ]
 );
 
