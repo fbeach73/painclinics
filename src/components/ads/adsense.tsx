@@ -24,6 +24,11 @@ export const AD_SLOTS = {
  * - $221 earnings but only 39% viewability (needs better positioning)
  * - Using responsive format because dynamic sizing earned $481
  * - Mobile-first: 74% of revenue comes from mobile
+ *
+ * CLS optimization:
+ * - Reserved min-height prevents layout shift when ad loads
+ * - Mobile: 250px (common leaderboard/rectangle height)
+ * - Desktop: 90px (common banner height, can expand)
  */
 export function InPageAd({ className = "" }: { className?: string }) {
   useEffect(() => {
@@ -35,7 +40,7 @@ export function InPageAd({ className = "" }: { className?: string }) {
   }, []);
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full min-h-[250px] sm:min-h-[90px] ${className}`}>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
@@ -52,6 +57,7 @@ export function InPageAd({ className = "" }: { className?: string }) {
  * Ad Placement Wrapper
  * - Shows "Advertisement" label on desktop only (cleaner mobile experience)
  * - Mobile is 74% of revenue, keep it clean
+ * - Contains overflow to prevent ad content from causing layout shifts
  */
 interface AdPlacementProps {
   children: React.ReactNode;
@@ -65,7 +71,7 @@ export function AdPlacement({
   showLabel = true,
 }: AdPlacementProps) {
   return (
-    <div className={`my-4 ${className}`}>
+    <div className={`my-4 contain-layout ${className}`}>
       {showLabel && (
         <p className="hidden sm:block text-xs text-muted-foreground text-center mb-1">
           Advertisement
