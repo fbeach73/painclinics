@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Calendar, Trash2 } from 'lucide-react';
+import { Database, Star, Edit, Search, Filter, Loader2, X, Sparkles, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown, Calendar, Trash2, FileCheck, FilePen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -94,6 +94,10 @@ export function ClinicsTable({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Bulk status change state
+  const [bulkStatusAction, setBulkStatusAction] = useState<string>('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
   // Create a map of clinic IDs to names for the modal
   const clinicNamesMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -158,6 +162,39 @@ export function ClinicsTable({
       alert('Failed to delete clinics. Please try again.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkStatusChange = async () => {
+    if (selectedIds.size === 0 || !bulkStatusAction) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch('/api/admin/clinics/bulk-status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clinicIds: Array.from(selectedIds),
+          status: bulkStatusAction,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        clearSelection();
+        setBulkStatusAction('');
+        fetchClinics(offset);
+        alert(`Successfully updated ${data.updatedCount} clinic(s) to "${bulkStatusAction}"`);
+      } else {
+        const error = await response.json();
+        console.error('Status update failed:', error);
+        alert(`Failed to update status: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Status update error:', error);
+      alert('Failed to update clinic statuses. Please try again.');
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -351,7 +388,42 @@ export function ClinicsTable({
             <span className="text-sm font-medium">
               {selectedIds.size} clinic{selectedIds.size !== 1 ? 's' : ''} selected
             </span>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {/* Bulk Status Change - WordPress style */}
+              <div className="flex items-center gap-1 border-r pr-3 mr-1">
+                <Select value={bulkStatusAction} onValueChange={setBulkStatusAction}>
+                  <SelectTrigger className="w-[130px] h-8 text-sm">
+                    <SelectValue placeholder="Change status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="published">
+                      <span className="flex items-center gap-2">
+                        <FileCheck className="h-3.5 w-3.5 text-green-600" />
+                        Publish
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="draft">
+                      <span className="flex items-center gap-2">
+                        <FilePen className="h-3.5 w-3.5 text-muted-foreground" />
+                        Draft
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleBulkStatusChange}
+                  disabled={!bulkStatusAction || isUpdatingStatus}
+                >
+                  {isUpdatingStatus ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Apply'
+                  )}
+                </Button>
+              </div>
+
               <Button variant="outline" size="sm" onClick={clearSelection}>
                 Clear Selection
               </Button>
