@@ -42,10 +42,10 @@ import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
-// Revalidate clinic pages hourly to pick up status changes (draft -> published)
-// 1 hour cache balances cost savings with timely content updates
-// Build version: 2026-01-21-v1 (fixes publish visibility issue)
-export const revalidate = 3600;
+// Revalidate clinic pages weekly to reduce Vercel ISR costs
+// Use on-demand revalidation via admin actions for immediate updates
+// 1 week cache (604800 seconds) - only ~750 ISR writes/day vs 120K+/day at 1 hour
+export const revalidate = 604800;
 
 // Check if a slug is a valid US state abbreviation
 function isValidStateAbbrev(slug: string): boolean {

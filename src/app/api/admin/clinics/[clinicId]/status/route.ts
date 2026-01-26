@@ -39,6 +39,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         permalink: clinics.permalink,
         city: clinics.city,
         stateAbbreviation: clinics.stateAbbreviation,
+        status: clinics.status,
       })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
@@ -51,6 +52,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const clinic = existing[0]!;
+    const oldStatus = clinic.status;
+
     // Update the status
     const [updated] = await db
       .update(clinics)
@@ -58,36 +62,39 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .where(eq(clinics.id, clinicId))
       .returning({ id: clinics.id, status: clinics.status });
 
-    // Revalidate all affected pages when status changes
-    // This ensures pages are regenerated with the new status
-    const clinic = existing[0];
+    // Smart revalidation: only revalidate listing pages when public visibility changes
+    // Draft → Published: clinic appears on public site (revalidate all)
+    // Published → Draft: clinic disappears from public site (revalidate all)
+    // Published → Deleted: clinic disappears (revalidate all)
+    // Draft → Deleted: clinic was never visible (skip listing revalidation)
+    const wasPublic = oldStatus === "published";
+    const isPublic = status === "published";
+    const visibilityChanged = wasPublic !== isPublic || (status === "deleted" && wasPublic);
+
     if (clinic) {
       const { permalink, stateAbbreviation, city } = clinic;
 
-      // 1. Revalidate the individual clinic page
+      // Always revalidate the individual clinic page
       if (permalink) {
         revalidatePath(`/${permalink}`);
       }
 
-      // 2. Revalidate the state listing page (clinic appears/disappears here)
-      if (stateAbbreviation) {
+      // Only revalidate listing pages if public visibility changed
+      if (visibilityChanged && stateAbbreviation) {
+        // Revalidate the state listing page
         const statePath = `/pain-management/${stateAbbreviation.toLowerCase()}`;
         revalidatePath(statePath);
+
+        // Revalidate the city listing page
+        if (city) {
+          const citySlug = city.toLowerCase().replace(/\s+/g, "-");
+          const cityPath = `/pain-management/${stateAbbreviation.toLowerCase()}/${citySlug}`;
+          revalidatePath(cityPath);
+        }
+
+        // Revalidate the main clinics directory page
+        revalidatePath("/pain-management");
       }
-
-      // 3. Revalidate the city listing page (clinic appears/disappears here)
-      if (stateAbbreviation && city) {
-        const citySlug = city.toLowerCase().replace(/\s+/g, "-");
-        const cityPath = `/pain-management/${stateAbbreviation.toLowerCase()}/${citySlug}`;
-        revalidatePath(cityPath);
-      }
-
-      // 4. Revalidate the main clinics directory page
-      revalidatePath("/pain-management");
-
-      // 5. Revalidate the catch-all route layout to clear any 404 cache
-      // Using 'page' type ensures we're targeting the page specifically
-      revalidatePath("/pain-management/[...slug]", "page");
     }
 
     return NextResponse.json({

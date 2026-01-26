@@ -46,6 +46,22 @@ export async function PATCH(request: Request) {
       );
     }
 
+    // Fetch clinic data needed for smart revalidation
+    const clinicsToUpdate = await db
+      .select({
+        id: schema.clinics.id,
+        permalink: schema.clinics.permalink,
+        stateAbbreviation: schema.clinics.stateAbbreviation,
+        status: schema.clinics.status,
+      })
+      .from(schema.clinics)
+      .where(inArray(schema.clinics.id, clinicIds));
+
+    // Determine if any clinics are changing public visibility
+    const hasVisibilityChange = clinicsToUpdate.some(
+      (c) => (c.status === "published") !== (status === "published")
+    );
+
     // Update the status of all selected clinics
     const result = await db
       .update(schema.clinics)
@@ -56,9 +72,22 @@ export async function PATCH(request: Request) {
       .where(inArray(schema.clinics.id, clinicIds))
       .returning({ id: schema.clinics.id, title: schema.clinics.title });
 
-    // Revalidate the clinics pages
-    revalidatePath("/admin/clinics");
-    revalidatePath("/pain-management");
+    // Smart revalidation: revalidate individual clinic pages that changed
+    // Only revalidate listing pages if visibility changed for any clinic
+    for (const clinic of clinicsToUpdate) {
+      if (clinic.permalink) {
+        revalidatePath(`/${clinic.permalink}`);
+      }
+    }
+
+    // Revalidate listing pages only if public visibility changed
+    if (hasVisibilityChange) {
+      revalidatePath("/admin/clinics");
+      revalidatePath("/pain-management");
+    } else {
+      // Still revalidate admin page to show status updates
+      revalidatePath("/admin/clinics");
+    }
 
     return NextResponse.json({
       success: true,
