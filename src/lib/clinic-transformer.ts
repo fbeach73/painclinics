@@ -1,6 +1,44 @@
 import { getStateAbbreviation, getStateName } from "./us-states";
 
 /**
+ * Normalize a US postal code to a consistent 5-digit format
+ * - Pads with leading zeros if needed (e.g., "7960" → "07960")
+ * - Removes spaces and hyphens
+ * - Returns original if non-numeric or invalid format
+ */
+export function normalizePostalCode(postalCode: string): string {
+  if (!postalCode) return "";
+
+  // Remove spaces, hyphens, and any non-alphanumeric characters
+  const cleaned = postalCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+  // If it's a 5-digit zip that needs padding, add leading zero
+  if (/^\d{1,4}$/.test(cleaned)) {
+    return cleaned.padStart(5, "0");
+  }
+
+  // If it's ZIP+4 format (e.g., "12345-6789"), return the first 5 digits
+  if (/^\d{5}-?\d{4}$/.test(postalCode)) {
+    return cleaned.substring(0, 5);
+  }
+
+  // Return as-is for Canadian postal codes or other formats
+  return cleaned;
+}
+
+/**
+ * Normalize a US phone number to (XXX) XXX-XXXX format for comparison
+ * Removes all non-digit characters, then formats consistently
+ */
+export function normalizePhoneNumber(phone: string): string {
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return digits;
+  if (digits.length === 11 && digits.startsWith("1")) return digits.substring(1);
+  return digits;
+}
+
+/**
  * Type definitions for transformed clinic data structures
  */
 export interface ReviewKeyword {
@@ -678,6 +716,7 @@ export function extractPermalinkPath(fullUrl: string | undefined): string {
 /**
  * Generate a unique permalink slug from title, state abbreviation, and zip code
  * Format: {title-slug}-{state-abbr}-{zipcode}
+ * Zip codes are normalized to 5 digits (e.g., "7960" → "07960")
  * @example generatePermalinkSlug("Pain Care Centers", "WY", "82901") => "pain-care-centers-wy-82901"
  */
 export function generatePermalinkSlug(
@@ -693,9 +732,9 @@ export function generatePermalinkSlug(
     .replace(/^-|-$/g, ""); // Trim leading/trailing hyphens
 
   const stateAbbr = stateAbbreviation.toLowerCase();
-  const zip = postalCode.replace(/\s+/g, ""); // Remove any spaces in zip
+  const normalizedZip = normalizePostalCode(postalCode); // Normalize to 5 digits
 
-  return `${titleSlug}-${stateAbbr}-${zip}`;
+  return `${titleSlug}-${stateAbbr}-${normalizedZip}`;
 }
 
 /**
