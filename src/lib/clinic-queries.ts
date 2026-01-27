@@ -45,6 +45,33 @@ export async function getClinicByPermalink(slug: string) {
 }
 
 /**
+ * Find a clinic by attempting to strip common duplicate suffixes (-2, -3, etc).
+ * Used to handle legacy URLs where duplicate clinics had numeric suffixes.
+ *
+ * @param slug - The clinic slug that may end with -N suffix
+ * @returns The clinic record with the canonical permalink, or null if not found
+ */
+export async function getClinicByStrippedSlug(slug: string): Promise<{ clinic: ClinicRecord; canonicalSlug: string } | null> {
+  // Check if slug ends with -{number} pattern (e.g., -2, -3, -4)
+  const match = slug.match(/^(.+)-(\d+)$/);
+
+  if (!match || !match[1]) {
+    return null;
+  }
+
+  const baseSlug = match[1];
+
+  // Try to find clinic with the base slug (without the -N suffix)
+  const clinic = await getClinicByPermalink(baseSlug);
+
+  if (clinic) {
+    return { clinic, canonicalSlug: baseSlug };
+  }
+
+  return null;
+}
+
+/**
  * Fetch all clinic permalinks and update timestamps for sitemap generation.
  * Returns only the fields needed for sitemap generation to minimize data transfer.
  *

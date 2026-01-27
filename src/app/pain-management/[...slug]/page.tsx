@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
@@ -10,6 +9,7 @@ import { ClinicAmenities } from "@/components/clinic/clinic-amenities";
 import { ClinicEditButton } from "@/components/clinic/clinic-edit-button";
 import { ClinicFAQ } from "@/components/clinic/clinic-faq";
 import { ClinicGallery } from "@/components/clinic/clinic-gallery";
+import { ClinicHeroImage } from "@/components/clinic/clinic-hero-image";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
@@ -25,6 +25,7 @@ import { transformDbClinicToType } from "@/lib/clinic-db-to-type";
 import {
   getClinicByPermalink,
   getClinicByLegacySlug,
+  getClinicByStrippedSlug,
   getClinicsByState,
   getClinicsByCity,
 } from "@/lib/clinic-queries";
@@ -553,7 +554,17 @@ export default async function PainManagementClinicPage({ params }: Props) {
   const slugPath = slug.join("/");
   const dbClinic = await getClinicByPermalink(slugPath);
 
-  // If not found and single segment, try legacy WordPress slug format
+  // If not found, check if slug ends with -N suffix (e.g., -2, -3)
+  // This handles legacy duplicate clinic URLs that should redirect to canonical
+  if (!dbClinic) {
+    const strippedResult = await getClinicByStrippedSlug(slugPath);
+    if (strippedResult) {
+      // Redirect to canonical URL without the -N suffix (301 permanent redirect)
+      redirect(`/pain-management/${strippedResult.canonicalSlug}`);
+    }
+  }
+
+  // If still not found and single segment, try legacy WordPress slug format
   // Legacy format: {clinic-name-slug}-{state}-{zipcode} e.g. "open-arms-pain-clinic-co-80909"
   if (!dbClinic && slug.length === 1 && slug[0]) {
     const legacyClinic = await getClinicByLegacySlug(slug[0]);
@@ -684,11 +695,9 @@ export default async function PainManagementClinicPage({ params }: Props) {
               )}
             </div>
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
-              <Image
-                src={dbClinic.imageFeatured || dbClinic.imageUrl || "/images/clinic-placeholder.webp"}
+              <ClinicHeroImage
+                src={dbClinic.imageFeatured || dbClinic.imageUrl}
                 alt={clinic.name}
-                fill
-                className="object-cover"
                 priority
               />
             </div>

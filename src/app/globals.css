@@ -361,6 +361,21 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
   box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.3);
 }
 
+/* Holographic gradient border animation */
+@keyframes gradient-xy {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-xy {
+  background-size: 200% 200%;
+  animation: gradient-xy 3s ease infinite;
+}
+
 /* Aceternity UI - Infinite scroll animation */
 @keyframes scroll {
   to {
@@ -377,7 +392,8 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
   .badge-animate,
   .premium-badge-shimmer,
   .contact-cta-pulse,
-  .animate-scroll {
+  .animate-scroll,
+  .animate-gradient-xy {
     animation: none;
   }
 
