@@ -62,15 +62,32 @@ export async function PATCH(request: Request) {
       (c) => (c.status === "published") !== (status === "published")
     );
 
+    // Find clinics being published for the first time (draft/deleted → published)
+    const clinicsBeingPublished = clinicsToUpdate
+      .filter((c) => c.status !== "published" && status === "published")
+      .map((c) => c.id);
+
     // Update the status of all selected clinics
+    const now = new Date();
     const result = await db
       .update(schema.clinics)
       .set({
         status: status as ClinicStatus,
-        updatedAt: new Date(),
+        updatedAt: now,
       })
       .where(inArray(schema.clinics.id, clinicIds))
       .returning({ id: schema.clinics.id, title: schema.clinics.title });
+
+    // Set publishedAt for clinics being published for the first time
+    // (only if they don't already have a publishedAt date)
+    if (clinicsBeingPublished.length > 0) {
+      await db
+        .update(schema.clinics)
+        .set({ publishedAt: now })
+        .where(
+          inArray(schema.clinics.id, clinicsBeingPublished)
+        );
+    }
 
     // Smart revalidation: revalidate individual clinic pages that changed
     // Only revalidate listing pages if visibility changed for any clinic

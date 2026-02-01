@@ -55,10 +55,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const clinic = existing[0]!;
     const oldStatus = clinic.status;
 
+    // Prepare update data
+    const updateData: {
+      status: "draft" | "published" | "deleted";
+      publishedAt?: Date;
+    } = {
+      status: status as "draft" | "published" | "deleted",
+    };
+
+    // Set publishedAt when publishing for the first time
+    if (oldStatus !== "published" && status === "published") {
+      updateData.publishedAt = new Date();
+    }
+
     // Update the status
     const [updated] = await db
       .update(clinics)
-      .set({ status: status as "draft" | "published" | "deleted" })
+      .set(updateData)
       .where(eq(clinics.id, clinicId))
       .returning({ id: clinics.id, status: clinics.status });
 
