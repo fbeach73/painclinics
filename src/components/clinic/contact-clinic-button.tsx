@@ -25,7 +25,8 @@ export function ContactClinicButton({
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      setIsVisible(scrollPosition > 200);
+      const threshold = window.innerWidth >= 768 ? 200 : 100;
+      setIsVisible(scrollPosition > threshold);
     };
 
     // Add scroll event listener
