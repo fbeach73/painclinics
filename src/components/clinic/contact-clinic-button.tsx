@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ContactClinicModal } from './contact-clinic-modal';
@@ -20,6 +20,23 @@ export function ContactClinicButton({
   clinicState,
 }: ContactClinicButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsVisible(scrollPosition > 200);
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+
+    // Check initial scroll position
+    handleScroll();
+
+    // Cleanup
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <>
@@ -42,7 +59,9 @@ export function ContactClinicButton({
           // Hover
           'hover:scale-105 hover:shadow-xl transition-all duration-300',
           // Focus
-          'focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2'
+          'focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2',
+          // Visibility based on scroll
+          isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
       >
         <span className="flex items-center gap-2">
