@@ -55,14 +55,12 @@ export function ContactClinicButton({
           'text-white font-semibold text-sm md:text-base',
           // Shape & shadow
           'rounded-full shadow-lg',
-          // Animation
-          'contact-cta-pulse',
           // Hover
           'hover:scale-105 hover:shadow-xl transition-all duration-300',
           // Focus
           'focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2',
-          // Visibility based on scroll
-          isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          // Visibility based on scroll - animation only when visible to prevent opacity override
+          isVisible ? 'opacity-100 contact-cta-pulse' : 'opacity-0 pointer-events-none'
         )}
       >
         <span className="flex items-center gap-2">
