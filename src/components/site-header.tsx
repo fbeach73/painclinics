@@ -57,14 +57,14 @@ export function SiteHeader() {
       </a>
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
         <nav
-          className="container mx-auto px-4 py-3 flex items-center gap-4"
+          className="container mx-auto px-4 py-4 flex items-center gap-4"
           aria-label="Main navigation"
         >
           {/* Logo */}
           <h1 className="text-xl font-bold shrink-0">
             <Link
               href="/"
-              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+              className="flex items-center gap-3 text-primary hover:text-primary/80 transition-colors"
               aria-label="Pain Clinics - Go to homepage"
             >
               <Image
@@ -160,24 +160,24 @@ export function SiteHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/pain-tracking">Pain Tracking</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/pain-relief-tool">Pain Relief Tool</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/blog">Blog</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/clinics">Browse Clinics</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/treatment-options">Treatment Options</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/for-clinics" className="text-featured-foreground font-medium">
                   Get Featured
                 </Link>

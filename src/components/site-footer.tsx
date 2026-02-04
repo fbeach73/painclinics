@@ -49,7 +49,7 @@ interface FooterLinkColumnProps {
 function FooterLinkColumn({ title, links }: FooterLinkColumnProps) {
   return (
     <div>
-      <h3 className="font-semibold text-foreground mb-4">{title}</h3>
+      <h3 className="font-bold text-foreground mb-4">{title}</h3>
       <ul className="space-y-2">
         {links.map((link) => (
           <li key={link.href + link.label}>
@@ -102,8 +102,8 @@ export async function SiteFooter() {
   return (
     <footer className="border-t bg-background">
       {/* Main Footer Grid */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
           {/* Column 1: Logo + Tagline */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo size="md" showText={true} className="mb-4" />
@@ -124,7 +124,7 @@ export async function SiteFooter() {
 
           {/* Column 5: Popular Locations (Dynamic) */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Popular Locations</h3>
+            <h3 className="font-bold text-foreground mb-4">Popular Locations</h3>
             {topStates.length > 0 || topCities.length > 0 ? (
               <div className="space-y-4">
                 {topStates.length > 0 && (
