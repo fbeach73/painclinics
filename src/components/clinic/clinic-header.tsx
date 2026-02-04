@@ -210,13 +210,13 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
 
       {/* CTA buttons */}
       <div className="flex flex-wrap gap-3">
-        <Button asChild size="lg">
+        <Button asChild size="lg" className="font-semibold">
           <a href={`tel:${clinic.phone}`}>
             <Phone className="h-4 w-4" />
             Call Now
           </a>
         </Button>
-        <Button variant="outline" size="lg" asChild>
+        <Button variant="outline" size="lg" asChild className="font-semibold">
           <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
             <Navigation className="h-4 w-4" />
             Get Directions

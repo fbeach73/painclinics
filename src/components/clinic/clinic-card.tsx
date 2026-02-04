@@ -34,7 +34,7 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
   return (
     <Card
       className={cn(
-        'flex flex-col h-full relative',
+        'flex flex-col h-full relative rounded-xl transition-[transform,box-shadow] duration-200 hover:shadow-lg hover:-translate-y-0.5',
         isVariantFeatured && 'overflow-hidden',
         // Featured clinic styling - semantic featured colors
         isFeaturedClinic && 'border-2 border-featured-border',

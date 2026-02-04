@@ -30,7 +30,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
     : null;
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
+    <Card className="overflow-hidden flex flex-col h-full transition-[colors,box-shadow] duration-200 hover:shadow-lg hover:border-primary/50">
       {post.featuredImageUrl && (
         <Link href={`/blog/${post.slug}`} className="block">
           <div className="relative aspect-video overflow-hidden">
@@ -60,7 +60,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
           </div>
         )}
         <Link href={`/blog/${post.slug}`} className="group">
-          <h2 className="text-xl font-semibold line-clamp-2 group-hover:text-primary transition-colors">
+          <h2 className="text-xl md:text-2xl font-semibold line-clamp-2 group-hover:text-primary transition-colors">
             {post.title}
           </h2>
         </Link>
