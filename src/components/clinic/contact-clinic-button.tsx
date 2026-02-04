@@ -27,7 +27,7 @@ export function ContactClinicButton({
         onClick={() => setModalOpen(true)}
         className={cn(
           // Position - mobile: center, desktop: right
-          'fixed bottom-4 left-1/2 -translate-x-1/2 z-50',
+          'fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999]',
           'md:bottom-6 md:right-6 md:left-auto md:translate-x-0',
           // Size
           'px-5 py-2.5 md:px-6 md:py-3',
