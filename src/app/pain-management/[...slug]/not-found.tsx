@@ -2,10 +2,12 @@ import Link from "next/link";
 import { MapPin, Search, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotFoundLogger } from "@/components/not-found-logger";
 
 export default function ClinicNotFound() {
   return (
     <main className="flex-1">
+      <NotFoundLogger />
       <div className="container py-16">
         <div className="max-w-2xl mx-auto text-center">
           {/* Icon */}

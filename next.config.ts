@@ -397,10 +397,15 @@ const nextConfig: NextConfig = {
       },
 
       // ===========================================
-      // Malformed /clinic/ prefix URLs (likely from old sitemap)
+      // Malformed /clinic/ prefix URLs (from old sitemap or email templates)
       // ===========================================
       {
         source: "/clinic/pain-management/:path*",
+        destination: "/pain-management/:path*",
+        permanent: true,
+      },
+      {
+        source: "/clinic/:path*",
         destination: "/pain-management/:path*",
         permanent: true,
       },

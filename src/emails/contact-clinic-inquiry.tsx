@@ -41,7 +41,7 @@ export function ContactClinicInquiry({
   submittedAt,
 }: ContactClinicInquiryProps) {
   const baseUrl = "https://www.painclinics.com";
-  const clinicUrl = clinicPermalink ? `${baseUrl}/clinic/${clinicPermalink}` : undefined;
+  const clinicUrl = clinicPermalink ? `${baseUrl}/${clinicPermalink}` : undefined;
 
   return (
     <EmailLayout previewText={`New patient inquiry for ${clinicName}`}>
