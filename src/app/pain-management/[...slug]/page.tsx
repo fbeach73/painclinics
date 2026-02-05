@@ -564,6 +564,20 @@ export default async function PainManagementClinicPage({ params }: Props) {
     }
   }
 
+  // If not found, check if slug ends with a 4-digit zip (missing leading zero)
+  // Old WordPress URLs for states like NJ, MA, CT had zips like 8034 instead of 08034
+  if (!dbClinic && slug.length === 1 && slug[0]) {
+    const zipMatch = slug[0].match(/^(.+)-([a-z]{2})-(\d{4})$/i);
+    if (zipMatch && zipMatch[1] && zipMatch[2] && zipMatch[3]) {
+      const paddedSlug = `${zipMatch[1]}-${zipMatch[2].toLowerCase()}-0${zipMatch[3]}`;
+      const paddedClinic = await getClinicByPermalink(paddedSlug);
+      if (paddedClinic && paddedClinic.permalink) {
+        const newPath = paddedClinic.permalink.replace(/^pain-management\//, "");
+        redirect(`/pain-management/${newPath}`);
+      }
+    }
+  }
+
   // If still not found and single segment, try legacy WordPress slug format
   // Legacy format: {clinic-name-slug}-{state}-{zipcode} e.g. "open-arms-pain-clinic-co-80909"
   if (!dbClinic && slug.length === 1 && slug[0]) {

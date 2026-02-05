@@ -397,6 +397,30 @@ const nextConfig: NextConfig = {
       },
 
       // ===========================================
+      // Legacy clinic URLs missing state/zip suffix (indexed by Google pre-migration)
+      // ===========================================
+      {
+        source: "/pain-management/harbin-clinic-spine-pain-management-rome",
+        destination: "/pain-management/harbin-clinic-spine-pain-management-rome-ga-30165",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/palmetto-pain-center",
+        destination: "/pain-management/palmetto-pain-center-sc-29902",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/chicago-pain-medicine-center",
+        destination: "/pain-management/chicago-pain-medicine-center-il-60622",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/neuropathy-and-pain-solutions-south-st-louis-county",
+        destination: "/pain-management/mo",
+        permanent: true,
+      },
+
+      // ===========================================
       // Malformed /clinic/ prefix URLs (from old sitemap or email templates)
       // ===========================================
       {
