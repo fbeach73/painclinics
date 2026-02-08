@@ -7,6 +7,7 @@ import {
   timestamp,
   boolean,
   index,
+  uniqueIndex,
   integer,
   doublePrecision,
   jsonb,
@@ -261,6 +262,7 @@ export const clinics = pgTable(
 
     // Amenities & Features
     amenities: text("amenities").array(),
+    normalizedAmenities: text("normalized_amenities").array(), // Controlled vocabulary for filtering
     checkboxFeatures: text("checkbox_features").array(),
     googleListingLink: text("google_listing_link"),
 
@@ -311,6 +313,8 @@ export const clinics = pgTable(
     index("clinics_status_idx").on(table.status),
     index("clinics_created_at_idx").on(table.createdAt),
     index("clinics_published_at_idx").on(table.publishedAt),
+    // Directory filter indexes
+    index("clinics_state_city_rating_idx").on(table.stateAbbreviation, table.city, table.rating),
   ]
 );
 
@@ -380,6 +384,53 @@ export const clinicServices = pgTable(
     index("clinic_services_clinic_idx").on(table.clinicId),
     index("clinic_services_service_idx").on(table.serviceId),
     index("clinic_services_featured_idx").on(table.clinicId, table.isFeatured),
+  ]
+);
+
+// ============================================
+// Insurance Tables
+// ============================================
+
+export const insuranceProviders = pgTable(
+  "insurance_providers",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull().unique(),
+    slug: text("slug").notNull().unique(),
+    displayOrder: integer("display_order").default(0),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("insurance_providers_slug_idx").on(table.slug),
+  ]
+);
+
+export const clinicInsurance = pgTable(
+  "clinic_insurance",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    insuranceId: text("insurance_id")
+      .notNull()
+      .references(() => insuranceProviders.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").defaultNow().notNull(),
+    addedBy: text("added_by").references(() => user.id),
+  },
+  (table) => [
+    uniqueIndex("clinic_insurance_unique_idx").on(table.clinicId, table.insuranceId),
+    index("clinic_insurance_clinic_idx").on(table.clinicId),
+    index("clinic_insurance_insurance_idx").on(table.insuranceId),
   ]
 );
 
@@ -829,6 +880,7 @@ export const clinicsRelations = relations(clinics, ({ one, many }) => ({
   leads: many(clinicLeads),
   featuredSubscription: one(featuredSubscriptions),
   clinicServices: many(clinicServices),
+  clinicInsurance: many(clinicInsurance),
   analyticsEvents: many(analyticsEvents),
 }));
 
@@ -888,6 +940,21 @@ export const clinicServicesRelations = relations(clinicServices, ({ one }) => ({
   service: one(services, {
     fields: [clinicServices.serviceId],
     references: [services.id],
+  }),
+}));
+
+export const insuranceProvidersRelations = relations(insuranceProviders, ({ many }) => ({
+  clinicInsurance: many(clinicInsurance),
+}));
+
+export const clinicInsuranceRelations = relations(clinicInsurance, ({ one }) => ({
+  clinic: one(clinics, {
+    fields: [clinicInsurance.clinicId],
+    references: [clinics.id],
+  }),
+  insurance: one(insuranceProviders, {
+    fields: [clinicInsurance.insuranceId],
+    references: [insuranceProviders.id],
   }),
 }));
 

@@ -82,7 +82,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    return [...staticPages, ...statePages, ...cityPages, ...clinicPages, ...blogPages];
+    // High-value filter combo URLs for state pages
+    // These create indexable landing pages for common specialty searches
+    const highValueSpecialties = [
+      "injection-therapy",
+      "physical-therapy",
+      "nerve-blocks",
+      "medication-management",
+      "spinal-cord-stimulation",
+    ];
+    const filterPages: MetadataRoute.Sitemap = allStates.flatMap((state) =>
+      highValueSpecialties.map((specialty) => ({
+        url: `${baseUrl}/pain-management/${state.toLowerCase()}/?specialty=${specialty}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }))
+    );
+
+    return [...staticPages, ...statePages, ...cityPages, ...clinicPages, ...blogPages, ...filterPages];
   } catch (error) {
     console.warn("Sitemap: Database unavailable, returning static pages only:", error);
     return staticPages;

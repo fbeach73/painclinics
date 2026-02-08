@@ -144,3 +144,7 @@ export interface SearchFilters {
   minRating?: number;
   sortBy: 'distance' | 'rating' | 'name';
 }
+
+// Re-export directory filter types for convenience
+export type { DirectoryFilters, SortOption } from '@/lib/directory/filters';
+export type { ClinicListItem, DirectoryStats, FilteredClinicsResult } from '@/lib/directory/queries';

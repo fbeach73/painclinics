@@ -560,6 +560,75 @@ export function generateMedicalWebPageSchema(data: {
 }
 
 /**
+ * Generates ItemList structured data for directory listing pages (city/state).
+ * Lists clinics as MedicalBusiness items in the filtered/sorted result order.
+ */
+export function generateDirectoryListSchema(data: {
+  locationName: string;
+  stateAbbrev: string;
+  citySlug?: string;
+  clinics: Array<{
+    title: string;
+    permalink: string;
+    rating?: number | null;
+    reviewCount?: number | null;
+  }>;
+  totalCount: number;
+  isFiltered: boolean;
+  filterDescription?: string | undefined;
+}) {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
+
+  const pageUrl = data.citySlug
+    ? `${baseUrl}/pain-management/${data.stateAbbrev.toLowerCase()}/${data.citySlug}/`
+    : `${baseUrl}/pain-management/${data.stateAbbrev.toLowerCase()}/`;
+
+  const name = data.isFiltered && data.filterDescription
+    ? `${data.filterDescription} Pain Clinics in ${data.locationName}`
+    : `Pain Management Clinics in ${data.locationName}`;
+
+  const description = data.isFiltered
+    ? `${data.clinics.length} of ${data.totalCount} pain management clinics in ${data.locationName} matching your filters.`
+    : `${data.totalCount} pain management clinics in ${data.locationName}.`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${pageUrl}#webpage`,
+    name,
+    description,
+    url: pageUrl,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: data.clinics.length,
+      itemListElement: data.clinics.map((clinic, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "MedicalBusiness",
+          "@id": `${baseUrl}/${clinic.permalink}/#organization`,
+          name: clinic.title,
+          url: `${baseUrl}/${clinic.permalink}/`,
+          ...(clinic.rating &&
+            clinic.rating > 0 &&
+            clinic.reviewCount &&
+            clinic.reviewCount > 0 && {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: clinic.rating,
+                reviewCount: clinic.reviewCount,
+                bestRating: 5,
+                worstRating: 1,
+              },
+            }),
+        },
+      })),
+    },
+  };
+}
+
+/**
  * Generates simple BreadcrumbList for resource pages.
  */
 export function generateResourceBreadcrumbSchema(data: {
