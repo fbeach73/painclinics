@@ -649,28 +649,17 @@ export async function removeClinicOwnership(clinicId: string) {
 }
 
 /**
- * Search clinics with multi-field relevance scoring.
- * Splits the query into terms and scores each match by field importance.
- * Uses OR logic between terms for broad matching.
- *
- * @param query - Search string (minimum 2 characters)
- * @param limit - Maximum number of results (default: 100)
- * @returns Array of clinic records with relevanceScore
+ * Parse search query into terms and build SQL conditions for search.
+ * Shared between searchClinicsWithRelevance and countSearchClinics.
  */
-export async function searchClinicsWithRelevance(query: string, limit = 100) {
-  if (!query || query.trim().length < 2) {
-    return [];
-  }
-
+function buildSearchConditions(query: string) {
   const terms = query
     .trim()
     .toLowerCase()
     .split(/\s+/)
     .filter((t) => t.length >= 2);
 
-  if (terms.length === 0) {
-    return [];
-  }
+  if (terms.length === 0) return null;
 
   // Build per-term relevance CASE expressions
   const termScores = terms.map((term) => {
@@ -707,6 +696,29 @@ export async function searchClinicsWithRelevance(query: string, limit = 100) {
 
   const matchesAnyTerm = sql`(${sql.join(termMatches, sql` OR `)})`;
 
+  return { relevanceScore, matchesAnyTerm };
+}
+
+/**
+ * Search clinics with multi-field relevance scoring.
+ * Splits the query into terms and scores each match by field importance.
+ * Uses OR logic between terms for broad matching.
+ *
+ * @param query - Search string (minimum 2 characters)
+ * @param limit - Maximum number of results per page (default: 24)
+ * @param offset - Number of results to skip (default: 0)
+ * @returns Array of clinic records with relevanceScore
+ */
+export async function searchClinicsWithRelevance(query: string, limit = 24, offset = 0) {
+  if (!query || query.trim().length < 2) {
+    return [];
+  }
+
+  const conditions = buildSearchConditions(query);
+  if (!conditions) return [];
+
+  const { relevanceScore, matchesAnyTerm } = conditions;
+
   return db
     .select({
       id: clinics.id,
@@ -726,10 +738,36 @@ export async function searchClinicsWithRelevance(query: string, limit = 100) {
     .from(clinics)
     .where(and(matchesAnyTerm, isPublishedSql))
     .orderBy(desc(relevanceScore), asc(clinics.title))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
 }
 
 export type SearchClinicResult = Awaited<ReturnType<typeof searchClinicsWithRelevance>>[number];
+
+/**
+ * Count total search results for a query.
+ * Uses the same WHERE conditions as searchClinicsWithRelevance.
+ *
+ * @param query - Search string (minimum 2 characters)
+ * @returns Total number of matching clinics
+ */
+export async function countSearchClinics(query: string): Promise<number> {
+  if (!query || query.trim().length < 2) {
+    return 0;
+  }
+
+  const conditions = buildSearchConditions(query);
+  if (!conditions) return 0;
+
+  const { matchesAnyTerm } = conditions;
+
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(clinics)
+    .where(and(matchesAnyTerm, isPublishedSql));
+
+  return result[0]?.count ?? 0;
+}
 
 /**
  * Detect if a search query is a US state name or abbreviation.

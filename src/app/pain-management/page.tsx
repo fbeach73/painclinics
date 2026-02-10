@@ -7,6 +7,7 @@ import {
   getAllStatesWithClinics,
   getClinicCountsByState,
   searchClinicsWithRelevance,
+  countSearchClinics,
   detectStateQuery,
 } from "@/lib/clinic-queries";
 import { getStateName } from "@/lib/us-states";
@@ -16,10 +17,12 @@ import type { Metadata } from "next";
 
 export const revalidate = 86400; // Revalidate every 24 hours
 
+const RESULTS_PER_PAGE = 24;
+
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }): Promise<Metadata> {
   const { q } = await searchParams;
   const query = q?.trim();
@@ -56,9 +59,9 @@ export async function generateMetadata({
 export default async function PainManagementDirectoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, page: pageParam } = await searchParams;
   const query = q?.trim();
 
   // If query is a state name/abbreviation, redirect to state page
@@ -70,15 +73,21 @@ export default async function PainManagementDirectoryPage({
   }
 
   const isSearching = !!(query && query.length >= 2);
+  const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const offset = (currentPage - 1) * RESULTS_PER_PAGE;
 
   // Fetch search results or state browse data
   let searchResults: Awaited<ReturnType<typeof searchClinicsWithRelevance>> = [];
+  let totalResults = 0;
   let states: string[] = [];
   let stateCounts: { stateAbbreviation: string | null; count: number }[] = [];
 
   try {
     if (isSearching) {
-      searchResults = await searchClinicsWithRelevance(query);
+      [searchResults, totalResults] = await Promise.all([
+        searchClinicsWithRelevance(query, RESULTS_PER_PAGE, offset),
+        countSearchClinics(query),
+      ]);
     } else {
       states = await getAllStatesWithClinics();
       stateCounts = await getClinicCountsByState();
@@ -86,6 +95,8 @@ export default async function PainManagementDirectoryPage({
   } catch (error) {
     console.warn("Pain Management Directory: Database unavailable:", error);
   }
+
+  const totalPages = Math.ceil(totalResults / RESULTS_PER_PAGE);
 
   // State browse data (only used when not searching)
   const countMap = new Map(
@@ -197,7 +208,14 @@ export default async function PainManagementDirectoryPage({
         {isSearching ? (
           /* Search Results */
           <section className="container mx-auto px-4 py-12 md:py-16">
-            <SearchResultsGrouped results={searchResults} query={query} />
+            <SearchResultsGrouped
+              results={searchResults}
+              query={query}
+              totalResults={totalResults}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              resultsPerPage={RESULTS_PER_PAGE}
+            />
           </section>
         ) : (
           <>

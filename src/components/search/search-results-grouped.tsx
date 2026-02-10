@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapPin, Phone, Star, Search } from 'lucide-react';
+import { MapPin, Phone, Star, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +9,113 @@ import type { SearchClinicResult } from '@/lib/clinic-queries';
 interface SearchResultsGroupedProps {
   results: SearchClinicResult[];
   query: string;
+  totalResults: number;
+  currentPage: number;
+  totalPages: number;
+  resultsPerPage: number;
 }
 
-export function SearchResultsGrouped({ results, query }: SearchResultsGroupedProps) {
-  if (results.length === 0) {
+function SearchPagination({
+  query,
+  currentPage,
+  totalPages,
+}: {
+  query: string;
+  currentPage: number;
+  totalPages: number;
+}) {
+  if (totalPages <= 1) return null;
+
+  const baseHref = `/pain-management?q=${encodeURIComponent(query)}`;
+
+  // Build page numbers to show: current +/- 2, plus first and last
+  const pages: (number | 'ellipsis')[] = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== 'ellipsis') {
+      pages.push('ellipsis');
+    }
+  }
+
+  return (
+    <nav aria-label="Search results pagination" className="flex items-center justify-center gap-1">
+      <Button
+        variant="outline"
+        size="sm"
+        asChild={currentPage > 1}
+        disabled={currentPage <= 1}
+        className="gap-1"
+      >
+        {currentPage > 1 ? (
+          <Link href={`${baseHref}&page=${currentPage - 1}`}>
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Link>
+        ) : (
+          <span>
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </span>
+        )}
+      </Button>
+
+      <div className="flex items-center gap-1 mx-2">
+        {pages.map((page, i) =>
+          page === 'ellipsis' ? (
+            <span key={`ellipsis-${i}`} className="px-2 text-muted-foreground">
+              ...
+            </span>
+          ) : (
+            <Button
+              key={page}
+              variant={page === currentPage ? 'default' : 'outline'}
+              size="sm"
+              asChild={page !== currentPage}
+              className="min-w-[36px]"
+            >
+              {page === currentPage ? (
+                <span>{page}</span>
+              ) : (
+                <Link href={`${baseHref}&page=${page}`}>{page}</Link>
+              )}
+            </Button>
+          )
+        )}
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        asChild={currentPage < totalPages}
+        disabled={currentPage >= totalPages}
+        className="gap-1"
+      >
+        {currentPage < totalPages ? (
+          <Link href={`${baseHref}&page=${currentPage + 1}`}>
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        ) : (
+          <span>
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </span>
+        )}
+      </Button>
+    </nav>
+  );
+}
+
+export function SearchResultsGrouped({
+  results,
+  query,
+  totalResults,
+  currentPage,
+  totalPages,
+  resultsPerPage,
+}: SearchResultsGroupedProps) {
+  if (totalResults === 0) {
     return (
       <div className="text-center py-16">
         <Search className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
@@ -27,7 +130,7 @@ export function SearchResultsGrouped({ results, query }: SearchResultsGroupedPro
     );
   }
 
-  // Group results by state
+  // Group this page's results by state
   const grouped = new Map<string, SearchClinicResult[]>();
   for (const clinic of results) {
     const state = clinic.stateAbbreviation ?? 'Unknown';
@@ -42,13 +145,23 @@ export function SearchResultsGrouped({ results, query }: SearchResultsGroupedPro
   // Sort states by result count (most results first)
   const sortedStates = [...grouped.entries()].sort((a, b) => b[1].length - a[1].length);
 
+  const startResult = (currentPage - 1) * resultsPerPage + 1;
+  const endResult = startResult + results.length - 1;
+
   return (
     <div>
       {/* Results header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
-        <h2 className="text-2xl font-bold">
-          {results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h2 className="text-2xl font-bold">
+            {totalResults.toLocaleString()} result{totalResults !== 1 ? 's' : ''} for &ldquo;{query}&rdquo;
+          </h2>
+          {totalPages > 1 && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Showing {startResult}&ndash;{endResult} of {totalResults.toLocaleString()}
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" asChild>
             <Link href="/pain-management">Clear Search</Link>
@@ -57,6 +170,11 @@ export function SearchResultsGrouped({ results, query }: SearchResultsGroupedPro
             <Link href="/pain-management#states">Browse All States</Link>
           </Button>
         </div>
+      </div>
+
+      {/* Top pagination */}
+      <div className="mb-8">
+        <SearchPagination query={query} currentPage={currentPage} totalPages={totalPages} />
       </div>
 
       {/* Grouped results */}
@@ -122,6 +240,11 @@ export function SearchResultsGrouped({ results, query }: SearchResultsGroupedPro
             </div>
           </section>
         ))}
+      </div>
+
+      {/* Bottom pagination */}
+      <div className="mt-10">
+        <SearchPagination query={query} currentPage={currentPage} totalPages={totalPages} />
       </div>
     </div>
   );
