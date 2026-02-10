@@ -29,14 +29,13 @@ import {
   getClinicsByCity,
 } from "@/lib/clinic-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
-import { parseFilters, describeFilters, hasActiveFilters } from "@/lib/directory/filters";
+import { parseFilters } from "@/lib/directory/filters";
 import { generateFilteredMeta } from "@/lib/directory/meta";
 import { getFilteredClinics } from "@/lib/directory/queries";
 import { stripHtmlTags } from "@/lib/html-utils";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
-  generateDirectoryListSchema,
   generateFAQStructuredData,
 } from "@/lib/structured-data";
 import { US_STATES_REVERSE, getStateName } from "@/lib/us-states";
@@ -267,51 +266,37 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     // Fetch filtered clinics for structured data
     const stateFilters = parseFilters(searchParams);
     const stateResult = await getFilteredClinics({ stateAbbrev }, stateFilters);
-    const stateIsFiltered = hasActiveFilters(stateFilters);
 
-    const directoryData = generateDirectoryListSchema({
-      locationName: stateName,
-      stateAbbrev,
-      clinics: stateResult.clinics,
-      totalCount: stateResult.stats.totalCount,
-      isFiltered: stateIsFiltered,
-      filterDescription: stateIsFiltered ? describeFilters(stateFilters) : undefined,
-    });
 
-    const breadcrumbData = {
+    const stateCollectionData = {
       "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: baseUrl,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Clinics",
-          item: `${baseUrl}/clinics`,
-        },
-        {
-          "@type": "ListItem",
-          position: 3,
-          name: stateName,
-          item: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/`,
-        },
-      ],
+      "@type": "CollectionPage",
+      name: `Pain Management Clinics in ${stateName}`,
+      description: `Find ${stateResult.stats.totalCount} verified pain management clinics in ${stateName}. Browse ratings and reviews.`,
+      url: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}`,
+      breadcrumb: {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: baseUrl,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: stateName,
+          },
+        ],
+      },
     };
 
     return (
       <>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(directoryData) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(stateCollectionData) }}
         />
         <StatePainManagementPageContent
           stateName={stateName}
@@ -350,58 +335,43 @@ export default async function PainManagementClinicPage({ params, searchParams: s
         { stateAbbrev, city: cityName },
         cityFilters
       );
-      const cityIsFiltered = hasActiveFilters(cityFilters);
 
-      const cityDirectoryData = generateDirectoryListSchema({
-        locationName: `${cityName}, ${stateAbbrev}`,
-        stateAbbrev,
-        citySlug,
-        clinics: cityResult.clinics,
-        totalCount: cityResult.stats.totalCount,
-        isFiltered: cityIsFiltered,
-        filterDescription: cityIsFiltered ? describeFilters(cityFilters) : undefined,
-      });
 
-      const breadcrumbData = {
+      const cityCollectionData = {
         "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Home",
-            item: baseUrl,
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "Clinics",
-            item: `${baseUrl}/clinics`,
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: stateName,
-            item: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/`,
-          },
-          {
-            "@type": "ListItem",
-            position: 4,
-            name: cityName,
-            item: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/${citySlug}/`,
-          },
-        ],
+        "@type": "CollectionPage",
+        name: `Pain Management Clinics in ${cityName}, ${stateName}`,
+        description: `Find ${cityResult.stats.totalCount} verified pain management clinics in ${cityName}, ${stateName}. Browse ratings and reviews.`,
+        url: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/${citySlug}`,
+        breadcrumb: {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: baseUrl,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: stateName,
+              item: `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}`,
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: cityName,
+            },
+          ],
+        },
       };
 
       return (
         <>
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(cityDirectoryData) }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(cityCollectionData) }}
           />
           <CityPainManagementPageContent
             cityName={cityName}

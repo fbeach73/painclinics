@@ -47,7 +47,7 @@ export default async function Home() {
   }
 
   // Generate structured data schemas
-  const websiteSchema = generateWebSiteSchema(baseUrl);
+  const websiteSchema = generateWebSiteSchema(baseUrl, totalClinics);
   const organizationSchema = generateOrganizationSchema(baseUrl);
 
   return (

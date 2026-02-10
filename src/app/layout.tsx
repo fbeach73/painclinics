@@ -59,16 +59,6 @@ export const metadata: Metadata = {
   },
 };
 
-// JSON-LD structured data for SEO (WebSite and Organization schemas are on homepage)
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "PainClinics.com",
-  description:
-    "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -84,10 +74,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.mapbox.com" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
         {/* GTM and AdSense loaded via deferred components in body for better PageSpeed */}
       </head>
       <body

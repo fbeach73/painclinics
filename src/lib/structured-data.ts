@@ -1,37 +1,16 @@
 import { stripHtmlTags } from "./html-utils";
-import { parseTimeRange } from "./time-utils";
-import type { ClinicHour, FeaturedReview } from "./clinic-transformer";
+import type { FeaturedReview } from "./clinic-transformer";
 import type { clinics } from "./schema";
 
 type DbClinic = typeof clinics.$inferSelect;
 
 /**
- * Service mapping for pain management procedures.
- * Maps common service names to Schema.org MedicalProcedure types.
- */
-const SERVICE_MAPPING: Record<string, { name: string; procedureType: string }> = {
-  "injection therapy": { name: "Injection Therapy", procedureType: "Therapeutic" },
-  "physical therapy": { name: "Physical Therapy", procedureType: "Therapeutic" },
-  "nerve blocks": { name: "Nerve Block Procedures", procedureType: "Therapeutic" },
-  "epidural steroid injections": { name: "Epidural Steroid Injections", procedureType: "Therapeutic" },
-  "radiofrequency ablation": { name: "Radiofrequency Ablation", procedureType: "Therapeutic" },
-  "spinal cord stimulation": { name: "Spinal Cord Stimulation", procedureType: "Therapeutic" },
-  "medication management": { name: "Medication Management", procedureType: "Therapeutic" },
-  "acupuncture": { name: "Acupuncture", procedureType: "Therapeutic" },
-  "chiropractic": { name: "Chiropractic Care", procedureType: "Therapeutic" },
-  "massage therapy": { name: "Massage Therapy", procedureType: "Therapeutic" },
-  "trigger point injections": { name: "Trigger Point Injections", procedureType: "Therapeutic" },
-  "joint injections": { name: "Joint Injections", procedureType: "Therapeutic" },
-  "platelet rich plasma": { name: "Platelet Rich Plasma (PRP) Therapy", procedureType: "Therapeutic" },
-  "stem cell therapy": { name: "Stem Cell Therapy", procedureType: "Therapeutic" },
-};
-
-/**
- * Generates Schema.org structured data (JSON-LD) for a clinic.
- * Uses MedicalBusiness and LocalBusiness types for optimal SEO.
+ * Generates Schema.org structured data (JSON-LD) for a clinic page.
+ * Uses MedicalBusiness type for pain management clinic listings.
  */
 export function generateClinicStructuredData(clinic: DbClinic) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
+  const stateSlug = (clinic.stateAbbreviation || clinic.state || "").toLowerCase();
 
   // Clean description - remove HTML tags and truncate
   const cleanDescription = clinic.content
@@ -40,49 +19,25 @@ export function generateClinicStructuredData(clinic: DbClinic) {
 
   const structuredData: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": ["MedicalBusiness", "LocalBusiness"],
-    "@id": `${baseUrl}/${clinic.permalink}/#organization`,
+    "@type": "MedicalBusiness",
+    "@id": `${baseUrl}/pain-management/${stateSlug}/${clinic.permalink?.split("/").pop() || ""}`,
     name: clinic.title,
     description: cleanDescription,
-    url: `${baseUrl}/${clinic.permalink}/`,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: clinic.streetAddress || undefined,
+      addressLocality: clinic.city,
+      addressRegion: clinic.stateAbbreviation || clinic.state,
+      postalCode: clinic.postalCode,
+      addressCountry: "US",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: clinic.mapLatitude,
+      longitude: clinic.mapLongitude,
+    },
     medicalSpecialty: "Pain Medicine",
-    priceRange: "$$",
-  };
-
-  // Add telephone if available
-  if (clinic.phone) {
-    structuredData.telephone = clinic.phone;
-  }
-
-  // Add sameAs array from website and social media links
-  const sameAs: string[] = [];
-  if (clinic.website) sameAs.push(clinic.website);
-  if (clinic.facebook) sameAs.push(clinic.facebook);
-  if (clinic.instagram) sameAs.push(clinic.instagram);
-  if (clinic.twitter) sameAs.push(clinic.twitter);
-  if (clinic.youtube) sameAs.push(clinic.youtube);
-  if (clinic.linkedin) sameAs.push(clinic.linkedin);
-  if (clinic.tiktok) sameAs.push(clinic.tiktok);
-  if (clinic.pinterest) sameAs.push(clinic.pinterest);
-  if (sameAs.length > 0) {
-    structuredData.sameAs = sameAs;
-  }
-
-  // Add address
-  structuredData.address = {
-    "@type": "PostalAddress",
-    streetAddress: clinic.streetAddress || undefined,
-    addressLocality: clinic.city,
-    addressRegion: clinic.stateAbbreviation || clinic.state,
-    postalCode: clinic.postalCode,
-    addressCountry: "US",
-  };
-
-  // Add geo coordinates
-  structuredData.geo = {
-    "@type": "GeoCoordinates",
-    latitude: clinic.mapLatitude,
-    longitude: clinic.mapLongitude,
+    priceRange: "$",
   };
 
   // Add image if available
@@ -91,8 +46,17 @@ export function generateClinicStructuredData(clinic: DbClinic) {
     structuredData.image = image;
   }
 
+  // Add telephone if available
+  if (clinic.phone) {
+    structuredData.telephone = clinic.phone;
+  }
+
+  // Add clinic website if available
+  if (clinic.website) {
+    structuredData.url = clinic.website;
+  }
+
   // Add aggregate rating if available
-  // Check for rating !== null (not just truthy) because 0 is a valid rating value
   const featuredReviewsForRating = clinic.featuredReviews as FeaturedReview[] | null;
   let aggregateRating = clinic.rating;
   let aggregateReviewCount = clinic.reviewCount || 0;
@@ -102,8 +66,7 @@ export function generateClinicStructuredData(clinic: DbClinic) {
     const reviewsWithRatings = featuredReviewsForRating.filter((r) => r.rating !== null && r.rating !== undefined);
     if (reviewsWithRatings.length > 0) {
       const sum = reviewsWithRatings.reduce((acc, r) => acc + (r.rating || 0), 0);
-      aggregateRating = Math.round((sum / reviewsWithRatings.length) * 10) / 10; // Round to 1 decimal
-      // Use featured review count if no review count exists
+      aggregateRating = Math.round((sum / reviewsWithRatings.length) * 10) / 10;
       if (aggregateReviewCount === 0) {
         aggregateReviewCount = reviewsWithRatings.length;
       }
@@ -113,128 +76,14 @@ export function generateClinicStructuredData(clinic: DbClinic) {
   if (aggregateRating && aggregateRating > 0 && aggregateReviewCount > 0) {
     structuredData.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: aggregateRating,
-      reviewCount: aggregateReviewCount,
-      bestRating: 5,
-      worstRating: 1,
+      ratingValue: String(aggregateRating),
+      reviewCount: String(aggregateReviewCount),
+      bestRating: "5",
+      worstRating: "1",
     };
   }
 
-  // Add opening hours if available
-  const openingHours = formatOpeningHours(
-    clinic.clinicHours as ClinicHour[] | null
-  );
-  if (openingHours && openingHours.length > 0) {
-    structuredData.openingHoursSpecification = openingHours;
-  }
-
-  // Add featured reviews (up to 10) - ONLY if we have an aggregateRating
-  // Google requires aggregateRating when individual reviews are present
-  const featuredReviews = clinic.featuredReviews as FeaturedReview[] | null;
-  if (structuredData.aggregateRating && featuredReviews && featuredReviews.length > 0) {
-    structuredData.review = featuredReviews
-      .slice(0, 10)
-      .filter((r) => r.review)
-      .map((r) => ({
-        "@type": "Review",
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: r.rating || 5,
-          bestRating: 5,
-          worstRating: 1,
-        },
-        author: {
-          "@type": "Person",
-          name: r.username || "Anonymous",
-        },
-        reviewBody: r.review,
-        ...(r.date && { datePublished: r.date }),
-      }));
-  }
-
-  // Add amenities as amenityFeature
-  if (clinic.amenities && clinic.amenities.length > 0) {
-    structuredData.amenityFeature = clinic.amenities.map((amenity) => ({
-      "@type": "LocationFeatureSpecification",
-      name: amenity,
-      value: true,
-    }));
-  }
-
-  // Add available services as MedicalProcedure types
-  if (clinic.checkboxFeatures && clinic.checkboxFeatures.length > 0) {
-    const services = clinic.checkboxFeatures
-      .map((feature) => {
-        const featureLower = feature.toLowerCase();
-        const serviceInfo = SERVICE_MAPPING[featureLower];
-        if (serviceInfo) {
-          return {
-            "@type": "MedicalProcedure",
-            name: serviceInfo.name,
-            procedureType: serviceInfo.procedureType,
-          };
-        }
-        // Include as generic service if not in mapping
-        return {
-          "@type": "MedicalProcedure",
-          name: feature,
-          procedureType: "Therapeutic",
-        };
-      })
-      .filter(Boolean);
-
-    if (services.length > 0) {
-      structuredData.availableService = services;
-    }
-  }
-
-  // Add Google Maps link if placeId is available
-  if (clinic.placeId) {
-    structuredData.hasMap = `https://www.google.com/maps/place/?q=place_id:${clinic.placeId}`;
-  }
-
   return structuredData;
-}
-
-/**
- * Formats clinic hours into Schema.org OpeningHoursSpecification format.
- */
-function formatOpeningHours(hours: ClinicHour[] | null) {
-  if (!hours || !Array.isArray(hours)) return undefined;
-
-  return hours
-    .filter((h) => h.hours && h.hours !== "Closed")
-    .map((h) => {
-      const parsed = parseTimeRange(h.hours);
-      const open = parsed?.open || "9:00 AM";
-      const close = parsed?.close || "5:00 PM";
-      return {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: h.day,
-        opens: formatTime24(open),
-        closes: formatTime24(close),
-      };
-    });
-}
-
-/**
- * Converts 12-hour time format to 24-hour format for Schema.org.
- * Handles formats like "9:00 AM", "9AM", "9:00", etc.
- */
-function formatTime24(time12: string): string {
-  if (!time12) return "09:00";
-
-  const match = time12.match(/(\d+):?(\d*)?\s*(AM|PM)?/i);
-  if (!match || !match[1]) return "09:00";
-
-  let hours = parseInt(match[1], 10);
-  const minutes = match[2] ? parseInt(match[2], 10) : 0;
-  const period = match[3]?.toUpperCase();
-
-  if (period === "PM" && hours !== 12) hours += 12;
-  if (period === "AM" && hours === 12) hours = 0;
-
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
 
 /**
@@ -339,22 +188,31 @@ export function generateFAQStructuredData(
  * Generates WebSite schema with SearchAction for the homepage.
  * Enables sitelinks searchbox in Google search results.
  */
-export function generateWebSiteSchema(baseUrl: string) {
+export function generateWebSiteSchema(baseUrl: string, totalClinics: number) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${baseUrl}/#website`,
-    url: baseUrl,
     name: "PainClinics.com",
-    description: "Find pain management clinics near you",
-    publisher: { "@id": `${baseUrl}/#organization` },
+    alternateName: "Pain Clinics",
+    description: `Find verified pain management clinics across the United States. Browse ${totalClinics.toLocaleString()} clinics with ratings, patient reviews, and appointment scheduling.`,
+    url: baseUrl,
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${baseUrl}/pain-management/{state}/?q={search_term_string}`,
+        urlTemplate: `${baseUrl}/pain-management?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "PainClinics.com",
+      url: baseUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/logo.png`,
+      },
     },
   };
 }
