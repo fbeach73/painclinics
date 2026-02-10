@@ -1,4 +1,5 @@
 export { SearchBar } from './search-bar';
+export { DirectorySearchInput } from './directory-search-input';
 export {
   SearchFilters,
   SearchFiltersSidebar,

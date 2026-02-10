@@ -237,7 +237,7 @@ export function SearchBar({
           {value.trim().length >= 3 && (
             <div className="border-t border-border px-4 py-2">
               <Link
-                href={`/clinics?q=${encodeURIComponent(value.trim())}`}
+                href={`/pain-management?q=${encodeURIComponent(value.trim())}`}
                 onClick={handleResultClick}
                 className="text-sm text-primary hover:underline"
               >

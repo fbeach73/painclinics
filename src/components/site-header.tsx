@@ -41,7 +41,7 @@ export function SiteHeader() {
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     if (value.trim()) {
-      router.push(`/clinics?q=${encodeURIComponent(value.trim())}`);
+      router.push(`/pain-management?q=${encodeURIComponent(value.trim())}`);
       setMobileSearchOpen(false);
     }
   };

@@ -1,7 +1,7 @@
 import { sql, asc, desc, eq, or, ilike, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
-import { US_STATES_REVERSE } from "@/lib/us-states";
+import { US_STATES, US_STATES_REVERSE } from "@/lib/us-states";
 
 /**
  * SQL fragment to filter only published clinics.
@@ -646,4 +646,114 @@ export async function removeClinicOwnership(clinicId: string) {
     })
     .where(eq(clinics.id, clinicId))
     .returning();
+}
+
+/**
+ * Search clinics with multi-field relevance scoring.
+ * Splits the query into terms and scores each match by field importance.
+ * Uses OR logic between terms for broad matching.
+ *
+ * @param query - Search string (minimum 2 characters)
+ * @param limit - Maximum number of results (default: 100)
+ * @returns Array of clinic records with relevanceScore
+ */
+export async function searchClinicsWithRelevance(query: string, limit = 100) {
+  if (!query || query.trim().length < 2) {
+    return [];
+  }
+
+  const terms = query
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length >= 2);
+
+  if (terms.length === 0) {
+    return [];
+  }
+
+  // Build per-term relevance CASE expressions
+  const termScores = terms.map((term) => {
+    const pattern = `%${term}%`;
+    const startsPattern = `${term}%`;
+    return sql`(
+      CASE WHEN LOWER(${clinics.title}) = ${term} THEN 100
+           WHEN LOWER(${clinics.title}) LIKE ${startsPattern} THEN 50
+           WHEN LOWER(${clinics.title}) LIKE ${pattern} THEN 20
+           ELSE 0 END
+      + CASE WHEN LOWER(${clinics.city}) = ${term} THEN 80
+             WHEN LOWER(${clinics.city}) LIKE ${startsPattern} THEN 40
+             WHEN LOWER(${clinics.city}) LIKE ${pattern} THEN 15
+             ELSE 0 END
+      + CASE WHEN LOWER(${clinics.streetAddress}) LIKE ${pattern} THEN 10 ELSE 0 END
+      + CASE WHEN ${clinics.postalCode} = ${term} THEN 30
+             WHEN ${clinics.postalCode} LIKE ${startsPattern} THEN 15
+             ELSE 0 END
+    )`;
+  });
+
+  const relevanceScore = sql<number>`(${sql.join(termScores, sql` + `)})`;
+
+  // Build WHERE: any term matches any column (OR across terms)
+  const termMatches = terms.map((term) => {
+    const pattern = `%${term}%`;
+    return sql`(
+      LOWER(${clinics.title}) LIKE ${pattern}
+      OR LOWER(${clinics.city}) LIKE ${pattern}
+      OR LOWER(${clinics.streetAddress}) LIKE ${pattern}
+      OR ${clinics.postalCode} LIKE ${pattern}
+    )`;
+  });
+
+  const matchesAnyTerm = sql`(${sql.join(termMatches, sql` OR `)})`;
+
+  return db
+    .select({
+      id: clinics.id,
+      title: clinics.title,
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      permalink: clinics.permalink,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+      relevanceScore,
+    })
+    .from(clinics)
+    .where(and(matchesAnyTerm, isPublishedSql))
+    .orderBy(desc(relevanceScore), asc(clinics.title))
+    .limit(limit);
+}
+
+export type SearchClinicResult = Awaited<ReturnType<typeof searchClinicsWithRelevance>>[number];
+
+/**
+ * Detect if a search query is a US state name or abbreviation.
+ * Returns the lowercase state abbreviation if matched, null otherwise.
+ *
+ * @param query - Search query string
+ * @returns Lowercase state abbreviation or null
+ */
+export function detectStateQuery(query: string): string | null {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  // Check 2-letter abbreviation (case-insensitive)
+  const upper = trimmed.toUpperCase();
+  if (upper.length === 2 && upper in US_STATES_REVERSE) {
+    return upper.toLowerCase();
+  }
+
+  // Check full state name (case-insensitive)
+  for (const [name, abbrev] of Object.entries(US_STATES)) {
+    if (name.toLowerCase() === trimmed.toLowerCase()) {
+      return abbrev.toLowerCase();
+    }
+  }
+
+  return null;
 }
