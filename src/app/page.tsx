@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
 import { InPageAd, AdPlacement } from '@/components/ads';
@@ -5,8 +6,10 @@ import { LazyHomepageFeaturedSection } from '@/components/featured';
 import {
   FindClinicSection,
   type PopularState,
+  type TopCity,
 } from '@/components/home/find-clinic-section';
 import { STATE_NAMES } from '@/components/home/state-combobox';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -14,19 +17,17 @@ import {
   generateOrganizationSchema,
 } from '@/lib/structured-data';
 
-// ISR: Revalidate every hour
+// ISR: Revalidate every 24 hours
 export const revalidate = 86400;
 
-export default async function Home() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
-
-  // Fetch states and counts with fallback for CI builds
+async function getHomepageData() {
   let states: string[] = [];
   let totalClinics = 0;
   let popularStates: PopularState[] = [];
+  let topCities: TopCity[] = [];
 
   try {
-    const { getAllStatesWithClinics, getClinicCountsByState } = await import('@/lib/clinic-queries');
+    const { getAllStatesWithClinics, getClinicCountsByState, getAllCitiesWithClinics } = await import('@/lib/clinic-queries');
     states = await getAllStatesWithClinics();
     const stateCounts = await getClinicCountsByState();
     totalClinics = stateCounts.reduce((sum, s) => sum + s.count, 0);
@@ -42,9 +43,45 @@ export default async function Home() {
         slug: s.stateAbbreviation!.toLowerCase(),
         count: s.count,
       }));
+
+    // Prepare top 10 cities by clinic count for location context
+    const allCities = await getAllCitiesWithClinics();
+    topCities = allCities
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+      .map((c) => ({
+        city: c.city,
+        stateAbbrev: c.stateAbbreviation || '',
+        slug: c.city.toLowerCase().replace(/\s+/g, '-'),
+      }));
   } catch (error) {
     console.warn("Homepage: Database unavailable, using empty data:", error);
   }
+
+  return { states, totalClinics, popularStates, topCities };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { totalClinics } = await getHomepageData();
+  const count = totalClinics > 0 ? totalClinics.toLocaleString() : '6,000';
+
+  return {
+    title: `Pain Clinics Near Me | Find Pain Management Doctors Nearby | ${count}+ Verified Clinics`,
+    description: `Find pain clinics near you. Search ${count}+ verified pain management doctors across all 50 states. Read reviews, compare specialists, and book appointments online.`,
+    openGraph: {
+      title: `Pain Clinics Near Me | Find Pain Management Doctors Nearby | ${count}+ Verified Clinics`,
+      description: `Find pain clinics near you. Search ${count}+ verified pain management doctors across all 50 states. Read reviews, compare specialists, and book appointments online.`,
+    },
+    twitter: {
+      title: `Pain Clinics Near Me | Find Pain Management Doctors Nearby | ${count}+ Verified Clinics`,
+      description: `Find pain clinics near you. Search ${count}+ verified pain management doctors across all 50 states. Read reviews, compare specialists, and book appointments online.`,
+    },
+  };
+}
+
+export default async function Home() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
+  const { states, totalClinics, popularStates, topCities } = await getHomepageData();
 
   // Generate structured data schemas
   const websiteSchema = generateWebSiteSchema(baseUrl, totalClinics);
@@ -66,11 +103,10 @@ export default async function Home() {
           <div className="container mx-auto">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-balance mb-4">
-                Find Pain Management Clinics Near You
+                Find Pain Clinics Near Me
               </h1>
               <p className="text-lg text-muted-foreground mb-6">
-                Browse {totalClinics.toLocaleString()} verified pain management clinics across {states.length} states.
-                Enable location to see clinics near you or browse by state below.
+                Locate pain management doctors in your area. Browse {totalClinics.toLocaleString()} verified clinics with patient reviews, ratings, and available appointments.
               </p>
             </div>
           </div>
@@ -86,8 +122,36 @@ export default async function Home() {
           </AdPlacement>
         </section>
 
+        {/* Popular Searches Section */}
+        <section className="container mx-auto pb-8">
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-center mb-6">
+            Popular Searches
+          </h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              { label: 'Pain clinics near me', href: '/clinics' },
+              { label: 'Pain management doctors near me', href: '/clinics' },
+              { label: 'Back pain specialist near me', href: '/clinics' },
+              { label: 'Chronic pain treatment near me', href: '/treatment-options' },
+              { label: 'Pain doctor near me', href: '/clinics' },
+              { label: 'Spine specialist near me', href: '/clinics' },
+              { label: 'Fibromyalgia treatment near me', href: '/treatment-options' },
+              { label: 'Nerve pain treatment near me', href: '/treatment-options' },
+            ].map((search) => (
+              <Link key={search.label} href={search.href}>
+                <Badge
+                  variant="secondary"
+                  className="px-4 py-2 text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                >
+                  {search.label}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* Find Clinic Section - State selector and popular states */}
-        <FindClinicSection popularStates={popularStates} />
+        <FindClinicSection popularStates={popularStates} topCities={topCities} />
 
         {/* Trust Indicators */}
         <section className="border-y bg-muted/50 py-16">

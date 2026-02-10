@@ -33,10 +33,13 @@ const companyLinks = [
 
 // Popular search keywords for SEO
 const popularSearches = [
+  { label: "pain clinics near me", href: "/clinics" },
   { label: "pain management near me", href: "/clinics" },
-  { label: "chronic pain treatment", href: "/treatment-options" },
+  { label: "pain doctors near me", href: "/clinics" },
   { label: "back pain specialist", href: "/clinics" },
-  { label: "pain doctor near me", href: "/clinics" },
+  { label: "spine specialists near me", href: "/clinics" },
+  { label: "chronic pain clinics near me", href: "/clinics" },
+  { label: "chronic pain treatment", href: "/treatment-options" },
   { label: "fibromyalgia treatment", href: "/treatment-options" },
   { label: "nerve pain treatment", href: "/treatment-options" },
 ];

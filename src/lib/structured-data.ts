@@ -195,7 +195,7 @@ export function generateWebSiteSchema(baseUrl: string, totalClinics: number) {
     "@id": `${baseUrl}/#website`,
     name: "PainClinics.com",
     alternateName: "Pain Clinics",
-    description: `Find verified pain management clinics across the United States. Browse ${totalClinics.toLocaleString()} clinics with ratings, patient reviews, and appointment scheduling.`,
+    description: `Find pain clinics near you. Search ${totalClinics.toLocaleString()}+ verified pain management doctors across all 50 states. Read reviews, compare specialists, and book appointments online.`,
     url: baseUrl,
     potentialAction: {
       "@type": "SearchAction",
@@ -213,6 +213,14 @@ export function generateWebSiteSchema(baseUrl: string, totalClinics: number) {
         "@type": "ImageObject",
         url: `${baseUrl}/logo.png`,
       },
+    },
+    areaServed: {
+      "@type": "Country",
+      name: "United States",
+    },
+    audience: {
+      "@type": "PatientAudience",
+      audienceType: "Patient",
     },
   };
 }

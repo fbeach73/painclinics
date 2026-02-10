@@ -16,8 +16,15 @@ export interface PopularState {
   count: number;
 }
 
+export interface TopCity {
+  city: string;
+  stateAbbrev: string;
+  slug: string;
+}
+
 interface FindClinicSectionProps {
   popularStates: PopularState[];
+  topCities?: TopCity[] | undefined;
 }
 
 async function reverseGeocodeToState(
@@ -45,7 +52,7 @@ async function reverseGeocodeToState(
   return stateNameToSlug(data.address.state);
 }
 
-export function FindClinicSection({ popularStates }: FindClinicSectionProps) {
+export function FindClinicSection({ popularStates, topCities }: FindClinicSectionProps) {
   const [isLocating, setIsLocating] = React.useState(false);
   const router = useRouter();
 
@@ -148,6 +155,25 @@ export function FindClinicSection({ popularStates }: FindClinicSectionProps) {
             />
           </div>
         </div>
+
+        {/* Location Context */}
+        {topCities && topCities.length > 0 && (
+          <p className="text-sm text-muted-foreground text-center mb-10">
+            Serving patients in{' '}
+            {topCities.map((city, index) => (
+              <span key={`${city.city}-${city.stateAbbrev}`}>
+                <Link
+                  href={`/pain-management/${city.stateAbbrev.toLowerCase()}/${city.slug}/`}
+                  className="text-foreground hover:text-primary underline-offset-2 hover:underline"
+                >
+                  {city.city}
+                </Link>
+                {index < topCities.length - 1 && ', '}
+              </span>
+            ))}
+            {' '}and more.
+          </p>
+        )}
 
         {/* Popular States Grid */}
         {popularStates.length > 0 && (
