@@ -25,6 +25,7 @@ import {
   getClinicByPermalink,
   getClinicByLegacySlug,
   getClinicByStrippedSlug,
+  getClinicByTitleSlug,
   getClinicsByState,
   getClinicsByCity,
 } from "@/lib/clinic-queries";
@@ -246,8 +247,21 @@ export async function generateMetadata({ params, searchParams: searchParamsPromi
 }
 
 export default async function PainManagementClinicPage({ params, searchParams: searchParamsPromise }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
   const searchParams = await searchParamsPromise;
+
+  // Clean URL-encoded junk from slugs (e.g., %23google_vignette, %20portal)
+  // These come from Google ad parameters or user typos leaking into URLs
+  const slug = rawSlug.map((s) => {
+    // Strip everything after a URL-decoded hash or common appended junk
+    const cleaned = s.replace(/%23.*$/, "").replace(/%20.*$/, "");
+    return cleaned || s;
+  });
+
+  // If slug was cleaned, redirect to the clean version
+  if (slug.some((s, i) => s !== rawSlug[i])) {
+    redirect(`/pain-management/${slug.join("/")}`);
+  }
 
   // Check if this is a state page (single segment, 2-char state abbrev)
   const firstSlug = slug[0];
@@ -419,6 +433,16 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     if (legacyClinic && legacyClinic.permalink) {
       // Redirect to the canonical URL (301 permanent redirect)
       const newPath = legacyClinic.permalink.replace(/^pain-management\//, "");
+      redirect(`/pain-management/${newPath}`);
+    }
+  }
+
+  // Last resort: try matching by title alone (handles old WordPress slugs without state-zip)
+  // e.g., "arrowhead-endoscopy-pain-management-center" -> title "Arrowhead Endoscopy Pain Management Center"
+  if (!dbClinic && slug.length === 1 && slug[0]) {
+    const titleClinic = await getClinicByTitleSlug(slug[0]);
+    if (titleClinic && titleClinic.permalink) {
+      const newPath = titleClinic.permalink.replace(/^pain-management\//, "");
       redirect(`/pain-management/${newPath}`);
     }
   }

@@ -629,6 +629,42 @@ export async function getClinicByLegacySlug(legacySlug: string) {
 }
 
 /**
+ * Look up a clinic by title derived from a slug that has NO state/zip suffix.
+ * Handles old WordPress URLs like "arrowhead-endoscopy-pain-management-center"
+ * that lack the -{state}-{zip} pattern.
+ *
+ * Strategy: Convert slug to title case, then search for an exact title match.
+ * If multiple clinics share the same name, returns the first published one.
+ *
+ * @param slug - The slug without state/zip (e.g., "pain-management-of-cary")
+ * @returns The clinic record or null if not found
+ */
+export async function getClinicByTitleSlug(slug: string) {
+  // Skip slugs that already have the state-zip pattern (handled by other resolvers)
+  if (/^.+-[a-z]{2}-\d{4,5}$/i.test(slug)) {
+    return null;
+  }
+
+  // Convert slug to title case: "pain-management-of-cary" -> "Pain Management Of Cary"
+  const titleFromSlug = slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  // Exact case-insensitive title match
+  const results = await db
+    .select()
+    .from(clinics)
+    .where(and(
+      sql`LOWER(${clinics.title}) = LOWER(${titleFromSlug})`,
+      isPublishedSql
+    ))
+    .limit(1);
+
+  return results[0] || null;
+}
+
+/**
  * Remove ownership from a clinic.
  * Clears ownerUserId, isVerified, and claimedAt fields.
  *
