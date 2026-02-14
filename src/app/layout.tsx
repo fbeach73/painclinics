@@ -94,7 +94,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col overflow-x-hidden">
+          <div className="flex min-h-screen flex-col">
             <SiteHeader />
             <main id="main-content" className="flex-1">
               {children}
