@@ -643,6 +643,12 @@ export async function getClinicByLegacySlug(legacySlug: string) {
  * @returns The clinic record or null if not found
  */
 export async function getClinicByTitleSlug(slug: string) {
+  // Normalize a string for comparison: lowercase, strip all punctuation/special chars, collapse spaces
+  // This makes "Auburn Pain Specialists, LLC" match "Auburn Pain Specialists Llc"
+  // and "Dr. Christopher C. Wenger, MD" match "Dr Christopher C Wenger Md"
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+
   function slugToTitle(s: string): string {
     return s
       .split("-")
@@ -650,55 +656,57 @@ export async function getClinicByTitleSlug(slug: string) {
       .join(" ");
   }
 
+  // Helper: normalize-compare title from slug against DB title (strips punctuation on both sides)
+  const normalizedTitleMatch = (titleFromSlug: string) =>
+    sql`LOWER(regexp_replace(${clinics.title}, '[^a-zA-Z0-9 ]', '', 'g')) = ${normalize(titleFromSlug)}`;
+
   // Strategy 1: Slug ends with a zip code (no state) e.g. "auburn-pain-specialists-llc-36830"
-  // Strip the zip and try to match by title + postal code
+  // The actual permalink has -STATE- between name and zip, so the old slug is NOT a substring.
+  // Match by normalized title + postal code instead.
   const zipOnlyMatch = slug.match(/^(.+)-(\d{5})$/);
   if (zipOnlyMatch && zipOnlyMatch[1] && zipOnlyMatch[2]) {
     const nameSlug = zipOnlyMatch[1];
     const zipCode = zipOnlyMatch[2];
+    const zipPadded = zipCode.padStart(5, "0");
     const titleFromSlug = slugToTitle(nameSlug);
 
+    // Normalized title + zip match
     const results = await db
       .select()
       .from(clinics)
       .where(and(
-        sql`LOWER(${clinics.title}) = LOWER(${titleFromSlug})
-            AND ${clinics.postalCode} = ${zipCode}`,
+        sql`${normalizedTitleMatch(titleFromSlug)}
+            AND (${clinics.postalCode} = ${zipCode} OR ${clinics.postalCode} = ${zipPadded})`,
         isPublishedSql
       ))
       .limit(1);
 
     if (results[0]) return results[0];
 
-    // Also try without the zip entirely (zip may be in slug but not in title)
+    // Try without zip (title-only, normalized)
     const resultsNoZip = await db
       .select()
       .from(clinics)
-      .where(and(
-        sql`LOWER(${clinics.title}) = LOWER(${titleFromSlug})`,
-        isPublishedSql
-      ))
+      .where(and(normalizedTitleMatch(titleFromSlug), isPublishedSql))
       .limit(1);
 
     if (resultsNoZip[0]) return resultsNoZip[0];
   }
 
   // Strategy 2: Slug ends with a state abbrev e.g. "comprehensive-pain-specialists-saginaw-mi"
-  // Try stripping state (and optional city before it)
   const stateEndMatch = slug.match(/^(.+)-([a-z]{2})$/i);
   if (stateEndMatch && stateEndMatch[1] && stateEndMatch[2]) {
     const stateAbbrev = stateEndMatch[2].toUpperCase();
-    // Verify it's a real state
     if (stateAbbrev in US_STATES_REVERSE) {
       const nameSlug = stateEndMatch[1];
       const titleFromSlug = slugToTitle(nameSlug);
 
-      // Try exact title + state match
+      // Normalized title + state
       const results = await db
         .select()
         .from(clinics)
         .where(and(
-          sql`LOWER(${clinics.title}) = LOWER(${titleFromSlug})
+          sql`${normalizedTitleMatch(titleFromSlug)}
               AND UPPER(${clinics.stateAbbreviation}) = ${stateAbbrev}`,
           isPublishedSql
         ))
@@ -706,10 +714,8 @@ export async function getClinicByTitleSlug(slug: string) {
 
       if (results[0]) return results[0];
 
-      // Title might not include the city - try stripping trailing city from name
-      // e.g. "comprehensive-pain-specialists-saginaw" -> try "Comprehensive Pain Specialists" in state MI
+      // Try stripping trailing city words from the name
       const words = nameSlug.split("-");
-      // Try progressively removing trailing words (city name could be 1-3 words)
       for (let i = 1; i <= Math.min(3, words.length - 2); i++) {
         const shorterTitle = slugToTitle(words.slice(0, -i).join("-"));
         const cityName = slugToTitle(words.slice(-i).join("-"));
@@ -718,7 +724,7 @@ export async function getClinicByTitleSlug(slug: string) {
           .select()
           .from(clinics)
           .where(and(
-            sql`LOWER(${clinics.title}) = LOWER(${shorterTitle})
+            sql`${normalizedTitleMatch(shorterTitle)}
                 AND UPPER(${clinics.stateAbbreviation}) = ${stateAbbrev}
                 AND LOWER(${clinics.city}) = LOWER(${cityName})`,
             isPublishedSql
@@ -730,22 +736,22 @@ export async function getClinicByTitleSlug(slug: string) {
     }
   }
 
-  // Strategy 3: Slug has state-zip but legacy resolver failed (title mismatch due to
-  // punctuation like "Dr." vs "Dr", "LLC" vs "Llc", commas, etc.)
-  // e.g. "dr-christopher-c-wenger-md-ma-02120" -> title has "Dr." and "MD" with punctuation
+  // Strategy 3: Slug has state-zip but legacy resolver already failed (punctuation mismatch)
+  // e.g. "dr-christopher-c-wenger-md-ma-02120" -> title "Dr. Christopher C. Wenger, MD"
   const stateZipMatch = slug.match(/^(.+)-([a-z]{2})-(\d{4,5})$/i);
   if (stateZipMatch && stateZipMatch[1] && stateZipMatch[2] && stateZipMatch[3]) {
     const nameSlug = stateZipMatch[1];
     const stateAbbrev = stateZipMatch[2].toUpperCase();
     const zipCode = stateZipMatch[3];
     const zipPadded = zipCode.padStart(5, "0");
+    const titleFromSlug = slugToTitle(nameSlug);
 
-    // Use LIKE with the slug as a substring of the permalink
+    // Normalized title + state + zip
     const results = await db
       .select()
       .from(clinics)
       .where(and(
-        sql`LOWER(${clinics.permalink}) LIKE ${`%${nameSlug.toLowerCase()}%`}
+        sql`${normalizedTitleMatch(titleFromSlug)}
             AND UPPER(${clinics.stateAbbreviation}) = ${stateAbbrev}
             AND (${clinics.postalCode} = ${zipCode} OR ${clinics.postalCode} = ${zipPadded})`,
         isPublishedSql
@@ -755,24 +761,19 @@ export async function getClinicByTitleSlug(slug: string) {
     if (results[0]) return results[0];
   }
 
-  // Strategy 5: Plain slug with no zip or state suffix
-  // Direct title match e.g. "arrowhead-endoscopy-pain-management-center"
+  // Strategy 4: Plain slug, no zip or state suffix
+  // e.g. "arrowhead-endoscopy-pain-management-center"
   const titleFromSlug = slugToTitle(slug);
-
   const results = await db
     .select()
     .from(clinics)
-    .where(and(
-      sql`LOWER(${clinics.title}) = LOWER(${titleFromSlug})`,
-      isPublishedSql
-    ))
+    .where(and(normalizedTitleMatch(titleFromSlug), isPublishedSql))
     .limit(1);
 
   if (results[0]) return results[0];
 
-  // Strategy 6: Permalink contains the slug (broadest match)
-  // Handles cases where the old slug is a subset of the new permalink
-  // e.g., old: "capitol-pain-institute-austin-north" -> permalink includes this string
+  // Strategy 5: Permalink contains the slug (broadest match)
+  // e.g. old slug "capitol-pain-institute-austin-north" is substring of new permalink
   const results2 = await db
     .select()
     .from(clinics)
