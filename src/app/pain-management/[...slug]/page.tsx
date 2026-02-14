@@ -412,15 +412,30 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     }
   }
 
-  // If not found, check if slug ends with a 4-digit zip (missing leading zero)
-  // Old WordPress URLs for states like NJ, MA, CT had zips like 8034 instead of 08034
+  // If not found, check for leading-zero mismatch in zip codes.
+  // Two cases:
+  //   A) Old URL has 4-digit zip (8034) but DB has 5-digit (08034) — add leading zero
+  //   B) Old URL has 5-digit zip with leading zero (07076) but DB permalink has 4-digit (7076) — strip it
   if (!dbClinic && slug.length === 1 && slug[0]) {
-    const zipMatch = slug[0].match(/^(.+)-([a-z]{2})-(\d{4})$/i);
-    if (zipMatch && zipMatch[1] && zipMatch[2] && zipMatch[3]) {
-      const paddedSlug = `${zipMatch[1]}-${zipMatch[2].toLowerCase()}-0${zipMatch[3]}`;
+    // Case A: 4-digit zip → try adding leading zero
+    const zipMatch4 = slug[0].match(/^(.+)-([a-z]{2})-(\d{4})$/i);
+    if (zipMatch4 && zipMatch4[1] && zipMatch4[2] && zipMatch4[3]) {
+      const paddedSlug = `${zipMatch4[1]}-${zipMatch4[2].toLowerCase()}-0${zipMatch4[3]}`;
       const paddedClinic = await getClinicByPermalink(paddedSlug);
       if (paddedClinic && paddedClinic.permalink) {
         const newPath = paddedClinic.permalink.replace(/^pain-management\//, "");
+        redirect(`/pain-management/${newPath}`);
+      }
+    }
+
+    // Case B: 5-digit zip starting with 0 → try stripping leading zero
+    const zipMatch5 = slug[0].match(/^(.+)-([a-z]{2})-(0\d{4})$/i);
+    if (zipMatch5 && zipMatch5[1] && zipMatch5[2] && zipMatch5[3]) {
+      const strippedZip = zipMatch5[3].replace(/^0/, "");
+      const strippedSlug = `${zipMatch5[1]}-${zipMatch5[2].toLowerCase()}-${strippedZip}`;
+      const strippedClinic = await getClinicByPermalink(strippedSlug);
+      if (strippedClinic && strippedClinic.permalink) {
+        const newPath = strippedClinic.permalink.replace(/^pain-management\//, "");
         redirect(`/pain-management/${newPath}`);
       }
     }
