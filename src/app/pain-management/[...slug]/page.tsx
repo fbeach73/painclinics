@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
 import { InPageAd, AdPlacement } from "@/components/ads";
 import { PageTracker } from "@/components/analytics/page-tracker";
@@ -407,8 +407,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   if (!dbClinic) {
     const strippedResult = await getClinicByStrippedSlug(slugPath);
     if (strippedResult) {
-      // Redirect to canonical URL without the -N suffix (301 permanent redirect)
-      redirect(`/pain-management/${strippedResult.canonicalSlug}`);
+      // Redirect to canonical URL without the -N suffix (308 permanent redirect)
+      permanentRedirect(`/pain-management/${strippedResult.canonicalSlug}`);
     }
   }
 
@@ -424,7 +424,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
       const paddedClinic = await getClinicByPermalink(paddedSlug);
       if (paddedClinic && paddedClinic.permalink) {
         const newPath = paddedClinic.permalink.replace(/^pain-management\//, "");
-        redirect(`/pain-management/${newPath}`);
+        permanentRedirect(`/pain-management/${newPath}`);
       }
     }
 
@@ -436,7 +436,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
       const strippedClinic = await getClinicByPermalink(strippedSlug);
       if (strippedClinic && strippedClinic.permalink) {
         const newPath = strippedClinic.permalink.replace(/^pain-management\//, "");
-        redirect(`/pain-management/${newPath}`);
+        permanentRedirect(`/pain-management/${newPath}`);
       }
     }
   }
@@ -446,9 +446,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   if (!dbClinic && slug.length === 1 && slug[0]) {
     const legacyClinic = await getClinicByLegacySlug(slug[0]);
     if (legacyClinic && legacyClinic.permalink) {
-      // Redirect to the canonical URL (301 permanent redirect)
       const newPath = legacyClinic.permalink.replace(/^pain-management\//, "");
-      redirect(`/pain-management/${newPath}`);
+      permanentRedirect(`/pain-management/${newPath}`);
     }
   }
 
@@ -458,7 +457,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     const titleClinic = await getClinicByTitleSlug(slug[0]);
     if (titleClinic && titleClinic.permalink) {
       const newPath = titleClinic.permalink.replace(/^pain-management\//, "");
-      redirect(`/pain-management/${newPath}`);
+      permanentRedirect(`/pain-management/${newPath}`);
     }
   }
 
