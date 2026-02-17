@@ -419,6 +419,52 @@ const nextConfig: NextConfig = {
         destination: "/pain-management/mo",
         permanent: true,
       },
+      {
+        source: "/pain-management/pain-management-ascension-columbia-st-marys-milwaukee-bay-view",
+        destination: "/pain-management/ascension-columbia-st-marys-bay-view-pain-management-wi-53207",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/pain-management-ia-51401",
+        destination: "/pain-management/iowa-neuropathy-and-pain-clinic-ia-51401",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/ohio-valley-pain-medicine",
+        destination: "/pain-management/ohio-valley-pain-institute-ky-40217",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/arrowhead-endoscopy-pain-management-center",
+        destination: "/pain-management/arizona-pain-arrowhead-az-85381",
+        permanent: true,
+      },
+      // No DB match — redirect to relevant state browse pages
+      {
+        source: "/pain-management/meridian-pain-management",
+        destination: "/pain-management/ms",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/mercy-clinic-pain-management-and-neurology-rolla",
+        destination: "/pain-management/mo",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/revere-health-southern-utah-spine-rehabilitation-st-george",
+        destination: "/pain-management/ut",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/able-physical-therapy",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/dr-eric-hayden-d-c",
+        destination: "/clinics",
+        permanent: true,
+      },
 
       // ===========================================
       // Malformed /clinic/ prefix URLs (from old sitemap or email templates)
