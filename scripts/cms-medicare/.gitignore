@@ -1,0 +1,5 @@
+# Large NPPES data files (download on each machine)
+data/
+*.csv
+clinics-for-matching.json
+matched-clinics.json
