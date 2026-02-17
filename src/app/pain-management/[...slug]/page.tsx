@@ -29,6 +29,7 @@ import {
   getClinicsByState,
   getClinicsByCity,
 } from "@/lib/clinic-queries";
+import { getClinicInsuranceSlugs } from "@/lib/clinic-insurance-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
 import { parseFilters } from "@/lib/directory/filters";
 import { generateFilteredMeta } from "@/lib/directory/meta";
@@ -465,13 +466,17 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     notFound();
   }
 
-  // Fetch services from junction table
-  const clinicServices = await getClinicServices(dbClinic.id);
+  // Fetch services and insurance from junction tables
+  const [clinicServices, insuranceSlugs] = await Promise.all([
+    getClinicServices(dbClinic.id),
+    getClinicInsuranceSlugs(dbClinic.id),
+  ]);
 
-  // Add services to the clinic record for transformation
+  // Add services and insurance to the clinic record for transformation
   const dbClinicWithServices = {
     ...dbClinic,
     clinicServices,
+    insuranceSlugs,
   };
 
   const clinic = transformDbClinicToType(dbClinicWithServices);
@@ -619,9 +624,12 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 totalReviews={clinic.reviewCount}
               />
 
-              {/* Insurance Section */}
-              {clinic.insuranceAccepted.length > 0 && (
-                <ClinicInsurance insurance={clinic.insuranceAccepted} />
+              {/* Insurance & Payment Section */}
+              {(clinic.insuranceAccepted.length > 0 || (clinic.paymentMethods && clinic.paymentMethods.length > 0)) && (
+                <ClinicInsurance
+                  insurance={clinic.insuranceAccepted}
+                  paymentMethods={clinic.paymentMethods}
+                />
               )}
             </div>
 

@@ -8,7 +8,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { insuranceProviders as insuranceProvidersTable } from "../lib/schema";
 import { insuranceProviders } from "../data/services";
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.local" });
 
 async function main() {
   const connectionString = process.env.POSTGRES_URL;

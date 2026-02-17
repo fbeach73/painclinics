@@ -94,6 +94,7 @@ export interface Clinic {
   timezone?: string | null; // IANA timezone e.g. "America/New_York"
   services: ServiceType[];
   insuranceAccepted: InsuranceType[];
+  paymentMethods?: string[] | undefined;
   rating: number;
   reviewCount: number;
   photos: string[];

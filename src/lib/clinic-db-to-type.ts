@@ -15,10 +15,11 @@ import { parseTimeRange } from "./time-utils";
 import type { ClinicRecord } from "./clinic-queries";
 
 /**
- * Extended clinic record with junction table services.
+ * Extended clinic record with junction table services and insurance.
  */
 export interface ClinicRecordWithServices extends ClinicRecord {
   clinicServices?: ClinicService[];
+  insuranceSlugs?: InsuranceType[];
 }
 
 /**
@@ -58,7 +59,8 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
     hours: transformClinicHours(dbClinic.clinicHours as ClinicHour[] | null),
     timezone: dbClinic.timezone,
     services,
-    insuranceAccepted: [], // Insurance data not stored in current schema
+    insuranceAccepted: dbClinic.insuranceSlugs ?? [],
+    paymentMethods: dbClinic.paymentMethods ?? undefined,
     rating: dbClinic.rating || 0,
     reviewCount: dbClinic.reviewCount || 0,
     photos: dbClinic.clinicImageUrls || [],

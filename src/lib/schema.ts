@@ -264,6 +264,10 @@ export const clinics = pgTable(
     amenities: text("amenities").array(),
     normalizedAmenities: text("normalized_amenities").array(), // Controlled vocabulary for filtering
     checkboxFeatures: text("checkbox_features").array(),
+
+    // Payment & Insurance (populated by crawl4ai extraction + NPPES matching)
+    paymentMethods: text("payment_methods").array(), // "credit-card", "cash", "check", "financing", "sliding-scale"
+    npi: text("npi"), // National Provider Identifier from CMS NPPES registry
     googleListingLink: text("google_listing_link"),
 
     // Q&A

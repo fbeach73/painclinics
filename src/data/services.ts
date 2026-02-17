@@ -88,6 +88,26 @@ export const insuranceProviders: InsuranceDefinition[] = [
   { type: 'workers-comp', name: "Workers' Compensation" },
 ];
 
+// Payment methods accepted by clinics
+export interface PaymentMethodDefinition {
+  slug: string;
+  label: string;
+}
+
+export const PAYMENT_METHODS: PaymentMethodDefinition[] = [
+  { slug: 'credit-card', label: 'Credit Card' },
+  { slug: 'cash', label: 'Cash' },
+  { slug: 'check', label: 'Check' },
+  { slug: 'financing', label: 'Financing / Payment Plans' },
+  { slug: 'sliding-scale', label: 'Sliding Scale' },
+  { slug: 'hsa-fsa', label: 'HSA / FSA' },
+  { slug: 'debit-card', label: 'Debit Card' },
+];
+
+export function getPaymentMethodBySlug(slug: string): PaymentMethodDefinition | undefined {
+  return PAYMENT_METHODS.find((p) => p.slug === slug);
+}
+
 export function getServiceByType(type: ServiceType): ServiceDefinition | undefined {
   return services.find((s) => s.type === type);
 }
