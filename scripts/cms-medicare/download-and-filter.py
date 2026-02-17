@@ -25,7 +25,7 @@ DATA_DIR.mkdir(exist_ok=True)
 NPPES_DOWNLOAD_URL = "https://download.cms.gov/nppes/NPI_Files.html"
 # Direct link pattern — CMS publishes monthly full replacement files
 # We'll scrape the page to find the latest URL
-NPPES_FULL_FILE_PATTERN = r'href="(https?://download\.cms\.gov/nppes/NPPES_Data_Dissemination_\w+_\d{4}\.zip)"'
+NPPES_FULL_FILE_PATTERN = r'href="\.?\/?((https?://download\.cms\.gov/nppes/)?NPPES_Data_Dissemination_(?!.*Weekly)(?!.*V2)[\w]+_\d{4}\.zip)"'
 
 # Pain-management-related taxonomy codes
 PAIN_TAXONOMY_CODES = {
@@ -90,8 +90,12 @@ def find_nppes_download_url() -> str:
             "Check https://download.cms.gov/nppes/NPI_Files.html manually."
         )
 
-    # Take the first (most recent) link
-    url = matches[0]
+    # Take the first (most recent) link; handle relative URLs
+    match = matches[0][0] if isinstance(matches[0], tuple) else matches[0]
+    if match.startswith("http"):
+        url = match
+    else:
+        url = "https://download.cms.gov/nppes/" + match.lstrip("./")
     print(f"Found NPPES URL: {url}")
     return url
 
@@ -240,9 +244,14 @@ def main():
     # Step 1: Load our clinic zip codes
     clinic_zips = load_clinic_zip_codes()
 
-    # Step 2: Download NPPES
-    nppes_url = find_nppes_download_url()
-    zip_path = download_nppes(nppes_url)
+    # Step 2: Download NPPES (skip scraping if zip already exists)
+    existing_zips = list(DATA_DIR.glob("NPPES_Data_Dissemination_*.zip"))
+    if existing_zips:
+        zip_path = existing_zips[0]
+        print(f"NPPES zip already downloaded: {zip_path}")
+    else:
+        nppes_url = find_nppes_download_url()
+        zip_path = download_nppes(nppes_url)
 
     # Step 3: Extract CSV
     csv_path = extract_csv(zip_path)

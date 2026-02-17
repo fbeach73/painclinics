@@ -127,9 +127,12 @@ def load_nppes() -> pd.DataFrame:
         df.loc[individual_mask, first_col].str.lower() + " " + df.loc[individual_mask, last_col].str.lower()
     ).apply(lambda x: re.sub(r"\s+", " ", x).strip())
 
-    # Normalize address
+    # Normalize address (column may be missing if filtered CSV was built without it)
     addr_col = "Provider Business Practice Location Address First Line"
-    df["address_normalized"] = df[addr_col].apply(normalize_address)
+    if addr_col in df.columns:
+        df["address_normalized"] = df[addr_col].apply(normalize_address)
+    else:
+        df["address_normalized"] = ""
 
     return df
 
