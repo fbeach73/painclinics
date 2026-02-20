@@ -5,7 +5,7 @@
 
 const INDEXNOW_KEY = process.env.INDEXNOW_KEY;
 const BING_API_KEY = process.env.BING_WEBMASTER_API_KEY;
-const SITE_URL = "https://www.painclinics.com";
+const SITE_URL = "https://painclinics.com";
 const INDEXNOW_ENDPOINT = BING_API_KEY
   ? `https://www.bing.com/indexnow?apikey=${BING_API_KEY}`
   : "https://api.indexnow.org/indexnow";
@@ -29,7 +29,7 @@ export async function pingIndexNow(urls: string[]): Promise<void> {
   for (const chunk of chunks) {
     try {
       const body = {
-        host: "www.painclinics.com",
+        host: "painclinics.com",
         key: INDEXNOW_KEY,
         keyLocation: `${SITE_URL}/${INDEXNOW_KEY}.txt`,
         urlList: chunk,
