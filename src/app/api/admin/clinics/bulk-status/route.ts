@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { inArray } from "drizzle-orm";
 import { checkAdminApi } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
+import { pingIndexNow, clinicUrl } from "@/lib/indexnow";
 import * as schema from "@/lib/schema";
 
 type ClinicStatus = "draft" | "published" | "deleted";
@@ -87,6 +88,16 @@ export async function PATCH(request: Request) {
         .where(
           inArray(schema.clinics.id, clinicsBeingPublished)
         );
+    }
+
+    // Ping IndexNow for clinics being published (fire-and-forget)
+    if (status === "published") {
+      const publishedUrls = clinicsToUpdate
+        .filter((c) => c.permalink)
+        .map((c) => clinicUrl(c.permalink!));
+      if (publishedUrls.length > 0) {
+        void pingIndexNow(publishedUrls);
+      }
     }
 
     // Smart revalidation: revalidate individual clinic pages that changed

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { checkAdminApi, adminErrorResponse } from "@/lib/admin-auth";
 import { db } from "@/lib/db";
+import { pingIndexNow, clinicUrl } from "@/lib/indexnow";
 import { clinics } from "@/lib/schema";
 
 interface RouteParams {
@@ -108,6 +109,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         // Revalidate the main clinics directory page
         revalidatePath("/pain-management");
       }
+    }
+
+    // Ping IndexNow when a clinic is published (fire-and-forget)
+    if (status === "published" && clinic.permalink) {
+      void pingIndexNow([clinicUrl(clinic.permalink)]);
     }
 
     return NextResponse.json({
