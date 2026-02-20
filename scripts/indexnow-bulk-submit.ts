@@ -15,9 +15,12 @@ import * as schema from "../src/lib/schema";
 config({ path: ".env.local" });
 
 const INDEXNOW_KEY = process.env.INDEXNOW_KEY;
+const BING_API_KEY = process.env.BING_WEBMASTER_API_KEY;
 const POSTGRES_URL = process.env.POSTGRES_URL;
-const SITE_URL = "https://painclinics.com";
-const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow";
+const SITE_URL = "https://www.painclinics.com";
+const INDEXNOW_ENDPOINT = BING_API_KEY
+  ? `https://www.bing.com/indexnow?apikey=${BING_API_KEY}`
+  : "https://api.indexnow.org/indexnow";
 const BATCH_SIZE = 10000;
 const DELAY_MS = 2000; // 2s between batches to be polite
 
@@ -67,7 +70,7 @@ async function main() {
     console.log(`  Batch ${batchNum}/${batches.length}: ${batch.length} URLs...`);
 
     const body = {
-      host: "painclinics.com",
+      host: "www.painclinics.com",
       key: INDEXNOW_KEY,
       keyLocation: `${SITE_URL}/${INDEXNOW_KEY}.txt`,
       urlList: batch,
