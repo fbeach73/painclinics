@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 import type { AdCreativeResult } from "@/lib/ad-queries";
 
 interface HtmlAdProps {
