@@ -12,7 +12,6 @@ interface CityPainManagementPageProps {
   stateName: string;
   stateAbbrev: string;
   searchParams: Record<string, string | string[] | undefined>;
-  useHostedAds: boolean;
 }
 
 export async function CityPainManagementPageContent({
@@ -20,7 +19,6 @@ export async function CityPainManagementPageContent({
   stateName,
   stateAbbrev,
   searchParams,
-  useHostedAds,
 }: CityPainManagementPageProps) {
   const filters: DirectoryFilters = parseFilters(searchParams);
   const citySlug = cityName.toLowerCase().replace(/\s+/g, "-");
@@ -46,7 +44,6 @@ export async function CityPainManagementPageContent({
       filters={filters}
       specialties={specialties}
       insuranceList={insuranceList}
-      useHostedAds={useHostedAds}
       nearbyCities={nearbyCities}
     />
   );

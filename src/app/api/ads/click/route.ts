@@ -1,41 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { adImpressions, adClicks } from "@/lib/schema";
+import { adImpressions, adClicks, adCreatives } from "@/lib/schema";
 import { eq } from "drizzle-orm";
+
+const FALLBACK_URL = "/";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const clickId = searchParams.get("click_id");
-  const dest = searchParams.get("dest");
 
-  if (!clickId || !dest) {
+  if (!clickId) {
     return NextResponse.json(
-      { error: "Missing click_id or dest parameter" },
+      { error: "Missing click_id parameter" },
       { status: 400 }
     );
   }
 
-  // Validate click_id exists in adImpressions
-  const impression = await db
-    .select({ clickId: adImpressions.clickId })
+  // Look up the impression and join to the creative to get the destination URL.
+  // Never use the user-supplied `dest` param — that is an open redirect vector.
+  const [impression] = await db
+    .select({
+      clickId: adImpressions.clickId,
+      destinationUrl: adCreatives.destinationUrl,
+    })
     .from(adImpressions)
+    .innerJoin(adCreatives, eq(adImpressions.creativeId, adCreatives.id))
     .where(eq(adImpressions.clickId, clickId))
     .limit(1);
 
-  if (impression.length === 0) {
-    // Invalid click_id — redirect anyway to not break UX
-    return NextResponse.redirect(decodeURIComponent(dest), { status: 302 });
-  }
+  const destination = impression?.destinationUrl ?? FALLBACK_URL;
 
   // Record click (fire-and-forget to not delay redirect)
   const ipAddress =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
   const userAgent = request.headers.get("user-agent") ?? null;
 
-  db.insert(adClicks)
-    .values({ clickId, ipAddress, userAgent })
-    .onConflictDoNothing({ target: adClicks.clickId })
-    .catch((err) => console.error("Failed to record ad click:", err));
+  if (impression) {
+    db.insert(adClicks)
+      .values({ clickId, ipAddress, userAgent })
+      .onConflictDoNothing({ target: adClicks.clickId })
+      .catch((err) => console.error("Failed to record ad click:", err));
+  }
 
-  return NextResponse.redirect(decodeURIComponent(dest), { status: 302 });
+  return NextResponse.redirect(destination, { status: 302 });
 }

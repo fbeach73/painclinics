@@ -53,6 +53,9 @@ export function AdsOverviewClient() {
     setStatsError(false);
     try {
       const r = await fetch(`/api/admin/ads/stats?range=${range}`);
+      if (!r.ok) {
+        throw new Error(`Stats API returned ${r.status}`);
+      }
       const data = (await r.json()) as StatsResponse;
       setStats(data);
       setStatsLoading(false);
@@ -166,7 +169,7 @@ export function AdsOverviewClient() {
         <Button
           variant="outline"
           size="sm"
-          onClick={fetchStats}
+          onClick={() => void fetchStats()}
           disabled={statsLoading}
         >
           <RefreshCw

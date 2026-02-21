@@ -78,7 +78,7 @@ export async function AdSlot({
   return (
     <AdPlacement className={cls} showLabel={showLabel}>
       {creative.creativeType === "image_banner" && (
-        <BannerAd creative={creative} clickUrl={clickUrl} />
+        <BannerAd creative={creative} clickUrl={clickUrl} placement={placement} />
       )}
       {creative.creativeType === "html" && (
         <HtmlAd creative={creative} clickUrl={clickUrl} />

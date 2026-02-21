@@ -3,7 +3,10 @@ export { InPageAd, AdPlacement, AD_SLOTS } from "./adsense";
 
 // Ad server components
 export { AdSlot } from "./AdSlot";
+export { AdSlotClient } from "./AdSlotClient";
 export { NativeAdPanelSlot } from "./NativeAdPanelSlot";
 
 // Legacy components (kept for backwards compatibility)
-export { AdUnit, InArticleAd, MultiplexAd } from "./adsense";
+// InArticleAd and MultiplexAd are NOT exported — they have empty data-ad-slot="" values.
+// Add real AdSense slot IDs before re-exporting.
+export { AdUnit } from "./adsense";

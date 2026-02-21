@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
-import { AdSlot } from "@/components/ads";
-import { shouldUseHostedAds } from "@/lib/ad-decision";
+import { AdSlotClient } from "@/components/ads";
 import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -252,9 +251,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   const { slug: rawSlug } = await params;
   const searchParams = await searchParamsPromise;
 
-  // Resolve ad decision once for all ad slots on this page
-  const useHostedAds = await shouldUseHostedAds();
-
   // Clean URL-encoded junk from slugs (e.g., %23google_vignette, %20portal)
   // These come from Google ad parameters or user typos leaking into URLs
   const slug = rawSlug.map((s) => {
@@ -321,7 +317,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           stateName={stateName}
           stateAbbrev={stateAbbrev}
           searchParams={searchParams}
-          useHostedAds={useHostedAds}
         />
       </>
     );
@@ -398,7 +393,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             stateName={stateName}
             stateAbbrev={stateAbbrev}
             searchParams={searchParams}
-            useHostedAds={useHostedAds}
           />
         </>
       );
@@ -523,10 +517,9 @@ export default async function PainManagementClinicPage({ params, searchParams: s
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {/* Top leaderboard ad — desktop only */}
           <div className="hidden lg:block mb-6">
-            <AdSlot
+            <AdSlotClient
               placement="clinic-top-leaderboard"
               path={`/pain-management/${slugPath}`}
-              useHostedAds={useHostedAds}
             />
           </div>
 
@@ -592,10 +585,9 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             </div>
             <div className="space-y-2">
               {/* Text link ad — above featured image */}
-              <AdSlot
+              <AdSlotClient
                 placement="clinic-above-image"
                 path={`/pain-management/${slugPath}`}
-                useHostedAds={useHostedAds}
                 showLabel={false}
               />
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
@@ -608,21 +600,13 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             </div>
           </div>
 
-          {/* Above-the-fold ad — full width between hero and services */}
-          <AdSlot
-            placement="clinic-below-header"
-            path={`/pain-management/${slugPath}`}
-            useHostedAds={useHostedAds}
-          />
-
           {/* Services + Ad Row */}
           <div className="grid gap-8 lg:grid-cols-[1fr_300px] mb-8 min-w-0">
             {/* Ad - shows first on mobile, second on desktop */}
             <div className="order-first lg:order-last min-w-0">
-              <AdSlot
+              <AdSlotClient
                 placement="clinic-above-fold"
                 path={`/pain-management/${slugPath}`}
-                useHostedAds={useHostedAds}
               />
             </div>
             {/* Services - shows second on mobile, first on desktop */}
@@ -646,10 +630,9 @@ export default async function PainManagementClinicPage({ params, searchParams: s
               )}
 
               {/* In-Page Ad - Content break */}
-              <AdSlot
+              <AdSlotClient
                 placement="clinic-mid-content"
                 path={`/pain-management/${slugPath}`}
-                useHostedAds={useHostedAds}
               />
 
               {/* FAQ Section */}

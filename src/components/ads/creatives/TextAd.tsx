@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import type { AdCreativeResult } from "@/lib/ad-queries";
 
 interface TextAdProps {
@@ -17,23 +16,20 @@ export function TextAd({ creative, clickUrl }: TextAdProps) {
       className="group block rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 p-4 text-center hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 transition-all shadow-sm"
     >
       {creative.headline && (
-        <motion.p
-          className="font-semibold text-white text-base"
-          animate={{
-            textShadow: [
-              "0 0 4px rgba(255,255,255,0.2)",
-              "0 0 16px rgba(255,255,255,0.6)",
-              "0 0 4px rgba(255,255,255,0.2)",
-            ],
-          }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          {creative.headline}
-        </motion.p>
+        <>
+          <style>{`
+            @keyframes text-glow {
+              0%, 100% { text-shadow: 0 0 4px rgba(255,255,255,0.2); }
+              50%       { text-shadow: 0 0 16px rgba(255,255,255,0.6); }
+            }
+            .text-ad-headline {
+              animation: text-glow 2.5s ease-in-out infinite;
+            }
+          `}</style>
+          <p className="text-ad-headline font-semibold text-white text-base">
+            {creative.headline}
+          </p>
+        </>
       )}
       {creative.bodyText && (
         <p className="text-sm text-blue-100 mt-2">

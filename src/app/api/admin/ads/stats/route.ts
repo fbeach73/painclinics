@@ -18,11 +18,19 @@ export async function GET(request: NextRequest) {
     ? (rawRange as DateRange)
     : "7d";
 
-  const [overview, overTime, topCreatives] = await Promise.all([
-    getAdOverviewStats(range),
-    getAdStatsOverTime(range),
-    getTopCreatives(range),
-  ]);
+  try {
+    const [overview, overTime, topCreatives] = await Promise.all([
+      getAdOverviewStats(range),
+      getAdStatsOverTime(range),
+      getTopCreatives(range),
+    ]);
 
-  return NextResponse.json({ overview, overTime, topCreatives });
+    return NextResponse.json({ overview, overTime, topCreatives });
+  } catch (err) {
+    console.error("[ads/stats] query failed:", err);
+    return NextResponse.json(
+      { error: "Failed to load ad stats. The ad tables may not be set up yet." },
+      { status: 500 }
+    );
+  }
 }

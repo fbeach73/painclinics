@@ -1038,6 +1038,7 @@ export const adImpressions = pgTable(
       .references(() => adCampaigns.id, { onDelete: "cascade" }),
     clickId: text("click_id").notNull().unique(), // Pre-generated UUID for S2S click tracking
     pagePath: text("page_path"),
+    destinationUrl: text("destination_url"), // Denormalized from creative at impression time
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

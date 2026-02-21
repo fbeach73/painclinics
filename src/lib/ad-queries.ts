@@ -162,6 +162,7 @@ export async function getAdsForPlacement(
         campaignId: creative.campaignId,
         clickId,
         pagePath,
+        destinationUrl: creative.destinationUrl,
       })
       .catch((err) => console.error("Failed to record ad impression:", err));
 
@@ -215,6 +216,7 @@ export async function getAdForPlacement(
       campaignId: selected.campaignId,
       clickId,
       pagePath,
+      destinationUrl: selected.destinationUrl,
     })
     .catch((err) => console.error("Failed to record ad impression:", err));
 

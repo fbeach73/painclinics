@@ -131,6 +131,8 @@ export function AdUnit({
 
 /**
  * In-Article Ad (Legacy) - Best for within blog content
+ * NOTE: data-ad-slot is empty. Create an in-article unit in AdSense, add the
+ * slot ID, then re-export from src/components/ads/index.ts before using.
  */
 export function InArticleAd({ className = "" }: { className?: string }) {
   useEffect(() => {
@@ -157,6 +159,8 @@ export function InArticleAd({ className = "" }: { className?: string }) {
 
 /**
  * Multiplex Ad (Legacy) - Grid of recommended content ads
+ * NOTE: data-ad-slot is empty. Create a multiplex unit in AdSense, add the
+ * slot ID, then re-export from src/components/ads/index.ts before using.
  */
 export function MultiplexAd({ className = "" }: { className?: string }) {
   useEffect(() => {

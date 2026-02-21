@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { AdSlot } from "@/components/ads";
+import { AdSlotClient } from "@/components/ads";
 import { Button } from "@/components/ui/button";
 import type { DirectoryFilters } from "@/lib/directory/filters";
 import { hasActiveFilters } from "@/lib/directory/filters";
@@ -31,8 +31,6 @@ interface DirectoryLayoutProps {
   specialties: Array<{ name: string; slug: string; count: number }>;
   insuranceList: Array<{ name: string; slug: string; count: number }>;
   nearbyCities: Array<{ city: string; count: number; slug: string }>;
-  // Ad decision
-  useHostedAds: boolean;
   // Breadcrumbs (rendered in parent)
   children?: React.ReactNode;
 }
@@ -47,7 +45,6 @@ export function DirectoryLayout({
   filters,
   specialties,
   insuranceList,
-  useHostedAds,
   nearbyCities,
   children,
 }: DirectoryLayoutProps) {
@@ -173,10 +170,9 @@ export function DirectoryLayout({
                     <ClinicListCard clinic={clinic} />
                     {/* Ad after card 3 */}
                     {index === 2 && (
-                      <AdSlot
+                      <AdSlotClient
                         placement="directory-in-list"
                         path={basePath}
-                        useHostedAds={useHostedAds}
                         className="my-3"
                       />
                     )}
