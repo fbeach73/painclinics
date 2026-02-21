@@ -11,6 +11,14 @@ const isDryRun = process.argv.includes("--dry-run");
 
 const DEFAULT_PLACEMENTS = [
   {
+    name: "clinic-top-leaderboard",
+    label: "Clinic Page — Top Leaderboard (Desktop)",
+    page_type: "clinic",
+    description: "Full-width leaderboard at very top of clinic page, desktop only (hidden on mobile)",
+    default_width: 728,
+    default_height: 90,
+  },
+  {
     name: "clinic-below-header",
     label: "Clinic Page — Below Header (ATF)",
     page_type: "clinic",
