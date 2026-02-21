@@ -599,6 +599,13 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             </div>
           </div>
 
+          {/* Above-the-fold ad — full width between hero and services */}
+          <AdSlot
+            placement="clinic-below-header"
+            path={`/pain-management/${slugPath}`}
+            useHostedAds={useHostedAds}
+          />
+
           {/* Services + Ad Row */}
           <div className="grid gap-8 lg:grid-cols-[1fr_300px] mb-8 min-w-0">
             {/* Ad - shows first on mobile, second on desktop */}

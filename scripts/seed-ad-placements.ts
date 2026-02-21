@@ -11,6 +11,14 @@ const isDryRun = process.argv.includes("--dry-run");
 
 const DEFAULT_PLACEMENTS = [
   {
+    name: "clinic-below-header",
+    label: "Clinic Page — Below Header (ATF)",
+    page_type: "clinic",
+    description: "Full-width ad between hero section and services, visible above the fold on desktop",
+    default_width: 728,
+    default_height: 90,
+  },
+  {
     name: "clinic-above-fold",
     label: "Clinic Page — Above Fold",
     page_type: "clinic",
