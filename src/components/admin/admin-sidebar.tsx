@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/admin/users", label: "User Activity", icon: UserCheck },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/ads", label: "Ads", icon: Megaphone },
   { href: "/admin/stats", label: "Site Stats", icon: Activity },
   { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/broadcasts", label: "Broadcasts", icon: Send },

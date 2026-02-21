@@ -12,6 +12,7 @@ import {
   doublePrecision,
   jsonb,
   varchar,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 // ============================================
@@ -107,6 +108,38 @@ export const leadStatusEnum = pgEnum("lead_status", [
   "contacted",
   "qualified",
   "closed",
+]);
+
+// ============================================
+// Ad Server Enums
+// ============================================
+
+export const adStatusEnum = pgEnum("ad_status", [
+  "active",
+  "paused",
+  "ended",
+]);
+
+export const adCreativeTypeEnum = pgEnum("ad_creative_type", [
+  "image_banner",
+  "html",
+  "text",
+  "native",
+]);
+
+export const adAspectRatioEnum = pgEnum("ad_aspect_ratio", [
+  "1:1",
+  "16:9",
+  "4:3",
+  "3:2",
+  "auto",
+]);
+
+export const adPageTypeEnum = pgEnum("ad_page_type", [
+  "clinic",
+  "directory",
+  "blog",
+  "homepage",
 ]);
 
 export const user = pgTable(
@@ -864,6 +897,203 @@ export const blogImportBatches = pgTable("blog_import_batches", {
 });
 
 // ============================================
+// Ad Server Tables
+// ============================================
+
+export const adCampaigns = pgTable(
+  "ad_campaigns",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    advertiserName: text("advertiser_name").notNull(),
+    advertiserEmail: text("advertiser_email"),
+    advertiserUrl: text("advertiser_url"),
+    status: adStatusEnum("status").default("paused").notNull(),
+    startDate: timestamp("start_date"),
+    endDate: timestamp("end_date"),
+    dailyBudgetCents: integer("daily_budget_cents"), // Optional daily budget in cents
+    totalBudgetCents: integer("total_budget_cents"), // Optional total budget in cents
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("ad_campaigns_status_idx").on(table.status),
+    index("ad_campaigns_start_date_idx").on(table.startDate),
+    index("ad_campaigns_end_date_idx").on(table.endDate),
+  ]
+);
+
+export const adCreatives = pgTable(
+  "ad_creatives",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    campaignId: text("campaign_id")
+      .notNull()
+      .references(() => adCampaigns.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    creativeType: adCreativeTypeEnum("creative_type").notNull(),
+    // Content fields — use whichever applies to the type
+    imageUrl: text("image_url"),
+    imageAlt: text("image_alt"),
+    htmlContent: text("html_content"),
+    headline: text("headline"),
+    bodyText: text("body_text"),
+    ctaText: text("cta_text"),
+    destinationUrl: text("destination_url").notNull(),
+    aspectRatio: adAspectRatioEnum("aspect_ratio").default("auto").notNull(),
+    weight: integer("weight").default(1).notNull(), // Relative weight for rotation within campaign
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("ad_creatives_campaign_idx").on(table.campaignId),
+    index("ad_creatives_type_idx").on(table.creativeType),
+    index("ad_creatives_aspect_ratio_idx").on(table.aspectRatio),
+    index("ad_creatives_active_idx").on(table.isActive),
+  ]
+);
+
+export const adPlacements = pgTable(
+  "ad_placements",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull().unique(), // e.g. "clinic_sidebar", "directory_top"
+    label: text("label").notNull(), // Human-readable label
+    pageType: adPageTypeEnum("page_type").notNull(),
+    description: text("description"),
+    defaultWidth: integer("default_width"),
+    defaultHeight: integer("default_height"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("ad_placements_page_type_idx").on(table.pageType),
+    index("ad_placements_active_idx").on(table.isActive),
+  ]
+);
+
+export const adCampaignPlacements = pgTable(
+  "ad_campaign_placements",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    campaignId: text("campaign_id")
+      .notNull()
+      .references(() => adCampaigns.id, { onDelete: "cascade" }),
+    placementId: text("placement_id")
+      .notNull()
+      .references(() => adPlacements.id, { onDelete: "cascade" }),
+    weight: integer("weight").default(1).notNull(), // Relative weight for this campaign in this placement
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("ad_campaign_placement_unique_idx").on(table.campaignId, table.placementId),
+    index("ad_campaign_placements_campaign_idx").on(table.campaignId),
+    index("ad_campaign_placements_placement_idx").on(table.placementId),
+  ]
+);
+
+export const adSettings = pgTable("ad_settings", {
+  id: integer("id").primaryKey(), // Single-row table, always id=1
+  adServerPercentage: integer("ad_server_percentage").default(0).notNull(), // 0-100: percentage of traffic that sees ads
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const adImpressions = pgTable(
+  "ad_impressions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    creativeId: text("creative_id")
+      .notNull()
+      .references(() => adCreatives.id, { onDelete: "cascade" }),
+    placementId: text("placement_id")
+      .notNull()
+      .references(() => adPlacements.id, { onDelete: "cascade" }),
+    campaignId: text("campaign_id")
+      .notNull()
+      .references(() => adCampaigns.id, { onDelete: "cascade" }),
+    clickId: text("click_id").notNull().unique(), // Pre-generated UUID for S2S click tracking
+    pagePath: text("page_path"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("ad_impressions_creative_idx").on(table.creativeId),
+    index("ad_impressions_placement_idx").on(table.placementId),
+    index("ad_impressions_campaign_idx").on(table.campaignId),
+    index("ad_impressions_click_id_idx").on(table.clickId),
+    index("ad_impressions_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const adClicks = pgTable(
+  "ad_clicks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clickId: text("click_id")
+      .notNull()
+      .unique()
+      .references(() => adImpressions.clickId, { onDelete: "cascade" }),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("ad_clicks_click_id_idx").on(table.clickId),
+    index("ad_clicks_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const adConversions = pgTable(
+  "ad_conversions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clickId: text("click_id")
+      .notNull()
+      .unique()
+      .references(() => adClicks.clickId, { onDelete: "cascade" }),
+    conversionType: text("conversion_type"), // e.g. "lead", "sale", "signup"
+    payout: numeric("payout", { precision: 10, scale: 2 }), // Dollar amount
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("ad_conversions_click_id_idx").on(table.clickId),
+    index("ad_conversions_created_at_idx").on(table.createdAt),
+    index("ad_conversions_type_idx").on(table.conversionType),
+  ]
+);
+
+// ============================================
 // Relations
 // ============================================
 
@@ -1230,6 +1460,66 @@ export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => 
 // ============================================
 // Webhook Events Table (Idempotency)
 // ============================================
+
+// ============================================
+// Ad Server Relations
+// ============================================
+
+export const adCampaignsRelations = relations(adCampaigns, ({ many }) => ({
+  creatives: many(adCreatives),
+  campaignPlacements: many(adCampaignPlacements),
+}));
+
+export const adCreativesRelations = relations(adCreatives, ({ one }) => ({
+  campaign: one(adCampaigns, {
+    fields: [adCreatives.campaignId],
+    references: [adCampaigns.id],
+  }),
+}));
+
+export const adPlacementsRelations = relations(adPlacements, ({ many }) => ({
+  campaignPlacements: many(adCampaignPlacements),
+}));
+
+export const adCampaignPlacementsRelations = relations(adCampaignPlacements, ({ one }) => ({
+  campaign: one(adCampaigns, {
+    fields: [adCampaignPlacements.campaignId],
+    references: [adCampaigns.id],
+  }),
+  placement: one(adPlacements, {
+    fields: [adCampaignPlacements.placementId],
+    references: [adPlacements.id],
+  }),
+}));
+
+export const adImpressionsRelations = relations(adImpressions, ({ one }) => ({
+  creative: one(adCreatives, {
+    fields: [adImpressions.creativeId],
+    references: [adCreatives.id],
+  }),
+  placement: one(adPlacements, {
+    fields: [adImpressions.placementId],
+    references: [adPlacements.id],
+  }),
+  campaign: one(adCampaigns, {
+    fields: [adImpressions.campaignId],
+    references: [adCampaigns.id],
+  }),
+}));
+
+export const adClicksRelations = relations(adClicks, ({ one }) => ({
+  impression: one(adImpressions, {
+    fields: [adClicks.clickId],
+    references: [adImpressions.clickId],
+  }),
+}));
+
+export const adConversionsRelations = relations(adConversions, ({ one }) => ({
+  click: one(adClicks, {
+    fields: [adConversions.clickId],
+    references: [adClicks.clickId],
+  }),
+}));
 
 export const webhookEvents = pgTable(
   "webhook_events",

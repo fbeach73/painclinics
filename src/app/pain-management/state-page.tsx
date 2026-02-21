@@ -11,12 +11,14 @@ interface StatePainManagementPageProps {
   stateName: string;
   stateAbbrev: string;
   searchParams: Record<string, string | string[] | undefined>;
+  useHostedAds: boolean;
 }
 
 export async function StatePainManagementPageContent({
   stateName,
   stateAbbrev,
   searchParams,
+  useHostedAds,
 }: StatePainManagementPageProps) {
   const filters: DirectoryFilters = parseFilters(searchParams);
 
@@ -37,6 +39,7 @@ export async function StatePainManagementPageContent({
       filters={filters}
       specialties={specialties}
       insuranceList={insuranceList}
+      useHostedAds={useHostedAds}
       nearbyCities={cities}
     />
   );

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/ads";
 import { BlogPostContent, RelatedPostCard, FloatingToc } from "@/components/blog";
 import {
   getBlogPostBySlug,
@@ -8,6 +9,7 @@ import {
 import { extractFAQsFromContent } from "@/lib/blog/seo/faq-extractor";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
 import { generateFAQStructuredData, generateBlogBreadcrumbSchema } from "@/lib/structured-data";
+import { shouldUseHostedAds } from "@/lib/ad-decision";
 import type { Metadata } from "next";
 
 interface BlogPostPageProps {
@@ -72,8 +74,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  // Get related posts
-  const relatedPosts = await getRelatedPosts(post.id, 3);
+  // Get related posts and ad decision in parallel
+  const [relatedPosts, useHostedAds] = await Promise.all([
+    getRelatedPosts(post.id, 3),
+    shouldUseHostedAds(),
+  ]);
 
   // Build structured data
   const categories = post.postCategories.map((pc) => pc.category);
@@ -144,6 +149,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <article className="max-w-4xl mx-auto">
           <BlogPostContent post={post as BlogPostWithRelations} />
         </article>
+
+        {/* Mid-content ad */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <AdSlot
+            placement="blog-mid-content"
+            path={`/blog/${post.slug}`}
+            useHostedAds={useHostedAds}
+          />
+        </div>
 
         {/* Floating Table of Contents */}
         <FloatingToc />

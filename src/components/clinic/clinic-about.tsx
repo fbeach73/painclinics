@@ -23,7 +23,7 @@ export function ClinicAbout({ about, enhancedAbout, className }: ClinicAboutProp
         {isHtml ? (
           <div
             className={cn(
-              'prose prose-sm max-w-none',
+              'prose prose-sm max-w-none overflow-hidden break-words',
               'prose-headings:text-foreground prose-headings:font-semibold',
               'prose-h2:text-xl prose-h2:mt-0 prose-h2:mb-3',
               'prose-h3:text-lg prose-h3:mt-4 prose-h3:mb-2',

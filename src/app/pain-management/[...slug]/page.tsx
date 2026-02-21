@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, Phone } from "lucide-react";
-import { InPageAd, AdPlacement } from "@/components/ads";
+import { AdSlot } from "@/components/ads";
+import { shouldUseHostedAds } from "@/lib/ad-decision";
 import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -15,7 +16,7 @@ import { ClinicHours } from "@/components/clinic/clinic-hours";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
-import { ContactClinicButton } from "@/components/clinic/contact-clinic-button";
+
 import { LazySearchFeaturedSection } from "@/components/featured/lazy-search-featured-section";
 import { LazyEmbeddedMap } from "@/components/map/lazy-embedded-map";
 import { Button } from "@/components/ui/button";
@@ -251,6 +252,9 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   const { slug: rawSlug } = await params;
   const searchParams = await searchParamsPromise;
 
+  // Resolve ad decision once for all ad slots on this page
+  const useHostedAds = await shouldUseHostedAds();
+
   // Clean URL-encoded junk from slugs (e.g., %23google_vignette, %20portal)
   // These come from Google ad parameters or user typos leaking into URLs
   const slug = rawSlug.map((s) => {
@@ -317,6 +321,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           stateName={stateName}
           stateAbbrev={stateAbbrev}
           searchParams={searchParams}
+          useHostedAds={useHostedAds}
         />
       </>
     );
@@ -393,6 +398,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             stateName={stateName}
             stateAbbrev={stateAbbrev}
             searchParams={searchParams}
+            useHostedAds={useHostedAds}
           />
         </>
       );
@@ -573,31 +579,48 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 </ol>
               </nav>
 
-              {/* In-Page Ad - Above fold for better viewability */}
-              <AdPlacement className="mt-4 mb-6">
-                <InPageAd />
-              </AdPlacement>
-
               <ClinicHeader clinic={clinic} />
-              {clinic.services.length > 0 && (
-                <div>
-                  <ClinicServicesLegacy services={clinic.services} />
-                </div>
-              )}
             </div>
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
-              <ClinicHeroImage
-                src={dbClinic.imageFeatured || dbClinic.imageUrl}
-                alt={clinic.name}
-                priority
+            <div className="space-y-2">
+              {/* Text link ad — above featured image */}
+              <AdSlot
+                placement="clinic-above-image"
+                path={`/pain-management/${slugPath}`}
+                useHostedAds={useHostedAds}
+                showLabel={false}
               />
+              <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+                <ClinicHeroImage
+                  src={dbClinic.imageFeatured || dbClinic.imageUrl}
+                  alt={clinic.name}
+                  priority
+                />
+              </div>
             </div>
           </div>
 
+          {/* Services + Ad Row */}
+          <div className="grid gap-8 lg:grid-cols-[1fr_300px] mb-8 min-w-0">
+            {/* Ad - shows first on mobile, second on desktop */}
+            <div className="order-first lg:order-last min-w-0">
+              <AdSlot
+                placement="clinic-above-fold"
+                path={`/pain-management/${slugPath}`}
+                useHostedAds={useHostedAds}
+              />
+            </div>
+            {/* Services - shows second on mobile, first on desktop */}
+            {clinic.services.length > 0 && (
+              <div className="order-last lg:order-first min-w-0">
+                <ClinicServicesLegacy services={clinic.services} />
+              </div>
+            )}
+          </div>
+
           {/* Main Content Grid */}
-          <div className="grid gap-8 lg:grid-cols-3">
+          <div className="grid gap-8 lg:grid-cols-3 min-w-0">
             {/* Left Column - Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-8 min-w-0">
               {/* About Section - use enhanced if available */}
               {(clinic.about || clinic.enhancedAbout) && (
                 <ClinicAbout
@@ -607,9 +630,11 @@ export default async function PainManagementClinicPage({ params, searchParams: s
               )}
 
               {/* In-Page Ad - Content break */}
-              <AdPlacement>
-                <InPageAd />
-              </AdPlacement>
+              <AdSlot
+                placement="clinic-mid-content"
+                path={`/pain-management/${slugPath}`}
+                useHostedAds={useHostedAds}
+              />
 
               {/* FAQ Section */}
               {clinic.questions && clinic.questions.length > 0 && (
@@ -634,14 +659,23 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             </div>
 
             {/* Right Column - Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-6 min-w-0">
               {/* Location Map */}
               <Card>
                 <CardHeader>
                   <CardTitle>Location</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <LazyEmbeddedMap clinic={clinic} className="h-[250px]" />
+                  <LazyEmbeddedMap
+                    clinic={clinic}
+                    className="h-[250px]"
+                    contactProps={{
+                      clinicId: clinic.id,
+                      clinicName: clinic.name,
+                      clinicCity: clinic.address.city,
+                      clinicState: clinic.address.state,
+                    }}
+                  />
                 </CardContent>
               </Card>
 
@@ -751,13 +785,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           </div>
         </div>
 
-        {/* Contact Clinic CTA - sticky floating button */}
-        <ContactClinicButton
-          clinicId={clinic.id}
-          clinicName={clinic.name}
-          clinicCity={clinic.address.city}
-          clinicState={clinic.address.state}
-        />
       </main>
     </>
   );

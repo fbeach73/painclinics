@@ -3,6 +3,7 @@
 import { ExternalLink } from 'lucide-react';
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox';
 import { Button } from '@/components/ui/button';
+import { ContactClinicButton } from '@/components/clinic/contact-clinic-button';
 import { buildGoogleMapsDirectionsUrl } from '@/lib/maps-utils';
 import type { Clinic } from '@/types/clinic';
 
@@ -11,11 +12,18 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 interface EmbeddedMapProps {
   clinic: Clinic;
   className?: string;
+  contactProps?: {
+    clinicId: string;
+    clinicName: string;
+    clinicCity: string;
+    clinicState: string;
+  } | undefined;
 }
 
 export function EmbeddedMap({
   clinic,
   className = 'h-[300px] w-full',
+  contactProps,
 }: EmbeddedMapProps) {
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(clinic.address.formatted);
 
@@ -38,6 +46,7 @@ export function EmbeddedMap({
             Get Directions
           </a>
         </Button>
+        {contactProps && <ContactClinicButton {...contactProps} />}
       </div>
     );
   }
@@ -83,6 +92,7 @@ export function EmbeddedMap({
           Get Directions
         </a>
       </Button>
+      {contactProps && <ContactClinicButton {...contactProps} />}
     </div>
   );
 }

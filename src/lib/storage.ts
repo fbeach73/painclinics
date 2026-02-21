@@ -32,6 +32,7 @@ const DEFAULT_CONFIG: Required<StorageConfig> = {
     "image/png",
     "image/gif",
     "image/webp",
+    "image/avif",
     "image/svg+xml",
     // Documents
     "application/pdf",
@@ -50,6 +51,7 @@ const ALLOWED_EXTENSIONS = new Set([
   ".png",
   ".gif",
   ".webp",
+  ".avif",
   ".svg",
   ".pdf",
   ".txt",
