@@ -1065,11 +1065,14 @@ export const adClicks = pgTable(
       .references(() => adImpressions.clickId, { onDelete: "cascade" }),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
+    isBot: boolean("is_bot").default(false).notNull(),
+    botReason: text("bot_reason"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     index("ad_clicks_click_id_idx").on(table.clickId),
     index("ad_clicks_created_at_idx").on(table.createdAt),
+    index("ad_clicks_is_bot_idx").on(table.isBot),
   ]
 );
 

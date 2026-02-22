@@ -106,7 +106,7 @@ export async function getAdOverviewStats(range: DateRange): Promise<OverviewStat
       COUNT(DISTINCT cv.id)                             AS conversions,
       COALESCE(SUM(cv.payout::numeric), 0)              AS revenue
     FROM ad_impressions i
-    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id
+    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id AND (cl.is_bot IS NULL OR cl.is_bot = false)
     LEFT JOIN ad_conversions cv ON cv.click_id = cl.click_id
     ${dateWhere}
   `);
@@ -158,7 +158,7 @@ export async function getAdStatsOverTime(
       COUNT(DISTINCT cv.id)                                                       AS conversions,
       COALESCE(SUM(cv.payout::numeric), 0)                                        AS revenue
     FROM ad_impressions i
-    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id
+    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id AND (cl.is_bot IS NULL OR cl.is_bot = false)
     LEFT JOIN ad_conversions cv ON cv.click_id = cl.click_id
     ${dateWhere}
     GROUP BY to_char(i.created_at - INTERVAL '4 hours', 'YYYY-MM-DD')
@@ -208,7 +208,7 @@ export async function getTopCreatives(
       COUNT(DISTINCT cv.id)                AS conversions,
       COALESCE(SUM(cv.payout::numeric), 0) AS revenue
     FROM ad_impressions i
-    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id
+    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id AND (cl.is_bot IS NULL OR cl.is_bot = false)
     LEFT JOIN ad_conversions cv ON cv.click_id = cl.click_id
     JOIN ad_creatives cr ON cr.id = i.creative_id
     JOIN ad_campaigns ca ON ca.id = i.campaign_id
@@ -262,7 +262,7 @@ export async function getCampaignStats(
       COUNT(DISTINCT cv.id)                             AS conversions,
       COALESCE(SUM(cv.payout::numeric), 0)              AS revenue
     FROM ad_impressions i
-    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id
+    LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id AND (cl.is_bot IS NULL OR cl.is_bot = false)
     LEFT JOIN ad_conversions cv ON cv.click_id = cl.click_id
     WHERE i.campaign_id = ${campaignId}
     ${dateClause}
