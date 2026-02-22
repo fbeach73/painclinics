@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
     .where(eq(adImpressions.clickId, clickId))
     .limit(1);
 
-  const destination = impression?.destinationUrl ?? FALLBACK_URL;
+  // Replace {clickId} macro in destination URL so affiliate networks can pass it back
+  const rawDestination = impression?.destinationUrl ?? FALLBACK_URL;
+  const destination = rawDestination.replace(/\{clickId\}/g, clickId);
 
   // Collect signals for fraud detection.
   const xForwardedFor = request.headers.get("x-forwarded-for");
