@@ -51,12 +51,12 @@ export interface RecentConversion {
 // Helpers
 // ============================================
 
-// AST = UTC-04. America/Virgin_Islands is a stable IANA name for UTC-04 year-round.
-const AST_TZ = "America/Virgin_Islands";
+// AST = UTC-04. Use Puerto Rico (same offset, widely supported in both JS and PG).
+const AST_TZ = "America/Puerto_Rico";
 
 export function getDateRange(
   range: DateRange
-): { start: Date; end: Date } | null {
+): { start: string; end: string } | null {
   if (range === "all") return null;
 
   const now = new Date();
@@ -72,13 +72,13 @@ export function getDateRange(
   const todayAstMidnightUtc = new Date(`${todayAstStr}T00:00:00-04:00`);
 
   if (range === "today") {
-    return { start: todayAstMidnightUtc, end: now };
+    return { start: todayAstMidnightUtc.toISOString(), end: now.toISOString() };
   }
 
   const days = range === "7d" ? 7 : 30;
   const start = new Date(todayAstMidnightUtc);
   start.setDate(start.getDate() - (days - 1));
-  return { start, end: now };
+  return { start: start.toISOString(), end: now.toISOString() };
 }
 
 // ============================================
@@ -152,7 +152,7 @@ export async function getAdStatsOverTime(
 
   const result = await db.execute<TimeRow>(sql`
     SELECT
-      to_char(i.created_at AT TIME ZONE 'America/Virgin_Islands', 'YYYY-MM-DD') AS date,
+      to_char(i.created_at - INTERVAL '4 hours', 'YYYY-MM-DD') AS date,
       COUNT(DISTINCT i.id)                                                        AS impressions,
       COUNT(DISTINCT cl.id)                                                       AS clicks,
       COUNT(DISTINCT cv.id)                                                       AS conversions,
@@ -161,7 +161,7 @@ export async function getAdStatsOverTime(
     LEFT JOIN ad_clicks cl ON cl.click_id = i.click_id
     LEFT JOIN ad_conversions cv ON cv.click_id = cl.click_id
     ${dateWhere}
-    GROUP BY to_char(i.created_at AT TIME ZONE 'America/Virgin_Islands', 'YYYY-MM-DD')
+    GROUP BY to_char(i.created_at - INTERVAL '4 hours', 'YYYY-MM-DD')
     ORDER BY date ASC
   `);
 
