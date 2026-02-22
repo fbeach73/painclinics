@@ -27,9 +27,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ overview, overTime, topCreatives });
   } catch (err) {
-    console.error("[ads/stats] query failed:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[ads/stats] query failed:", message, err);
     return NextResponse.json(
-      { error: "Failed to load ad stats. The ad tables may not be set up yet." },
+      { error: `Ad stats query failed: ${message}` },
       { status: 500 }
     );
   }
