@@ -7,12 +7,14 @@ export const dynamic = "force-dynamic";
 /** Placement → allowed creative types (mirrors AdSlot.tsx config) */
 const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
   "clinic-above-image": ["html", "text"],
+  "clinic-top-leaderboard": ["image_banner"],
   "clinic-above-fold": ["image_banner", "native"],
   "clinic-mid-content": ["image_banner", "native"],
 };
 
 /** Placement → allowed aspect ratios (mirrors AdSlot.tsx config) */
 const PLACEMENT_ALLOWED_RATIOS: Record<string, AspectRatio[]> = {
+  "clinic-top-leaderboard": ["21:9", "16:9"],
   "clinic-above-fold": ["1:1"],
   "clinic-mid-content": ["16:9", "4:3", "3:2"],
 };

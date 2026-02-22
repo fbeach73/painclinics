@@ -130,6 +130,7 @@ export const adCreativeTypeEnum = pgEnum("ad_creative_type", [
 export const adAspectRatioEnum = pgEnum("ad_aspect_ratio", [
   "1:1",
   "16:9",
+  "21:9",
   "4:3",
   "3:2",
   "auto",

@@ -53,7 +53,7 @@ type Campaign = {
   notes: string | null;
 };
 
-type AspectRatio = "1:1" | "16:9" | "4:3" | "3:2" | "auto";
+type AspectRatio = "1:1" | "16:9" | "21:9" | "4:3" | "3:2" | "auto";
 
 type Creative = {
   id: string;
@@ -702,6 +702,7 @@ export function CampaignDetailClient({
                       >
                         <option value="auto">Auto (any slot)</option>
                         <option value="1:1">1:1 Square (sidebar)</option>
+                        <option value="21:9">21:9 Ultrawide (leaderboard)</option>
                         <option value="16:9">16:9 Wide (content area)</option>
                         <option value="4:3">4:3 Landscape</option>
                         <option value="3:2">3:2 Landscape</option>
@@ -946,6 +947,7 @@ export function CampaignDetailClient({
                   >
                     <option value="auto">Auto (any slot)</option>
                     <option value="1:1">1:1 Square (sidebar)</option>
+                    <option value="21:9">21:9 Ultrawide (leaderboard)</option>
                     <option value="16:9">16:9 Wide (content area)</option>
                     <option value="4:3">4:3 Landscape</option>
                     <option value="3:2">3:2 Landscape</option>

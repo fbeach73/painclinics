@@ -25,6 +25,7 @@ const HOSTED_ONLY_PLACEMENTS = new Set(["clinic-above-image"]);
  *  If a placement is not listed, all types are allowed. */
 const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
   "clinic-above-image": ["html", "text"],
+  "clinic-top-leaderboard": ["image_banner"],
   "clinic-above-fold": ["image_banner", "native"],
   "clinic-mid-content": ["image_banner", "native"],
 };
@@ -33,6 +34,7 @@ const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
  *  If a placement is not listed, all ratios are allowed.
  *  "auto" creatives always pass through (handled in query layer). */
 const PLACEMENT_ALLOWED_RATIOS: Record<string, AspectRatio[]> = {
+  "clinic-top-leaderboard": ["21:9", "16:9"], // wide leaderboard
   "clinic-above-fold": ["1:1"],      // sidebar — square images only
   "clinic-mid-content": ["16:9", "4:3", "3:2"], // wide content area — landscape images only
 };

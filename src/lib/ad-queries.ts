@@ -32,7 +32,7 @@ export type AdForPlacement = {
 };
 
 export type CreativeType = "image_banner" | "html" | "text" | "native";
-export type AspectRatio = "1:1" | "16:9" | "4:3" | "3:2" | "auto";
+export type AspectRatio = "1:1" | "16:9" | "21:9" | "4:3" | "3:2" | "auto";
 
 /**
  * Fetch the eligible weighted creative pool for a placement.
