@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, Edit2, Check, X, Upload, Loader2 } from "lucide-react";
+import { PlusCircle, Trash2, Edit2, Copy, Check, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -296,6 +296,23 @@ export function CampaignDetailClient({
     if (res.ok) {
       setCreatives((prev) => prev.filter((c) => c.id !== creativeId));
     }
+  }
+
+  function cloneCreative(c: Creative) {
+    setCreativeForm({
+      name: `${c.name} (copy)`,
+      creativeType: c.creativeType,
+      aspectRatio: c.aspectRatio,
+      destinationUrl: c.destinationUrl,
+      headline: c.headline ?? "",
+      bodyText: c.bodyText ?? "",
+      ctaText: c.ctaText ?? "",
+      imageUrl: c.imageUrl ?? "",
+      imageAlt: c.imageAlt ?? "",
+      htmlContent: c.htmlContent ?? "",
+      weight: String(c.weight),
+    });
+    setAddCreativeOpen(true);
   }
 
   // ── Edit creative state ──────────────────────────────────────────────
@@ -846,6 +863,14 @@ export function CampaignDetailClient({
                           onClick={() => openEditCreative(c)}
                         >
                           <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => cloneCreative(c)}
+                          title="Clone creative"
+                        >
+                          <Copy className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
