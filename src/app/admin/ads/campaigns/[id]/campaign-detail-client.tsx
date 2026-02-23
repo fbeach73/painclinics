@@ -87,11 +87,14 @@ type AllPlacement = {
   pageType: string;
 };
 
+type CreativeStats = Record<string, { impressions: number; clicks: number }>;
+
 type Props = {
   campaign: Campaign;
   creatives: Creative[];
   assignedPlacements: Placement[];
   allPlacements: AllPlacement[];
+  creativeStats: CreativeStats;
 };
 
 function statusBadge(status: "active" | "paused" | "ended") {
@@ -112,6 +115,7 @@ export function CampaignDetailClient({
   creatives: initialCreatives,
   assignedPlacements: initialAssigned,
   allPlacements,
+  creativeStats,
 }: Props) {
   const router = useRouter();
   const [campaign, setCampaign] = useState(initialCampaign);
@@ -824,6 +828,9 @@ export function CampaignDetailClient({
                   <TableHead>Type</TableHead>
                   <TableHead>Ratio</TableHead>
                   <TableHead>Headline</TableHead>
+                  <TableHead className="text-right">Impr.</TableHead>
+                  <TableHead className="text-right">Clicks</TableHead>
+                  <TableHead className="text-right">CTR</TableHead>
                   <TableHead className="text-right">Weight</TableHead>
                   <TableHead className="text-center">Active</TableHead>
                   <TableHead></TableHead>
@@ -845,6 +852,19 @@ export function CampaignDetailClient({
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                       {c.headline ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {(creativeStats[c.id]?.impressions ?? 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {(creativeStats[c.id]?.clicks ?? 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {(() => {
+                        const stats = creativeStats[c.id];
+                        if (!stats || stats.impressions === 0) return "—";
+                        return `${((stats.clicks / stats.impressions) * 100).toFixed(2)}%`;
+                      })()}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{c.weight}</TableCell>
                     <TableCell className="text-center">
