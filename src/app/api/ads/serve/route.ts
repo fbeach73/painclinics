@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdForPlacement, type CreativeType, type AspectRatio } from "@/lib/ad-queries";
+import { getAdForPlacement } from "@/lib/ad-queries";
+import { getAllowedTypes, getAllowedRatios } from "@/lib/ad-placement-specs";
 
 // Never cache — each request gets a fresh weighted random ad selection
 export const dynamic = "force-dynamic";
-
-/** Placement → allowed creative types (mirrors AdSlot.tsx config) */
-const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
-  "clinic-above-image": ["html", "text"],
-  "clinic-top-leaderboard": ["image_banner"],
-  "clinic-above-fold": ["image_banner", "native"],
-  "clinic-mid-content": ["image_banner", "native"],
-};
-
-/** Placement → allowed aspect ratios (mirrors AdSlot.tsx config) */
-const PLACEMENT_ALLOWED_RATIOS: Record<string, AspectRatio[]> = {
-  "clinic-top-leaderboard": ["21:9", "16:9"],
-  "clinic-above-fold": ["1:1"],
-  "clinic-mid-content": ["16:9", "4:3", "3:2"],
-};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -28,8 +14,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing placement" }, { status: 400 });
   }
 
-  const allowedTypes = PLACEMENT_ALLOWED_TYPES[placement];
-  const allowedRatios = PLACEMENT_ALLOWED_RATIOS[placement];
+  const allowedTypes = getAllowedTypes(placement);
+  const allowedRatios = getAllowedRatios(placement);
 
   const ad = await getAdForPlacement(placement, path, allowedTypes, allowedRatios);
 
