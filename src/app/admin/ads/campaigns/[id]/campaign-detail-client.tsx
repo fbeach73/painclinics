@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, Edit2, Copy, Check, X, Upload, Loader2 } from "lucide-react";
+import { PlusCircle, Trash2, Edit2, Copy, Check, X, Upload, Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { PLACEMENT_SPECS } from "@/lib/ad-placement-specs";
 
 type Campaign = {
   id: string;
@@ -1109,7 +1116,31 @@ export function CampaignDetailClient({
                   return (
                     <TableRow key={p.id}>
                       <TableCell>
-                        <div className="font-medium">{p.label}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium">{p.label}</span>
+                          {PLACEMENT_SPECS[p.name] && (
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-xs text-xs">
+                                  <p>{PLACEMENT_SPECS[p.name]!.note}</p>
+                                  {PLACEMENT_SPECS[p.name]!.allowedTypes && (
+                                    <p className="mt-1 text-muted-foreground">
+                                      Types: {PLACEMENT_SPECS[p.name]!.allowedTypes!.join(", ")}
+                                    </p>
+                                  )}
+                                  {PLACEMENT_SPECS[p.name]!.allowedRatios && (
+                                    <p className="text-muted-foreground">
+                                      Ratios: {PLACEMENT_SPECS[p.name]!.allowedRatios!.join(", ")}
+                                    </p>
+                                  )}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
                         <div className="text-xs text-muted-foreground font-mono">
                           {p.name}
                         </div>

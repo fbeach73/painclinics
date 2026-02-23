@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -14,7 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getPlacementsWithCounts } from "@/lib/ad-stats-queries";
+import { PLACEMENT_SPECS } from "@/lib/ad-placement-specs";
 import { PlacementsClient } from "./placements-client";
 import { PlacementToggleClient } from "./placement-toggle-client";
 
@@ -61,7 +69,33 @@ export default async function PlacementsPage() {
                 {placements.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-mono text-sm">{p.name}</TableCell>
-                    <TableCell className="font-medium">{p.label}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium">{p.label}</span>
+                        {PLACEMENT_SPECS[p.name] && (
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="right" className="max-w-xs text-xs">
+                                <p>{PLACEMENT_SPECS[p.name]!.note}</p>
+                                {PLACEMENT_SPECS[p.name]!.allowedTypes && (
+                                  <p className="mt-1 text-muted-foreground">
+                                    Types: {PLACEMENT_SPECS[p.name]!.allowedTypes!.join(", ")}
+                                  </p>
+                                )}
+                                {PLACEMENT_SPECS[p.name]!.allowedRatios && (
+                                  <p className="text-muted-foreground">
+                                    Ratios: {PLACEMENT_SPECS[p.name]!.allowedRatios!.join(", ")}
+                                  </p>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize text-xs">
                         {p.pageType}

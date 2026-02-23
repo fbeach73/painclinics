@@ -1,4 +1,5 @@
-import { getAdForPlacement, type CreativeType, type AspectRatio } from "@/lib/ad-queries";
+import { getAdForPlacement } from "@/lib/ad-queries";
+import { getAllowedTypes, getAllowedRatios, isHostedOnly } from "@/lib/ad-placement-specs";
 import { AdPlacement, InPageAd } from "@/components/ads/adsense";
 import { BannerAd } from "@/components/ads/creatives/BannerAd";
 import { HtmlAd } from "@/components/ads/creatives/HtmlAd";
@@ -18,28 +19,6 @@ interface AdSlotProps {
   showLabel?: boolean;
 }
 
-/** Placements that only render hosted ads — no AdSense fallback */
-const HOSTED_ONLY_PLACEMENTS = new Set(["clinic-above-image"]);
-
-/** Creative type restrictions per placement.
- *  If a placement is not listed, all types are allowed. */
-const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
-  "clinic-above-image": ["html", "text"],
-  "clinic-top-leaderboard": ["image_banner"],
-  "clinic-above-fold": ["image_banner", "native"],
-  "clinic-mid-content": ["image_banner", "native"],
-  "anchor-bottom": ["native", "text", "image_banner", "html"],
-};
-
-/** Aspect ratio restrictions per placement.
- *  If a placement is not listed, all ratios are allowed.
- *  "auto" creatives always pass through (handled in query layer). */
-const PLACEMENT_ALLOWED_RATIOS: Record<string, AspectRatio[]> = {
-  "clinic-top-leaderboard": ["21:9"], // wide leaderboard only
-  "clinic-above-fold": ["1:1"],      // sidebar — square images only
-  "clinic-mid-content": ["16:9", "4:3", "3:2"], // wide content area — landscape images only
-};
-
 export async function AdSlot({
   placement,
   path,
@@ -48,7 +27,7 @@ export async function AdSlot({
   showLabel = true,
 }: AdSlotProps) {
   const cls = className ?? "";
-  const hostedOnly = HOSTED_ONLY_PLACEMENTS.has(placement);
+  const hostedOnly = isHostedOnly(placement);
 
   // AdSense mode — skip entirely for hosted-only placements
   if (!useHostedAds) {
@@ -61,8 +40,8 @@ export async function AdSlot({
   }
 
   // Hosted ads mode — try to find an eligible creative
-  const allowedTypes = PLACEMENT_ALLOWED_TYPES[placement];
-  const allowedRatios = PLACEMENT_ALLOWED_RATIOS[placement];
+  const allowedTypes = getAllowedTypes(placement);
+  const allowedRatios = getAllowedRatios(placement);
   const ad = await getAdForPlacement(placement, path, allowedTypes, allowedRatios);
 
   // No eligible creative — fall back to AdSense (unless hosted-only)
