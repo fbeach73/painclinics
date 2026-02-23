@@ -35,7 +35,7 @@ const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
  *  If a placement is not listed, all ratios are allowed.
  *  "auto" creatives always pass through (handled in query layer). */
 const PLACEMENT_ALLOWED_RATIOS: Record<string, AspectRatio[]> = {
-  "clinic-top-leaderboard": ["21:9", "16:9"], // wide leaderboard
+  "clinic-top-leaderboard": ["21:9"], // wide leaderboard only
   "clinic-above-fold": ["1:1"],      // sidebar — square images only
   "clinic-mid-content": ["16:9", "4:3", "3:2"], // wide content area — landscape images only
 };
