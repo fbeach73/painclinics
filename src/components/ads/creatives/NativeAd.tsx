@@ -1,3 +1,4 @@
+import { Stethoscope } from "lucide-react";
 import type { AdCreativeResult } from "@/lib/ad-queries";
 
 interface NativeAdProps {
@@ -11,28 +12,32 @@ export function NativeAd({ creative, clickUrl }: NativeAdProps) {
       href={clickUrl}
       target="_blank"
       rel="noreferrer sponsored"
-      className="flex items-start gap-4 rounded-lg border border-border bg-card p-4 hover:bg-accent/50 transition-colors"
+      className="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-5 hover:bg-slate-100 dark:border-border dark:bg-card dark:hover:bg-accent/50 transition-colors group"
     >
-      {creative.imageUrl && (
+      {creative.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={creative.imageUrl}
           alt={creative.imageAlt ?? creative.name}
-          className="h-12 w-12 shrink-0 rounded object-contain"
+          className="h-14 w-14 shrink-0 rounded-full object-contain"
           loading="lazy"
         />
+      ) : (
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-200/70 dark:bg-slate-700/50">
+          <Stethoscope className="h-7 w-7 text-slate-900 dark:text-slate-200" />
+        </div>
       )}
       <div className="min-w-0 flex-1">
         {creative.headline && (
-          <p className="font-semibold text-sm">{creative.headline}</p>
+          <p className="font-bold text-base text-slate-900 dark:text-foreground">{creative.headline}</p>
         )}
         {creative.bodyText && (
-          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 line-clamp-2">
             {creative.bodyText}
           </p>
         )}
         {creative.ctaText && (
-          <span className="inline-block mt-2 text-xs font-medium text-primary">
+          <span className="inline-block mt-2.5 rounded-md bg-red-600 px-4 py-1.5 text-xs font-bold text-white group-hover:bg-red-700 transition-colors">
             {creative.ctaText} &rarr;
           </span>
         )}
