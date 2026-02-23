@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getPlacementsWithCounts } from "@/lib/ad-stats-queries";
-import { PLACEMENT_SPECS } from "@/lib/ad-placement-specs";
+import { PLACEMENT_SPECS, getAdsenseSlotId } from "@/lib/ad-placement-specs";
 import { PlacementsClient } from "./placements-client";
 import { PlacementToggleClient } from "./placement-toggle-client";
 
@@ -61,6 +61,7 @@ export default async function PlacementsPage() {
                   <TableHead>Label</TableHead>
                   <TableHead>Page Type</TableHead>
                   <TableHead>Size</TableHead>
+                  <TableHead>AdSense Slot</TableHead>
                   <TableHead className="text-right">Campaigns</TableHead>
                   <TableHead className="text-center">Active</TableHead>
                 </TableRow>
@@ -105,6 +106,13 @@ export default async function PlacementsPage() {
                       {p.defaultWidth && p.defaultHeight
                         ? `${p.defaultWidth}×${p.defaultHeight}`
                         : "Responsive"}
+                    </TableCell>
+                    <TableCell>
+                      {PLACEMENT_SPECS[p.name]?.hostedOnly ? (
+                        <span className="text-xs text-muted-foreground">Hosted only</span>
+                      ) : (
+                        <code className="text-xs font-mono text-muted-foreground">{getAdsenseSlotId(p.name)}</code>
+                      )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {p.assignedCampaignCount}

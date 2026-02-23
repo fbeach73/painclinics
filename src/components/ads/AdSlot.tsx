@@ -1,5 +1,5 @@
 import { getAdForPlacement } from "@/lib/ad-queries";
-import { getAllowedTypes, getAllowedRatios, isHostedOnly } from "@/lib/ad-placement-specs";
+import { getAllowedTypes, getAllowedRatios, isHostedOnly, getAdsenseSlotId, getAdsenseFormat } from "@/lib/ad-placement-specs";
 import { AdPlacement, InPageAd } from "@/components/ads/adsense";
 import { BannerAd } from "@/components/ads/creatives/BannerAd";
 import { HtmlAd } from "@/components/ads/creatives/HtmlAd";
@@ -34,7 +34,7 @@ export async function AdSlot({
     if (hostedOnly) return null;
     return (
       <AdPlacement className={cls} showLabel={showLabel}>
-        <InPageAd />
+        <InPageAd slot={getAdsenseSlotId(placement)} format={getAdsenseFormat(placement)} />
       </AdPlacement>
     );
   }
@@ -49,7 +49,7 @@ export async function AdSlot({
     if (hostedOnly) return null;
     return (
       <AdPlacement className={cls} showLabel={showLabel}>
-        <InPageAd />
+        <InPageAd slot={getAdsenseSlotId(placement)} format={getAdsenseFormat(placement)} />
       </AdPlacement>
     );
   }

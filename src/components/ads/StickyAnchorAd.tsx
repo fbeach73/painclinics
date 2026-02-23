@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { InPageAd } from "@/components/ads/adsense";
+import { getAdsenseSlotId, getAdsenseFormat } from "@/lib/ad-placement-specs";
 import { BannerAd } from "@/components/ads/creatives/BannerAd";
 import { HtmlAd } from "@/components/ads/creatives/HtmlAd";
 import { TextAd } from "@/components/ads/creatives/TextAd";
@@ -124,7 +125,7 @@ export function StickyAnchorAd() {
         }}
       >
         <div className="px-3 pb-3">
-          {state.status === "adsense" && <InPageAd />}
+          {state.status === "adsense" && <InPageAd slot={getAdsenseSlotId(PLACEMENT)} format={getAdsenseFormat(PLACEMENT)} />}
           {isHosted && (
             <>
               {state.ad.creative.creativeType === "image_banner" && (

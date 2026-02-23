@@ -44,7 +44,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { PLACEMENT_SPECS } from "@/lib/ad-placement-specs";
+import { PLACEMENT_SPECS, getAdsenseSlotId } from "@/lib/ad-placement-specs";
 
 type Campaign = {
   id: string;
@@ -1107,6 +1107,7 @@ export function CampaignDetailClient({
                 <TableRow>
                   <TableHead>Placement</TableHead>
                   <TableHead>Page Type</TableHead>
+                  <TableHead>AdSense Slot</TableHead>
                   <TableHead className="text-center">Assigned</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1149,6 +1150,13 @@ export function CampaignDetailClient({
                         <Badge variant="outline" className="capitalize text-xs">
                           {p.pageType}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {PLACEMENT_SPECS[p.name]?.hostedOnly ? (
+                          <span className="text-xs text-muted-foreground">Hosted only</span>
+                        ) : (
+                          <code className="text-xs font-mono text-muted-foreground">{getAdsenseSlotId(p.name)}</code>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
                         <Switch

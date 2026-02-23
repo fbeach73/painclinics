@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdPlacement, InPageAd } from "@/components/ads/adsense";
+import { getAdsenseSlotId, getAdsenseFormat } from "@/lib/ad-placement-specs";
 import { BannerAd } from "@/components/ads/creatives/BannerAd";
 import { HtmlAd } from "@/components/ads/creatives/HtmlAd";
 import { TextAd } from "@/components/ads/creatives/TextAd";
@@ -97,7 +98,7 @@ export function AdSlotClient({
   if (state.status === "adsense") {
     return (
       <AdPlacement className={cls} showLabel={showLabel}>
-        <InPageAd />
+        <InPageAd slot={getAdsenseSlotId(placement)} format={getAdsenseFormat(placement)} />
       </AdPlacement>
     );
   }

@@ -30,7 +30,19 @@ export const AD_SLOTS = {
  * - Mobile: 250px (common leaderboard/rectangle height)
  * - Desktop: 90px (common banner height, can expand)
  */
-export function InPageAd({ className = "" }: { className?: string }) {
+export function InPageAd({
+  className = "",
+  slot,
+  format,
+}: {
+  className?: string;
+  slot?: string;
+  format?: "auto" | "fluid" | "in-article";
+}) {
+  const resolvedSlot = slot ?? AD_SLOTS.inPage;
+  const resolvedFormat = format ?? "auto";
+  const isInArticle = resolvedFormat === "in-article";
+
   useEffect(() => {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -43,11 +55,13 @@ export function InPageAd({ className = "" }: { className?: string }) {
     <div className={`w-full min-h-[250px] sm:min-h-[90px] ${className}`}>
       <ins
         className="adsbygoogle"
-        style={{ display: "block" }}
+        style={{ display: "block", ...(isInArticle ? { textAlign: "center" as const } : {}) }}
         data-ad-client="ca-pub-5028121986513144"
-        data-ad-slot={AD_SLOTS.inPage}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-slot={resolvedSlot}
+        data-ad-format={isInArticle ? "fluid" : resolvedFormat}
+        {...(isInArticle
+          ? { "data-ad-layout": "in-article" }
+          : { "data-full-width-responsive": "true" })}
       />
     </div>
   );
