@@ -103,7 +103,7 @@ export async function SiteFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-background">
+    <footer className="border-t bg-background pb-12">
       {/* Main Footer Grid */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">

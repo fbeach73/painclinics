@@ -28,6 +28,7 @@ const PLACEMENT_ALLOWED_TYPES: Record<string, CreativeType[]> = {
   "clinic-top-leaderboard": ["image_banner"],
   "clinic-above-fold": ["image_banner", "native"],
   "clinic-mid-content": ["image_banner", "native"],
+  "anchor-bottom": ["native", "text", "image_banner", "html"],
 };
 
 /** Aspect ratio restrictions per placement.

@@ -66,6 +66,14 @@ const DEFAULT_PLACEMENTS = [
     default_width: null,
     default_height: null,
   },
+  {
+    name: "anchor-bottom",
+    label: "Sticky Anchor — Bottom",
+    page_type: "global",
+    description: "Fixed bottom anchor bar across all public pages. Supports native, text, image_banner, and html creatives. Falls back to AdSense when no hosted campaign is assigned.",
+    default_width: null,
+    default_height: null,
+  },
 ];
 
 async function main() {

@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { StickyAnchorAd } from "@/components/ads/StickyAnchorAd";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -91,7 +92,6 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem
           disableTransitionOnChange
         >
           <div className="flex min-h-screen flex-col">
@@ -102,6 +102,7 @@ export default function RootLayout({
             <SiteFooter />
           </div>
           <Toaster richColors position="top-right" />
+          <StickyAnchorAd />
           <PageTracker />
         </ThemeProvider>
         <VercelAnalytics />

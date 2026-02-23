@@ -343,7 +343,7 @@ export interface PlacementWithCampaignCount {
   id: string;
   name: string;
   label: string;
-  pageType: "clinic" | "directory" | "blog" | "homepage";
+  pageType: "clinic" | "directory" | "blog" | "homepage" | "global";
   description: string | null;
   defaultWidth: number | null;
   defaultHeight: number | null;

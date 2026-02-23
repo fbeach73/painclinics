@@ -141,6 +141,7 @@ export const adPageTypeEnum = pgEnum("ad_page_type", [
   "directory",
   "blog",
   "homepage",
+  "global",
 ]);
 
 export const user = pgTable(
