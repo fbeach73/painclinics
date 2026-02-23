@@ -13,7 +13,7 @@ interface BannerAdProps {
 export function BannerAd({ creative, clickUrl, placement }: BannerAdProps) {
   // Wide aspect ratios (16:9, 4:3, 3:2) fill the content width with no height cap.
   // Square (1:1) and auto keep a max-height to avoid dominating sidebar slots.
-  const isWide = creative.aspectRatio === "16:9" || creative.aspectRatio === "4:3" || creative.aspectRatio === "3:2";
+  const isWide = creative.aspectRatio === "21:9" || creative.aspectRatio === "16:9" || creative.aspectRatio === "4:3" || creative.aspectRatio === "3:2";
 
   // Above-the-fold placements should load eagerly to avoid LCP penalty.
   const loading = placement && EAGER_PLACEMENTS.has(placement) ? "eager" : "lazy";

@@ -70,7 +70,7 @@ export default async function PlacementsPage() {
                     <TableCell className="text-sm text-muted-foreground">
                       {p.defaultWidth && p.defaultHeight
                         ? `${p.defaultWidth}×${p.defaultHeight}`
-                        : "—"}
+                        : "Responsive"}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {p.assignedCampaignCount}
