@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import { useMemo, useSyncExternalStore } from "react";
 import type { AdCreativeResult } from "@/lib/ad-queries";
+
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 interface HtmlAdProps {
   creative: AdCreativeResult;
@@ -10,15 +13,19 @@ interface HtmlAdProps {
 }
 
 export function HtmlAd({ creative, clickUrl }: HtmlAdProps) {
-  const sanitizedHtml = useMemo(
-    () =>
-      DOMPurify.sanitize(creative.htmlContent ?? "", {
-        FORBID_TAGS: ["script", "iframe", "object", "embed", "form"],
-        FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover"],
-        ALLOW_DATA_ATTR: false,
-      }),
-    [creative.htmlContent]
-  );
+  const isClient = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const sanitizedHtml = useMemo(() => {
+    if (!isClient) return "";
+    // DOMPurify requires window/document — only import on the client
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const DOMPurify = require("dompurify") as { sanitize: (html: string, config: Record<string, unknown>) => string };
+    return DOMPurify.sanitize(creative.htmlContent ?? "", {
+      FORBID_TAGS: ["script", "iframe", "object", "embed", "form"],
+      FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover"],
+      ALLOW_DATA_ATTR: false,
+    });
+  }, [creative.htmlContent, isClient]);
 
   return (
     <div className="w-full text-center">
