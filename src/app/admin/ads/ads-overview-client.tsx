@@ -24,6 +24,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { OverviewStats, StatsOverTimeRow, CreativeStats, DateRange } from "@/lib/ad-stats-queries";
 
 type StatsResponse = {
@@ -35,6 +44,12 @@ type StatsResponse = {
 type SettingsResponse = {
   adServerPercentage: number;
 };
+
+const chartConfig = {
+  impressions: { label: "Impressions", color: "hsl(215, 70%, 55%)" },
+  clicks: { label: "Clicks", color: "hsl(150, 60%, 45%)" },
+  conversions: { label: "Conversions", color: "hsl(35, 90%, 55%)" },
+} satisfies ChartConfig;
 
 export function AdsOverviewClient() {
   const [range, setRange] = useState<DateRange>("7d");
@@ -265,19 +280,56 @@ export function AdsOverviewClient() {
         </div>
       )}
 
-      {/* Chart placeholder */}
+      {/* Performance chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LineChart className="h-5 w-5" />
             Performance Over Time
           </CardTitle>
-          <CardDescription>Daily impressions and clicks</CardDescription>
+          <CardDescription>Daily impressions, clicks, and conversions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-40 text-muted-foreground text-sm border border-dashed rounded-md">
-            Chart coming soon
-          </div>
+          {statsLoading ? (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+              Loading chart…
+            </div>
+          ) : !stats?.overTime?.length ? (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm border border-dashed rounded-md">
+              No data for this period
+            </div>
+          ) : (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <BarChart data={stats.overTime} accessibilityLayer>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(v: string) => {
+                    const d = new Date(v + "T00:00:00");
+                    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                  }}
+                />
+                <YAxis tickLine={false} axisLine={false} width={40} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(v: string) => {
+                        const d = new Date(v + "T00:00:00");
+                        return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                      }}
+                    />
+                  }
+                />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar dataKey="impressions" fill="var(--color-impressions)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="clicks" fill="var(--color-clicks)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="conversions" fill="var(--color-conversions)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
