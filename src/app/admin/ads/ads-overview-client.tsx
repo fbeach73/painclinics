@@ -179,6 +179,57 @@ export function AdsOverviewClient() {
         </Button>
       </div>
 
+      {/* Navigation links */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Link href="/admin/ads/campaigns">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                Campaigns
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Manage advertisers and campaign settings
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/ads/placements">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Placements
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Configure ad slots and page positions
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/ads/conversions">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Conversions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                View conversion log and payout history
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
       {/* Stats grid */}
       {statsError ? (
         <p className="text-destructive text-sm">
@@ -282,56 +333,6 @@ export function AdsOverviewClient() {
         </CardContent>
       </Card>
 
-      {/* Navigation links */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Link href="/admin/ads/campaigns">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Megaphone className="h-4 w-4" />
-                Campaigns
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Manage advertisers and campaign settings
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/admin/ads/placements">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Placements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Configure ad slots and page positions
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/admin/ads/conversions">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Conversions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                View conversion log and payout history
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
     </div>
   );
 }
