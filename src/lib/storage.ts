@@ -160,6 +160,8 @@ export async function upload(
     const pathname = folder ? `${folder}/${sanitizedFilename}` : sanitizedFilename;
     const blob = await put(pathname, buffer, {
       access: "public",
+      addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     return {
