@@ -81,6 +81,7 @@
     "framer-motion": "^12.34.3",
     "geo-tz": "^8.1.4",
     "html-react-parser": "^5.2.11",
+    "isomorphic-dompurify": "^3.0.0",
     "lucide-react": "^0.539.0",
     "mailgun.js": "^12.4.0",
     "mapbox-gl": "^3.17.0",

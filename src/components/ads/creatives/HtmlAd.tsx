@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 import type { AdCreativeResult } from "@/lib/ad-queries";
 
 interface HtmlAdProps {
@@ -13,7 +13,6 @@ export function HtmlAd({ creative, clickUrl }: HtmlAdProps) {
   const sanitizedHtml = useMemo(
     () =>
       DOMPurify.sanitize(creative.htmlContent ?? "", {
-        // Strip scripts, event handlers, javascript: URIs
         FORBID_TAGS: ["script", "iframe", "object", "embed", "form"],
         FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover"],
         ALLOW_DATA_ATTR: false,
