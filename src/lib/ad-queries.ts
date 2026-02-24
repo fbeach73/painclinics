@@ -146,7 +146,25 @@ export async function getAdsForPlacement(
   const pool = await getEligibleCreatives(placementName, allowedTypes, allowedAspectRatios);
   if (!pool) return [];
 
-  const selected = weightedRandomSelectMultiple(pool.weightedCreatives, count);
+  // Select `count` creatives, ensuring at most one per campaign (offer dedup)
+  const selected: typeof pool.weightedCreatives = [];
+  const remaining = [...pool.weightedCreatives];
+  const usedCampaigns = new Set<string>();
+
+  for (let i = 0; i < count && remaining.length > 0; i++) {
+    const pick = weightedRandomSelectMultiple(remaining, 1);
+    if (pick.length === 0) break;
+    const creative = pick[0]!;
+    selected.push(creative);
+    usedCampaigns.add(creative.campaignId);
+    // Remove all creatives from the same campaign so next pick is a different offer
+    for (let j = remaining.length - 1; j >= 0; j--) {
+      if (remaining[j]!.campaignId === creative.campaignId) {
+        remaining.splice(j, 1);
+      }
+    }
+  }
+
   if (selected.length === 0) return [];
 
   const results: AdForPlacement[] = [];

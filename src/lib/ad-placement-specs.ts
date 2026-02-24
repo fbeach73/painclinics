@@ -68,6 +68,11 @@ export const PLACEMENT_SPECS: Record<string, PlacementSpec> = {
     adsenseSlotId: "5827778104",
     note: "All types, all ratios. Sticky bottom bar across all public pages.",
   },
+  "native-panel-bottom": {
+    allowedTypes: ["native"],
+    hostedOnly: true,
+    note: "Native only, no AdSense fallback. 3-up grid above footer on all public pages.",
+  },
 };
 
 /** Get allowed types for a placement (undefined = all). */

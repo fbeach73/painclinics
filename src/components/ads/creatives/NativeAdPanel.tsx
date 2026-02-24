@@ -20,7 +20,7 @@ export function NativeAdPanel({ ads, columns = 3 }: NativeAdPanelProps) {
       : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <div className="my-8 border-t border-border pt-6">
+    <div className="mx-auto w-full max-w-5xl px-4 my-8 border-t border-border pt-6">
       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
         Sponsored Content
       </p>
@@ -46,7 +46,7 @@ export function NativeAdPanel({ ads, columns = 3 }: NativeAdPanelProps) {
             )}
             <div className="p-3">
               {ad.creative.headline && (
-                <p className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                <p className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-foreground transition-colors">
                   {ad.creative.headline}
                 </p>
               )}
@@ -55,18 +55,9 @@ export function NativeAdPanel({ ads, columns = 3 }: NativeAdPanelProps) {
                   {ad.creative.bodyText}
                 </p>
               )}
-              <div className="flex items-center justify-between mt-2">
-                {ad.creative.ctaText ? (
-                  <span className="text-xs font-medium text-primary">
-                    {ad.creative.ctaText}
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium text-primary">
-                    Learn More
-                  </span>
-                )}
-                <span className="text-[10px] text-muted-foreground/60">
-                  Sponsored
+              <div className="mt-2">
+                <span className="inline-block text-xs font-semibold text-white bg-red-600 rounded px-2.5 py-1 group-hover:bg-red-700 transition-colors">
+                  {ad.creative.ctaText || "Learn More"}
                 </span>
               </div>
             </div>

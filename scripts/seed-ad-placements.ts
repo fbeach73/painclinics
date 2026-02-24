@@ -74,6 +74,14 @@ const DEFAULT_PLACEMENTS = [
     default_width: null,
     default_height: null,
   },
+  {
+    name: "native-panel-bottom",
+    label: "Native Panel — Above Footer",
+    page_type: "global",
+    description: "3-up native ad grid above footer on all public pages. Native creatives only, no AdSense fallback. Renders nothing when no hosted ads exist.",
+    default_width: null,
+    default_height: null,
+  },
 ];
 
 async function main() {
