@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
-import { InPageAd } from "@/components/ads/adsense";
-import { getAdsenseSlotId, getAdsenseFormat } from "@/lib/ad-placement-specs";
+import { getAdsenseSlotId } from "@/lib/ad-placement-specs";
 import { BannerAd } from "@/components/ads/creatives/BannerAd";
 import { HtmlAd } from "@/components/ads/creatives/HtmlAd";
 import { TextAd } from "@/components/ads/creatives/TextAd";
@@ -91,7 +90,7 @@ export function StickyAnchorAd() {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background shadow-[0_-2px_10px_rgba(0,0,0,0.08)] dark:shadow-[0_-2px_10px_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out"
-      style={{ maxHeight: minimized ? "40px" : "300px" }}
+      style={{ maxHeight: minimized ? "40px" : "150px" }}
     >
       {/* Control bar */}
       <div className="flex items-center justify-between px-3 h-10 shrink-0">
@@ -120,12 +119,12 @@ export function StickyAnchorAd() {
       <div
         className="overflow-hidden transition-all duration-300 ease-in-out"
         style={{
-          maxHeight: minimized ? "0px" : "260px",
+          maxHeight: minimized ? "0px" : "110px",
           opacity: minimized ? 0 : 1,
         }}
       >
-        <div className="px-3 pb-3">
-          {state.status === "adsense" && <InPageAd slot={getAdsenseSlotId(PLACEMENT)} format={getAdsenseFormat(PLACEMENT)} />}
+        <div className="px-3 pb-3 flex justify-center">
+          {state.status === "adsense" && <AnchorAdsenseUnit slot={getAdsenseSlotId(PLACEMENT)} />}
           {isHosted && (
             <>
               {state.ad.creative.creativeType === "image_banner" && (
@@ -144,6 +143,28 @@ export function StickyAnchorAd() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Fixed 720×90 leaderboard AdSense unit for the anchor bar */
+function AnchorAdsenseUnit({ slot }: { slot: string }) {
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (err) {
+      console.error("AdSense error:", err);
+    }
+  }, []);
+
+  return (
+    <div className="w-full max-w-[720px] h-[90px] overflow-hidden">
+      <ins
+        className="adsbygoogle"
+        style={{ display: "inline-block", width: 720, height: 90 }}
+        data-ad-client="ca-pub-5028121986513144"
+        data-ad-slot={slot}
+      />
     </div>
   );
 }
