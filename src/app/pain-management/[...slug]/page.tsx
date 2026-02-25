@@ -399,6 +399,15 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     }
   }
 
+  // Handle legacy 3-segment URLs: /pain-management/{state}/{city}/{clinic}
+  // These are old WordPress-era URLs — redirect to the city browse page
+  if (slug.length === 3) {
+    const [stateSlug, citySlug] = slug;
+    if (stateSlug && isValidStateAbbrev(stateSlug) && citySlug && isValidCitySlug(citySlug)) {
+      permanentRedirect(`/pain-management/${stateSlug.toLowerCase()}/${citySlug.toLowerCase()}`);
+    }
+  }
+
   // Clinic page logic
   const slugPath = slug.join("/");
   const dbClinic = await getClinicByPermalink(slugPath);

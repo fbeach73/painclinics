@@ -467,6 +467,263 @@ const nextConfig: NextConfig = {
       },
 
       // ===========================================
+      // Static page aliases
+      // ===========================================
+      {
+        source: "/privacy-policy",
+        destination: "/privacy",
+        permanent: true,
+      },
+      {
+        source: "/terms-and-conditions",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/find-clinics/:path*",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/knee-pain",
+        destination: "/blog/the-ultimate-guide-to-knee-pain",
+        permanent: true,
+      },
+      {
+        source: "/scoliosis",
+        destination: "/treatment-options",
+        permanent: true,
+      },
+
+      // ===========================================
+      // Old WordPress /:state/:city/:clinic format
+      // ===========================================
+      {
+        source: "/new-mexico/:city/:clinic",
+        destination: "/pain-management/nm/:city",
+        permanent: true,
+      },
+      {
+        source: "/arkansas/:city/:clinic",
+        destination: "/pain-management/ar/:city",
+        permanent: true,
+      },
+      {
+        source: "/oklahoma/:city/:clinic",
+        destination: "/pain-management/ok/:city",
+        permanent: true,
+      },
+
+      // ===========================================
+      // Clinic 404s from Feb 2026 logs — no DB match
+      // ===========================================
+      {
+        source: "/pain-management/total-pain-care-ms-39272",
+        destination: "/pain-management/ms",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/northern-arizona-pain-institutes-2",
+        destination: "/pain-management/az",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/pain-relief-center-of-st-louis",
+        destination: "/pain-management/mo",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/knox-pain-management-pllc-ny-10589",
+        destination: "/pain-management/ny",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/muhammad-khan-me-40732642",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/hastings-pain-relief-center-p-c-2",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/center-for-advanced-pain-management-and-rehabilitation",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/dunes-pain-specialists-3",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/west-philadelphia-injury-center",
+        destination: "/pain-management/pa",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/advanced-pain-management-of-elwood-in-46036",
+        destination: "/pain-management/in",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/emmanuel-sakla-sc-293021912",
+        destination: "/pain-management/sc",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/hendrickson-hunt-pain-management",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/momenta-pain-care-2",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/aspen-falls-spinal-care-center",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/arilex-medical-dr-gary-g-theofilis-anesthesiology-ga-30534",
+        destination: "/pain-management/ga",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/laurel-back-and-pain-clinic",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/athens-spine-center-pc",
+        destination: "/pain-management/ga",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/thomas-g-klein-do-iowa-ortho-2",
+        destination: "/pain-management/ia",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/inland-pain-medicine",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/three-rivers-pain-management",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/cuyuna-regional-medical-center-crosby",
+        destination: "/pain-management/mn",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/chris-malinky-co-809091177",
+        destination: "/pain-management/co",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/central-pain-clinic",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/unc-pain-clinic",
+        destination: "/pain-management/nc",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/dr-william-tham-md",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/cypress-pointe-pain-management",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/aurora-baycare-pain-rehab-medicine",
+        destination: "/pain-management/wi",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/maine-medical-partners-neurosurgery-spine",
+        destination: "/pain-management/me",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/rex-pain-management-center",
+        destination: "/pain-management/nc",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/austell-comprehensive-pain-management-center",
+        destination: "/pain-management/ga",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/pain-management-of-tampa",
+        destination: "/pain-management/fl",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/rex-pain-management-center-a-department-of-unc-rex-hospital",
+        destination: "/pain-management/nc",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/dr-james-rainville-md",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/zafeer-b-baber-md",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/pat-french-fnp-bc",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/health-psychotherapy-maine-borkum-jonathan-phd",
+        destination: "/pain-management/me",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/lawrenceville-comprehensive-pain-management-center",
+        destination: "/pain-management/ga",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/valley-view-pain-center",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/back-pain-doctor-middlesex-county",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/guzman-camp-interventional-pain-associates-ar-72712",
+        destination: "/pain-management/ar",
+        permanent: true,
+      },
+      {
+        source: "/pain-management.com",
+        destination: "/pain-management",
+        permanent: true,
+      },
+
+      // ===========================================
       // Malformed /clinic/ prefix URLs (from old sitemap or email templates)
       // ===========================================
       {
