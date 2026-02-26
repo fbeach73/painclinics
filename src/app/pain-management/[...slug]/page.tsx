@@ -37,9 +37,11 @@ import { getFilteredClinics } from "@/lib/directory/queries";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
+  generateDefaultClinicFAQ,
   generateFAQStructuredData,
 } from "@/lib/structured-data";
 import { US_STATES_REVERSE, getStateName } from "@/lib/us-states";
+import { shouldUseHostedAds } from "@/lib/ad-decision";
 import { formatDisplayUrl, stripUrlQueryParams } from "@/lib/utils";
 import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
@@ -504,10 +506,11 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     notFound();
   }
 
-  // Fetch services and insurance from junction tables
-  const [clinicServices, insuranceSlugs] = await Promise.all([
+  // Fetch services, insurance, and ad decision in parallel
+  const [clinicServices, insuranceSlugs, useHostedAds] = await Promise.all([
     getClinicServices(dbClinic.id),
     getClinicInsuranceSlugs(dbClinic.id),
+    shouldUseHostedAds(),
   ]);
 
   // Add services and insurance to the clinic record for transformation
@@ -521,10 +524,10 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   const structuredData = generateClinicStructuredData(dbClinicWithServices);
   const breadcrumbData = generateBreadcrumbStructuredData(dbClinicWithServices);
 
-  // Generate FAQ structured data if questions exist
+  // Generate FAQ structured data — use custom questions if available, otherwise default
   const faqStructuredData = clinic.questions?.length
     ? generateFAQStructuredData(clinic.questions)
-    : null;
+    : generateFAQStructuredData(generateDefaultClinicFAQ(dbClinic));
 
   // Show claim banner only for unclaimed clinics
   // The ClaimBenefitsBanner handles user-specific logic client-side
@@ -558,6 +561,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             <AdSlotClient
               placement="clinic-top-leaderboard"
               path={`/pain-management/${slugPath}`}
+              useHostedAds={useHostedAds}
             />
           </div>
 
@@ -627,6 +631,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 placement="clinic-above-image"
                 path={`/pain-management/${slugPath}`}
                 showLabel={false}
+                useHostedAds={useHostedAds}
               />
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
                 <ClinicHeroImage
@@ -645,6 +650,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
               <AdSlotClient
                 placement="clinic-above-fold"
                 path={`/pain-management/${slugPath}`}
+                useHostedAds={useHostedAds}
               />
             </div>
             {/* Services - shows second on mobile, first on desktop */}
@@ -659,11 +665,12 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           <div className="grid gap-8 lg:grid-cols-3 min-w-0">
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8 min-w-0">
-              {/* About Section - use enhanced if available */}
-              {(clinic.about || clinic.enhancedAbout) && (
+              {/* About Section - use enhanced if available, business description as fallback */}
+              {(clinic.about || clinic.enhancedAbout || clinic.businessDescription) && (
                 <ClinicAbout
                   about={clinic.about}
                   enhancedAbout={clinic.enhancedAbout}
+                  businessDescription={clinic.businessDescription}
                 />
               )}
 
@@ -671,6 +678,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
               <AdSlotClient
                 placement="clinic-mid-content"
                 path={`/pain-management/${slugPath}`}
+                useHostedAds={useHostedAds}
               />
 
               {/* FAQ Section */}

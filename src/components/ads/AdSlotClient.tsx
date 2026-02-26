@@ -14,6 +14,8 @@ interface AdSlotClientProps {
   path: string;
   className?: string;
   showLabel?: boolean;
+  /** Pre-resolved ad decision from server. Skips /api/ads/decision fetch when provided. */
+  useHostedAds?: boolean;
 }
 
 /** Placements that only render hosted ads — no AdSense fallback */
@@ -35,6 +37,7 @@ export function AdSlotClient({
   path,
   className,
   showLabel = true,
+  useHostedAds: preResolvedDecision,
 }: AdSlotClientProps) {
   const [state, setState] = useState<AdState>({ status: "loading" });
   const cls = className ?? "";
@@ -45,19 +48,26 @@ export function AdSlotClient({
 
     async function decide() {
       try {
-        // Step 1: get per-visitor ad type decision (never cached)
-        const decisionRes = await fetch("/api/ads/decision", { cache: "no-store" });
-        if (!decisionRes.ok) throw new Error("decision fetch failed");
-        const { useHostedAds } = (await decisionRes.json()) as { useHostedAds: boolean };
+        // Use pre-resolved decision if available (batched server-side),
+        // otherwise fall back to per-slot /api/ads/decision fetch
+        let shouldUseHosted: boolean;
+        if (preResolvedDecision !== undefined) {
+          shouldUseHosted = preResolvedDecision;
+        } else {
+          const decisionRes = await fetch("/api/ads/decision", { cache: "no-store" });
+          if (!decisionRes.ok) throw new Error("decision fetch failed");
+          const data = (await decisionRes.json()) as { useHostedAds: boolean };
+          shouldUseHosted = data.useHostedAds;
+        }
 
         if (cancelled) return;
 
-        if (!useHostedAds) {
+        if (!shouldUseHosted) {
           setState(hostedOnly ? { status: "hidden" } : { status: "adsense" });
           return;
         }
 
-        // Step 2: fetch a hosted ad for this placement
+        // Fetch a hosted ad for this placement
         const params = new URLSearchParams({ placement, path });
         const adRes = await fetch(`/api/ads/serve?${params}`, { cache: "no-store" });
         if (!adRes.ok) throw new Error("serve fetch failed");
@@ -80,7 +90,7 @@ export function AdSlotClient({
     void decide();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, path]);
+  }, [placement, path, preResolvedDecision]);
 
   if (state.status === "loading") {
     // Render an invisible placeholder to reserve space and avoid CLS

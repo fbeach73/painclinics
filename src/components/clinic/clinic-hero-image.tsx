@@ -42,6 +42,7 @@ export function ClinicHeroImage({ src, alt, className, priority = false }: Clini
       fill
       className={cn('object-cover', hasError && 'opacity-80', className)}
       priority={priority}
+      {...(priority ? { fetchPriority: "high" as const } : {})}
       onError={handleError}
     />
   );
