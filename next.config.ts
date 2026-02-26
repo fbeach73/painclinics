@@ -149,6 +149,8 @@ const nextConfig: NextConfig = {
     },
     // Optimize CSS to reduce render-blocking
     optimizeCss: true,
+    // Limit concurrent static page generation to avoid Neon DB OOM
+    staticGenerationMaxConcurrency: 8,
   },
 
   // Remove console.log in production for smaller bundles
