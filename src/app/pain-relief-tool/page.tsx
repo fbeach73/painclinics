@@ -25,6 +25,22 @@ export const metadata: Metadata = {
     'home remedies for pain',
     'otc pain reliever comparison',
   ],
+  alternates: {
+    canonical: '/pain-relief-tool',
+  },
+  openGraph: {
+    title: 'Pain Relief Comparison Tool | Ice vs Heat, Advil vs Tylenol',
+    description:
+      'Compare 12+ pain relief methods side-by-side. Filter by pain location and type to find the best treatment for your situation.',
+    url: '/pain-relief-tool',
+    type: 'article',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Pain Relief Comparison Tool | Ice vs Heat, Advil vs Tylenol',
+    description:
+      'Compare 12+ pain relief methods side-by-side. Filter by pain location and type to find the best treatment for your situation.',
+  },
 };
 
 const faqData = [
@@ -135,6 +151,67 @@ export default function PainReliefToolPage() {
           </Alert>
 
           <PainReliefComparison />
+
+          {/* Static SEO content — visible to crawlers */}
+          <section className="mt-16 max-w-3xl prose prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary">
+            <h2>Understanding Pain Relief Options</h2>
+            <p>
+              Choosing the right pain relief method depends on the type, location, and
+              cause of your pain. According to the CDC, approximately 20.9% of U.S.
+              adults (51.6 million people) experience chronic pain, and selecting an
+              appropriate at-home treatment can significantly improve quality of life
+              between medical appointments.
+            </p>
+
+            <h3>Ice vs Heat: When to Use Each</h3>
+            <p>
+              The ice vs heat decision is one of the most common pain management
+              questions. The general clinical guideline is straightforward:
+              use <strong>cold therapy (cryotherapy)</strong> for acute injuries and
+              inflammation within the first 48 to 72 hours,
+              and <strong>heat therapy (thermotherapy)</strong> for chronic muscle
+              stiffness and tension. A 2021 review in the{' '}
+              <em>Journal of Clinical Medicine</em> confirmed that cryotherapy
+              effectively reduces acute inflammation and pain perception, while heat
+              therapy improves tissue elasticity and blood flow for chronic conditions.
+            </p>
+
+            <h3>OTC Pain Relievers: Ibuprofen vs Acetaminophen</h3>
+            <p>
+              Non-steroidal anti-inflammatory drugs (NSAIDs) like ibuprofen (Advil,
+              Motrin) and naproxen (Aleve) reduce both pain and inflammation, making
+              them effective for muscle strains, joint pain, and headaches.
+              Acetaminophen (Tylenol) relieves pain without anti-inflammatory effects
+              and is generally gentler on the stomach. The American College of
+              Rheumatology recommends NSAIDs as first-line treatment for osteoarthritis
+              pain when topical options are insufficient.
+            </p>
+
+            <h3>Complementary Approaches</h3>
+            <p>
+              Physical methods like stretching, self-massage, and TENS (transcutaneous
+              electrical nerve stimulation) units can complement medication-based relief.
+              Studies show that regular stretching reduces chronic low back pain severity
+              by 30 to 40% in many patients. Topical analgesics containing menthol,
+              capsaicin, or lidocaine provide localized relief without systemic side
+              effects.
+            </p>
+
+            <h2>When to See a Pain Specialist</h2>
+            <p>
+              Home remedies are appropriate for mild to moderate pain, but persistent or
+              severe pain warrants professional evaluation. Consider consulting a pain
+              management specialist if your pain lasts more than 2 weeks, exceeds a 7 on
+              the numeric rating scale, or is accompanied by numbness, weakness, or
+              unexplained symptoms. Use our{' '}
+              <a href="/clinics">clinic directory</a> to find a pain management
+              specialist near you, or explore our{' '}
+              <a href="/treatment-options">treatment options guide</a> for a broader
+              overview of professional therapies. You can also{' '}
+              <a href="/pain-tracking">track your pain</a> with our free printable
+              templates to bring objective data to your appointment.
+            </p>
+          </section>
 
           {/* FAQ Section for SEO */}
           <section className="mt-16 max-w-3xl">
