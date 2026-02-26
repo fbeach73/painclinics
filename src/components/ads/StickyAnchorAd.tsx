@@ -88,7 +88,7 @@ export function StickyAnchorAd() {
   const headline = isHosted ? state.ad.creative.headline : null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl transition-all duration-300 ease-in-out">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-3xl transition-all duration-300 ease-in-out">
       <div className="relative rounded-xl border border-border bg-card shadow-lg dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] px-4 py-3">
         {/* SPONSORED label + controls — top row */}
         <div className="flex items-center justify-between mb-2">
