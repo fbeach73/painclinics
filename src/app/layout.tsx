@@ -48,6 +48,12 @@ export const metadata: Metadata = {
     title: "Pain Management Near You: Painclinics.com - \u2695\uFE0F Local Pain Clinics",
     description:
       "Find verified pain management clinics across the United States. Browse ratings, read patient reviews, and schedule appointments.",
+    images: [
+      {
+        url: "https://painclinics.com/logo.png",
+        alt: "PainClinics.com - Find Pain Management Clinics Near You",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

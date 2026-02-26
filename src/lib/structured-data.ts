@@ -496,6 +496,59 @@ export function generateDirectoryListSchema(data: {
 }
 
 /**
+ * Generates FAQPage structured data for the homepage.
+ * Targets "pain clinic near me" and related queries.
+ */
+export function generateHomepageFAQSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "How do I find a pain clinic near me?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Use PainClinics.com to search over 5,000 verified pain management clinics across all 50 states. Browse by state or city, read patient reviews, compare ratings, and find specialists near your location.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What does a pain management doctor do?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A pain management doctor specializes in diagnosing and treating chronic pain conditions. They use a combination of approaches including medication management, injections, nerve blocks, physical therapy referrals, and minimally invasive procedures to help reduce pain and improve quality of life.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do I need a referral to see a pain management specialist?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "It depends on your insurance plan. Some insurance providers require a referral from your primary care physician, while others allow you to see a pain specialist directly. Check with your insurance provider or call the clinic directly to confirm their referral requirements.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What conditions do pain clinics treat?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Pain clinics treat a wide range of conditions including chronic back pain, neck pain, arthritis, fibromyalgia, neuropathy, migraines, sciatica, post-surgical pain, sports injuries, and complex regional pain syndrome (CRPS). Many clinics also offer treatments for cancer-related pain.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does a pain clinic visit cost?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The cost of a pain clinic visit varies based on your insurance coverage, the type of treatment, and your location. An initial consultation typically ranges from $100 to $300 without insurance. Most pain clinics accept major insurance plans including Medicare and Medicaid. Contact the clinic directly to verify accepted insurance and estimated costs.",
+        },
+      },
+    ],
+  };
+}
+
+/**
  * Generates simple BreadcrumbList for resource pages.
  */
 export function generateResourceBreadcrumbSchema(data: {

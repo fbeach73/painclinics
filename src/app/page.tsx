@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
 import { AdSlot } from '@/components/ads';
 import { shouldUseHostedAds } from '@/lib/ad-decision';
 import { LazyHomepageFeaturedSection } from '@/components/featured';
@@ -16,16 +16,26 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   generateWebSiteSchema,
   generateOrganizationSchema,
+  generateHomepageFAQSchema,
 } from '@/lib/structured-data';
 
 // ISR: Revalidate every 24 hours
 export const revalidate = 86400;
+
+interface RecentPost {
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  publishedAt: Date | null;
+  featuredImageUrl: string | null;
+}
 
 async function getHomepageData() {
   let states: string[] = [];
   let totalClinics = 0;
   let popularStates: PopularState[] = [];
   let topCities: TopCity[] = [];
+  let recentPosts: RecentPost[] = [];
 
   try {
     const { getAllStatesWithClinics, getClinicCountsByState, getAllCitiesWithClinics } = await import('@/lib/clinic-queries');
@@ -55,11 +65,22 @@ async function getHomepageData() {
         stateAbbrev: c.stateAbbreviation || '',
         slug: c.city.toLowerCase().replace(/\s+/g, '-'),
       }));
+
+    // Fetch 3 recent blog posts
+    const { getBlogPosts } = await import('@/lib/blog');
+    const { posts } = await getBlogPosts({ limit: 3, status: 'published' });
+    recentPosts = posts.map((p) => ({
+      title: p.title,
+      slug: p.slug,
+      excerpt: p.excerpt,
+      publishedAt: p.publishedAt,
+      featuredImageUrl: p.featuredImageUrl,
+    }));
   } catch (error) {
     console.warn("Homepage: Database unavailable, using empty data:", error);
   }
 
-  return { states, totalClinics, popularStates, topCities };
+  return { states, totalClinics, popularStates, topCities, recentPosts };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -77,12 +98,15 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Pain Clinics Near Me | Find Pain Management Doctors Nearby | ${count}+ Verified Clinics`,
       description: `Find pain clinics near you. Search ${count}+ verified pain management doctors across all 50 states. Read reviews, compare specialists, and book appointments online.`,
     },
+    alternates: {
+      canonical: 'https://painclinics.com',
+    },
   };
 }
 
 export default async function Home() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
-  const [{ states, totalClinics, popularStates, topCities }, useHostedAds] = await Promise.all([
+  const [{ states, totalClinics, popularStates, topCities, recentPosts }, useHostedAds] = await Promise.all([
     getHomepageData(),
     shouldUseHostedAds(),
   ]);
@@ -90,6 +114,7 @@ export default async function Home() {
   // Generate structured data schemas
   const websiteSchema = generateWebSiteSchema(baseUrl, totalClinics);
   const organizationSchema = generateOrganizationSchema(baseUrl);
+  const faqSchema = generateHomepageFAQSchema();
 
   return (
     <>
@@ -100,6 +125,10 @@ export default async function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <main className="flex-1">
         {/* Hero Section with Title */}
@@ -212,6 +241,81 @@ export default async function Home() {
             </CardContent>
           </Card>
         </section>
+
+        {/* FAQ Section */}
+        <section className="container mx-auto py-16 md:py-20">
+          <h2 className="text-3xl font-bold tracking-tight text-center mb-8">
+            Frequently Asked Questions
+          </h2>
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="border rounded-lg p-6">
+              <h3 className="font-semibold text-lg mb-2">How do I find a pain clinic near me?</h3>
+              <p className="text-muted-foreground">Use PainClinics.com to search over {totalClinics.toLocaleString()} verified pain management clinics across all {states.length} states. Browse by state or city, read patient reviews, compare ratings, and find specialists near your location.</p>
+            </div>
+            <div className="border rounded-lg p-6">
+              <h3 className="font-semibold text-lg mb-2">What does a pain management doctor do?</h3>
+              <p className="text-muted-foreground">A pain management doctor specializes in diagnosing and treating chronic pain conditions. They use a combination of approaches including medication management, injections, nerve blocks, physical therapy referrals, and minimally invasive procedures to help reduce pain and improve quality of life.</p>
+            </div>
+            <div className="border rounded-lg p-6">
+              <h3 className="font-semibold text-lg mb-2">Do I need a referral to see a pain management specialist?</h3>
+              <p className="text-muted-foreground">It depends on your insurance plan. Some insurance providers require a referral from your primary care physician, while others allow you to see a pain specialist directly. Check with your insurance provider or call the clinic directly to confirm their referral requirements.</p>
+            </div>
+            <div className="border rounded-lg p-6">
+              <h3 className="font-semibold text-lg mb-2">What conditions do pain clinics treat?</h3>
+              <p className="text-muted-foreground">Pain clinics treat a wide range of conditions including chronic back pain, neck pain, arthritis, fibromyalgia, neuropathy, migraines, sciatica, post-surgical pain, sports injuries, and complex regional pain syndrome (CRPS). Many clinics also offer treatments for cancer-related pain.</p>
+            </div>
+            <div className="border rounded-lg p-6">
+              <h3 className="font-semibold text-lg mb-2">How much does a pain clinic visit cost?</h3>
+              <p className="text-muted-foreground">The cost of a pain clinic visit varies based on your insurance coverage, the type of treatment, and your location. An initial consultation typically ranges from $100 to $300 without insurance. Most pain clinics accept major insurance plans including Medicare and Medicaid. Contact the clinic directly to verify accepted insurance and estimated costs.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Latest from the Blog */}
+        {recentPosts.length > 0 && (
+          <section className="border-t bg-muted/30 py-16 md:py-20">
+            <div className="container mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold tracking-tight">
+                  Pain Management Resources
+                </h2>
+                <Button variant="ghost" asChild className="gap-1">
+                  <Link href="/blog">
+                    View all articles <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {recentPosts.map((post) => (
+                  <Link key={post.slug} href={`/blog/${post.slug}`}>
+                    <Card className="h-full hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                          <BookOpen className="h-4 w-4" />
+                          {post.publishedAt
+                            ? new Date(post.publishedAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })
+                            : 'Recent'}
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                          {post.title}
+                        </h3>
+                        {post.excerpt && (
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {post.excerpt.replace(/<[^>]*>/g, '')}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* CTA Section */}
         <section className="bg-primary text-primary-foreground py-16 md:py-20">

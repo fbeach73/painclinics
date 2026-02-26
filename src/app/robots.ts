@@ -10,6 +10,26 @@ export default function robots(): MetadataRoute.Robots {
         allow: ["/", "/pain-management/", "/clinics"],
         disallow: ["/api/", "/admin/", "/dashboard/", "/profile/", "/chat/"],
       },
+      {
+        userAgent: "GPTBot",
+        allow: ["/"],
+      },
+      {
+        userAgent: "ChatGPT-User",
+        allow: ["/"],
+      },
+      {
+        userAgent: "ClaudeBot",
+        allow: ["/"],
+      },
+      {
+        userAgent: "PerplexityBot",
+        allow: ["/"],
+      },
+      {
+        userAgent: "Google-Extended",
+        allow: ["/"],
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };
