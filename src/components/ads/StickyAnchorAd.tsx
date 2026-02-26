@@ -88,42 +88,39 @@ export function StickyAnchorAd() {
   const headline = isHosted ? state.ad.creative.headline : null;
 
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background shadow-[0_-2px_10px_rgba(0,0,0,0.08)] dark:shadow-[0_-2px_10px_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out"
-      style={{ maxHeight: minimized ? "40px" : "150px" }}
-    >
-      {/* Control bar */}
-      <div className="flex items-center justify-between px-3 h-10 shrink-0">
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-          {minimized && headline ? headline : "Sponsored"}
-        </p>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setMinimized((v) => !v)}
-            className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            aria-label={minimized ? "Expand ad" : "Minimize ad"}
-          >
-            {minimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          <button
-            onClick={handleDismiss}
-            className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Close ad"
-          >
-            <X className="h-4 w-4" />
-          </button>
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl transition-all duration-300 ease-in-out">
+      <div className="relative rounded-xl border border-border bg-card shadow-lg dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] px-4 py-3">
+        {/* SPONSORED label + controls — top row */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            {minimized && headline ? headline : "Sponsored"}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setMinimized((v) => !v)}
+              className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={minimized ? "Expand ad" : "Minimize ad"}
+            >
+              {minimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close ad"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Ad content */}
-      <div
-        className="overflow-hidden transition-all duration-300 ease-in-out"
-        style={{
-          maxHeight: minimized ? "0px" : "110px",
-          opacity: minimized ? 0 : 1,
-        }}
-      >
-        <div className="px-3 pb-3 flex justify-center">
+        {/* Ad content — same container, no extra border */}
+        <div
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: minimized ? "0px" : "200px",
+            opacity: minimized ? 0 : 1,
+          }}
+        >
           {state.status === "adsense" && <AnchorAdsenseUnit slot={getAdsenseSlotId(PLACEMENT)} />}
           {isHosted && (
             <>
