@@ -67,6 +67,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       getAllCityPermalinks,
     } = await import("@/lib/clinic-queries");
     const { getAllBlogPostsForSitemap } = await import("@/lib/blog/blog-queries");
+    const { getAllGuidesForSitemap } = await import("@/lib/guides/guide-queries");
 
     // State landing pages
     const allStates = await getAllStatesWithClinics();
@@ -106,6 +107,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
+    // Guide pages
+    const allGuides = await getAllGuidesForSitemap();
+    const guidePages: MetadataRoute.Sitemap = [
+      {
+        url: `${baseUrl}/guides`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.8,
+      },
+      ...allGuides.map((guide) => ({
+        url: `${baseUrl}/guides/${guide.slug}`,
+        lastModified: guide.updatedAt || new Date(),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
+    ];
+
     // High-value filter combo URLs for state pages
     // These create indexable landing pages for common specialty searches
     const highValueSpecialties = [
@@ -124,7 +142,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
     );
 
-    return [...staticPages, ...statePages, ...cityPages, ...clinicPages, ...blogPages, ...filterPages];
+    return [...staticPages, ...statePages, ...cityPages, ...clinicPages, ...blogPages, ...guidePages, ...filterPages];
   } catch (error) {
     console.warn("Sitemap: Database unavailable, returning static pages only:", error);
     return staticPages;

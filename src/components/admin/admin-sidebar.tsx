@@ -23,6 +23,7 @@ import {
   ChevronRight,
   MessageSquare,
   Megaphone,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/admin/clinics", label: "Clinics", icon: Database },
   { href: "/admin/services", label: "Services", icon: Grid3X3 },
   { href: "/admin/blog", label: "Blog Posts", icon: PenSquare },
+  { href: "/admin/guides", label: "Guides", icon: BookOpen },
   { href: "/admin/claims", label: "Claims", icon: Shield },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
   { href: "/admin/customers", label: "Customers", icon: Users },

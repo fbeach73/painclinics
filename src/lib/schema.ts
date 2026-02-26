@@ -1547,3 +1547,48 @@ export const webhookEvents = pgTable(
     index("webhook_events_created_at_idx").on(table.createdAt),
   ]
 );
+
+// ============================================
+// Guides
+// ============================================
+
+export const guideStatusEnum = pgEnum("guide_status", [
+  "draft",
+  "published",
+  "archived",
+]);
+
+export const guides = pgTable(
+  "guides",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    title: text("title").notNull(),
+    slug: text("slug").notNull().unique(),
+    content: text("content").notNull(), // HTML content
+    excerpt: text("excerpt"),
+    metaTitle: text("meta_title"),
+    metaDescription: text("meta_description"),
+    featuredImageUrl: text("featured_image_url"),
+    featuredImageAlt: text("featured_image_alt"),
+    // State-specific guides link to directory pages
+    stateAbbreviation: text("state_abbreviation"), // e.g., "TX" — null for non-state guides
+    status: guideStatusEnum("status").default("draft").notNull(),
+    // SEO fields
+    faqs: jsonb("faqs").$type<Array<{ question: string; answer: string }>>(),
+    aboutTopics: jsonb("about_topics").$type<string[]>(), // MedicalWebPage about topics
+    // Timestamps
+    publishedAt: timestamp("published_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("guides_slug_idx").on(table.slug),
+    index("guides_status_idx").on(table.status),
+    index("guides_state_idx").on(table.stateAbbreviation),
+  ]
+);
