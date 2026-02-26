@@ -146,6 +146,9 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  trustedOrigins: [
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ],
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // Update session every 24 hours
