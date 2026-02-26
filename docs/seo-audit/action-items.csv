@@ -1,0 +1,101 @@
+priority,type,query_or_url,action,impressions,expected_impact
+high,meta,https://painclinics.com/ergonomic-adjustments-for-knee-pain/,"Improve meta for underperforming page — 29,384 impressions, 0.4% CTR, position 25.7",29384,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=center-for-symptom-relief-llc,"Redirect legacy /?clinics=center-for-symptom-relief-llc to canonical URL — 20,009 impressions",20009,Consolidate ranking signals to canonical URL
+high,meta,https://painclinics.com/visual-analog-scale/,"Improve meta for underperforming page — 17,140 impressions, 0.2% CTR, position 32.4",17140,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/jawad-bhatti-md-va-23225/,"Improve meta for underperforming page — 16,142 impressions, 1.8% CTR, position 8.2",16142,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=comprehensive-pain-and-rehab-of-northwest-arkansas,"Redirect legacy /?clinics=comprehensive-pain-and-rehab-of-northwest-arkansas to canonical URL — 14,260 impressions",14260,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=csar-pllc-dr-oliver-c-james-md,"Redirect legacy /?clinics=csar-pllc-dr-oliver-c-james-md to canonical URL — 14,139 impressions",14139,Consolidate ranking signals to canonical URL
+high,meta,https://painclinics.com/pain-management/the-pain-management-group-clarksville-tn-37043/,"Improve meta for underperforming page — 13,659 impressions, 0.6% CTR, position 11.8",13659,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/relief-spine-pain-center-al-35968/,"Improve meta for underperforming page — 12,416 impressions, 0.3% CTR, position 9.3",12416,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=access-pain-solutions-tulsa-pain-management-doctor,"Redirect legacy /?clinics=access-pain-solutions-tulsa-pain-management-doctor to canonical URL — 11,988 impressions",11988,Consolidate ranking signals to canonical URL
+high,meta,https://painclinics.com/?clinics=access-pain-solutions-tulsa-pain-management-doctor,"Improve meta for underperforming page — 11,988 impressions, 0.6% CTR, position 25.8",11988,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/national-spine-pain-centers-winchester-va-22601/,"Improve meta for underperforming page — 10,311 impressions, 0.3% CTR, position 17.1",10311,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/peninsula-pain-clinic-silverdale-a-sound-pain-alliance-member-wa-98383/,"Improve meta for underperforming page — 9,856 impressions, 0.3% CTR, position 14.7",9856,Higher CTR from existing impressions
+high,content,jawad bhatti md,"Optimize content for this city-state query — position 8.2, 9800 impressions",9800,Move from page 1-2 to top 3
+high,meta,https://painclinics.com/pain-management/ms-pain-migraine-alan-k-cole-md-ms-39402/,"Improve meta for underperforming page — 9,783 impressions, 0.4% CTR, position 11.5",9783,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/the-center-for-pain-dothan-al-36303/,"Improve meta for underperforming page — 9,771 impressions, 0.5% CTR, position 31.6",9771,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=pain-and-spine-specialists-of-pennsylvania-pleasant-hills,"Redirect legacy /?clinics=pain-and-spine-specialists-of-pennsylvania-pleasant-hills to canonical URL — 9,654 impressions",9654,Consolidate ranking signals to canonical URL
+high,meta,https://painclinics.com/?clinics=pain-and-spine-specialists-of-pennsylvania-pleasant-hills,"Improve meta for underperforming page — 9,654 impressions, 0.2% CTR, position 13.6",9654,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=cottonwood-medical-clinic,"Redirect legacy /?clinics=cottonwood-medical-clinic to canonical URL — 9,423 impressions",9423,Consolidate ranking signals to canonical URL
+high,meta,https://painclinics.com/?clinics=cottonwood-medical-clinic,"Improve meta for underperforming page — 9,423 impressions, 1.1% CTR, position 32.6",9423,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=laurel-pain-clinic,"Redirect legacy /?clinics=laurel-pain-clinic to canonical URL — 9,417 impressions",9417,Consolidate ranking signals to canonical URL
+high,meta,https://painclinics.com/?clinics=laurel-pain-clinic,"Improve meta for underperforming page — 9,417 impressions, 0.5% CTR, position 12.8",9417,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/patrick-a-oley-md-va-23294/,"Improve meta for underperforming page — 9,208 impressions, 0.4% CTR, position 10.6",9208,Higher CTR from existing impressions
+high,meta,https://painclinics.com/pain-management/pain-treatment-centers-of-georgia-ga-31545/,"Improve meta for underperforming page — 9,207 impressions, 0.3% CTR, position 29.6",9207,Higher CTR from existing impressions
+high,redirect,https://painclinics.com/?clinics=access-pain-solutions-muskogee-pain-management,"Redirect legacy /?clinics=access-pain-solutions-muskogee-pain-management to canonical URL — 8,791 impressions",8791,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=dominion-spine-and-pain-springfield-va,"Redirect legacy /?clinics=dominion-spine-and-pain-springfield-va to canonical URL — 8,391 impressions",8391,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=superior-pain-management,"Redirect legacy /?clinics=superior-pain-management to canonical URL — 8,195 impressions",8195,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=texas-pain-clinic,"Redirect legacy /?clinics=texas-pain-clinic to canonical URL — 7,132 impressions",7132,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=midsouth-spine-and-pain-associates,"Redirect legacy /?clinics=midsouth-spine-and-pain-associates to canonical URL — 6,418 impressions",6418,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=ic-pain-solutions-pc,"Redirect legacy /?clinics=ic-pain-solutions-pc to canonical URL — 6,393 impressions",6393,Consolidate ranking signals to canonical URL
+high,content,clearway pain solutions,"Optimize content for this generic query — position 8.4, 6346 impressions",6346,Move from page 1-2 to top 3
+high,content,knee pain centers of america,"Optimize content for this condition query — position 8.2, 5775 impressions",5775,Move from page 1-2 to top 3
+high,redirect,https://painclinics.com/?clinics=premier-pain-spine-center,"Redirect legacy /?clinics=premier-pain-spine-center to canonical URL — 5,575 impressions",5575,Consolidate ranking signals to canonical URL
+high,content,sweetwater pain and spine,"Optimize content for this generic query — position 5.8, 5027 impressions",5027,Move from page 1-2 to top 3
+high,meta,dominion spine and pain,Rewrite meta title/description — position 4.9 but only 0.3% CTR,4869,Improve CTR from current position
+high,content,dominion spine and pain,"Optimize content for this generic query — position 4.9, 4869 impressions",4869,Move from page 1-2 to top 3
+high,redirect,https://painclinics.com/?clinics=washington-regional-j-b-hunt-transport-services-neuroscience-institute,"Redirect legacy /?clinics=washington-regional-j-b-hunt-transport-services-neuroscience-institute to canonical URL — 4,701 impressions",4701,Consolidate ranking signals to canonical URL
+high,content,commonwealth pain and spine,"Optimize content for this generic query — position 7.3, 4674 impressions",4674,Move from page 1-2 to top 3
+high,redirect,https://painclinics.com/?clinics=advanced-pain-medical-center,"Redirect legacy /?clinics=advanced-pain-medical-center to canonical URL — 4,558 impressions",4558,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=whs-pain-management-center,"Redirect legacy /?clinics=whs-pain-management-center to canonical URL — 4,498 impressions",4498,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=powells-pain-clinic-of-orlando-llc-dr-brian-powell,"Redirect legacy /?clinics=powells-pain-clinic-of-orlando-llc-dr-brian-powell to canonical URL — 4,422 impressions",4422,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=regen-doctors-pain-specialists-gene-v-levinstein-m-d-allentown-pa,"Redirect legacy /?clinics=regen-doctors-pain-specialists-gene-v-levinstein-m-d-allentown-pa to canonical URL — 3,905 impressions",3905,Consolidate ranking signals to canonical URL
+high,redirect,https://painclinics.com/?clinics=pain-management-dermatology,"Redirect legacy /?clinics=pain-management-dermatology to canonical URL — 3,744 impressions",3744,Consolidate ranking signals to canonical URL
+high,content,access pain solutions,"Optimize content for this generic query — position 10.0, 3601 impressions",3601,Move from page 1-2 to top 3
+high,content,summit pain management,"Optimize content for this generic query — position 9.7, 3570 impressions",3570,Move from page 1-2 to top 3
+high,content,precision pain management,"Optimize content for this generic query — position 12.4, 3382 impressions",3382,Move from page 1-2 to top 3
+high,content,eastern utah spine and pain,"Optimize content for this city-state query — position 5.3, 3374 impressions",3374,Move from page 1-2 to top 3
+high,content,"patrick oley, md","Optimize content for this city-state query — position 11.3, 3265 impressions",3265,Move from page 1-2 to top 3
+high,content,consultants in pain management,"Optimize content for this city-state query — position 9.7, 3123 impressions",3123,Move from page 1-2 to top 3
+high,content,ispine coon rapids,"Optimize content for this generic query — position 7.3, 3075 impressions",3075,Move from page 1-2 to top 3
+high,content,greenville pain and spine,"Optimize content for this generic query — position 7.2, 3044 impressions",3044,Move from page 1-2 to top 3
+high,content,red rock neurology,"Optimize content for this generic query — position 8.4, 3044 impressions",3044,Move from page 1-2 to top 3
+high,content,premier pain and spine,"Optimize content for this generic query — position 11.2, 3042 impressions",3042,Move from page 1-2 to top 3
+high,content,pain management consultants of southwest florida,"Optimize content for this city-state query — position 7.6, 2994 impressions",2994,Move from page 1-2 to top 3
+high,content,superior pain management,"Optimize content for this generic query — position 6.3, 2924 impressions",2924,Move from page 1-2 to top 3
+high,content,waters edge yakima,"Optimize content for this generic query — position 6.7, 2611 impressions",2611,Move from page 1-2 to top 3
+high,content,texas pain clinic,"Optimize content for this city-state query — position 14.4, 2532 impressions",2532,Move from page 1-2 to top 3
+high,meta,center for complex pain care,Rewrite meta title/description — position 4.1 but only 1.5% CTR,2523,Improve CTR from current position
+high,meta,summit pain management marion indiana,Rewrite meta title/description — position 5.0 but only 0.7% CTR,1911,Improve CTR from current position
+high,meta,sweetwater pain and spine sparks,Rewrite meta title/description — position 4.8 but only 0.7% CTR,1084,Improve CTR from current position
+high,meta,dominion spine and pain springfield va,Rewrite meta title/description — position 4.4 but only 0.5% CTR,946,Improve CTR from current position
+high,meta,three crosses pain management,Rewrite meta title/description — position 4.8 but only 2.0% CTR,832,Improve CTR from current position
+high,meta,dr silver,Rewrite meta title/description — position 4.9 but only 1.8% CTR,786,Improve CTR from current position
+high,meta,dr vish richmond indiana,Rewrite meta title/description — position 4.7 but only 2.0% CTR,739,Improve CTR from current position
+high,meta,spine and pain associates chattanooga,Rewrite meta title/description — position 4.6 but only 2.9% CTR,699,Improve CTR from current position
+high,meta,portland pain solutions,Rewrite meta title/description — position 4.8 but only 1.1% CTR,544,Improve CTR from current position
+high,meta,kaseman pain and spine,Rewrite meta title/description — position 4.7 but only 1.1% CTR,539,Improve CTR from current position
+high,meta,dr delara farmington ct,Rewrite meta title/description — position 4.4 but only 2.5% CTR,478,Improve CTR from current position
+high,meta,spine and pain associates chattanooga tn,Rewrite meta title/description — position 4.2 but only 2.4% CTR,457,Improve CTR from current position
+high,meta,montana advanced pain and spine butte,Rewrite meta title/description — position 3.9 but only 0.9% CTR,447,Improve CTR from current position
+high,meta,arizona pain scottsdale mountain view,Rewrite meta title/description — position 4.8 but only 0.9% CTR,423,Improve CTR from current position
+high,meta,pain management group clarksville,Rewrite meta title/description — position 4.2 but only 1.6% CTR,384,Improve CTR from current position
+high,meta,michigan interventional pain center dearborn heights,Rewrite meta title/description — position 4.7 but only 1.7% CTR,356,Improve CTR from current position
+high,meta,anesthesia and pain services,Rewrite meta title/description — position 4.9 but only 2.0% CTR,350,Improve CTR from current position
+high,meta,arkansas spine and pain white hall,Rewrite meta title/description — position 4.8 but only 1.8% CTR,331,Improve CTR from current position
+high,meta,my pain doc columbus nebraska,Rewrite meta title/description — position 3.8 but only 1.9% CTR,320,Improve CTR from current position
+high,meta,vitruvian pain clinic,Rewrite meta title/description — position 4.5 but only 1.9% CTR,308,Improve CTR from current position
+high,meta,athens limestone pain center,Rewrite meta title/description — position 4.7 but only 1.3% CTR,307,Improve CTR from current position
+high,meta,integrated pain management elgin,Rewrite meta title/description — position 3.8 but only 1.4% CTR,297,Improve CTR from current position
+high,meta,dr gupta orangeburg sc,Rewrite meta title/description — position 4.9 but only 2.4% CTR,290,Improve CTR from current position
+high,meta,advanced pain medicine morgantown wv,Rewrite meta title/description — position 4.7 but only 2.0% CTR,251,Improve CTR from current position
+high,meta,vitruvian health ionia,Rewrite meta title/description — position 4.2 but only 1.6% CTR,251,Improve CTR from current position
+high,meta,dr delara pain management,Rewrite meta title/description — position 4.6 but only 2.0% CTR,250,Improve CTR from current position
+high,meta,complete pain care mlk,Rewrite meta title/description — position 3.2 but only 2.5% CTR,242,Improve CTR from current position
+high,meta,"1330 oak lane suite 202 lynchburg, va 24503",Rewrite meta title/description — position 4.2 but only 1.8% CTR,228,Improve CTR from current position
+high,meta,newton and associates spine and pain,Rewrite meta title/description — position 4.4 but only 2.9% CTR,210,Improve CTR from current position
+high,meta,kaloko pain,Rewrite meta title/description — position 3.9 but only 2.9% CTR,205,Improve CTR from current position
+medium,redirect,https://www.painclinics.com/pain-management/vitality-pain-center-ky-40509,"Ensure www → non-www redirect — 5,194 impressions on www version",5194,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/csar-pllc-dr-oliver-c-james-md-ky-40509,"Ensure www → non-www redirect — 4,659 impressions on www version",4659,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/spine-pain-associates-tn-37660,"Ensure www → non-www redirect — 3,930 impressions on www version",3930,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/optimal-pain-and-wellness-dr-regina-thurman-dr-mary-frances-daut-dr-ornette-gaines-ar-72703,"Ensure www → non-www redirect — 3,414 impressions on www version",3414,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/pca-pain-care-center-ct-6492,"Ensure www → non-www redirect — 2,758 impressions on www version",2758,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/mid-america-pain-clinic-ks-66210,"Ensure www → non-www redirect — 2,714 impressions on www version",2714,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-tracking,"Ensure www → non-www redirect — 2,643 impressions on www version",2643,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/t-luke-cramer-md-david-p-ellis-md-ok-73103,"Ensure www → non-www redirect — 1,822 impressions on www version",1822,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/open-arms-pain-clinic-co-80909,"Ensure www → non-www redirect — 1,562 impressions on www version",1562,Consolidate duplicate URLs
+medium,redirect,https://www.painclinics.com/pain-management/co/colorado-springs/open-arms-pain-clinic,"Ensure www → non-www redirect — 1,314 impressions on www version",1314,Consolidate duplicate URLs
+medium,meta,pmc center for pain management,Rewrite meta title/description — position 3.9 but only 2.5% CTR,196,Improve CTR from current position
+medium,meta,procare poteau oklahoma,Rewrite meta title/description — position 4.5 but only 2.8% CTR,176,Improve CTR from current position
+medium,meta,flex pain management shreveport,Rewrite meta title/description — position 3.9 but only 2.9% CTR,171,Improve CTR from current position
+medium,new-page,center for regenerative orthopedic medicine,Consider treatment landing page — currently position 40 for 60 impressions,60,Dedicated content could rank for treatment queries
