@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFeaturedClinics } from "@/lib/clinic-queries";
+import { getFeaturedClinics, getSimilarClinicsByServices } from "@/lib/clinic-queries";
 import { formatDistance } from "@/lib/distance";
 
 /**
@@ -16,6 +16,7 @@ import { formatDistance } from "@/lib/distance";
  * - limit: Maximum results (default: 10, max: 20)
  * - exclude: Clinic ID to exclude from results
  * - random: Set to "true" for random ordering (only when no lat/lng)
+ * - services: Comma-separated service IDs for fallback similar-clinic matching
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -61,6 +62,8 @@ export async function GET(request: Request) {
   const city = searchParams.get("city") || undefined;
   const excludeClinicId = searchParams.get("exclude") || undefined;
   const randomize = searchParams.get("random") === "true";
+  const serviceIdsParam = searchParams.get("services") || undefined;
+  const serviceIds = serviceIdsParam ? serviceIdsParam.split(",").filter(Boolean) : [];
 
   try {
     // Build options object, only including defined values
@@ -81,7 +84,21 @@ export async function GET(request: Request) {
     if (city) queryOptions.city = city;
     if (excludeClinicId) queryOptions.excludeClinicId = excludeClinicId;
 
-    const clinics = await getFeaturedClinics(queryOptions);
+    let clinics = await getFeaturedClinics(queryOptions);
+    let fallbackUsed = false;
+
+    // Tier 2 fallback: if no featured clinics found and we have state + services,
+    // find state-level clinics ranked by shared service overlap
+    if (clinics.length === 0 && stateAbbrev && serviceIds.length > 0) {
+      const similarClinics = await getSimilarClinicsByServices({
+        stateAbbrev,
+        serviceIds,
+        ...(excludeClinicId ? { excludeClinicId } : {}),
+        limit,
+      });
+      clinics = similarClinics as typeof clinics;
+      fallbackUsed = true;
+    }
 
     // Transform to frontend-friendly format
     const formattedClinics = clinics.map((clinic) => {
@@ -145,6 +162,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       clinics: formattedClinics,
       total: formattedClinics.length,
+      fallback: fallbackUsed,
       filters: {
         state: stateAbbrev || null,
         city: city || null,

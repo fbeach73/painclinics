@@ -34,6 +34,7 @@ export interface UseFeaturedClinicsOptions {
   stateAbbrev?: string;
   city?: string;
   excludeClinicId?: string;
+  serviceIds?: string[];
   limit?: number;
   useGeolocation?: boolean;
   radiusMiles?: number;
@@ -45,6 +46,7 @@ export interface UseFeaturedClinicsReturn {
   isLoading: boolean;
   error: string | null;
   hasLocation: boolean;
+  isFallback: boolean;
   refetch: () => void;
 }
 
@@ -66,6 +68,7 @@ export function useFeaturedClinics(
     stateAbbrev,
     city,
     excludeClinicId,
+    serviceIds,
     limit = 10,
     useGeolocation: shouldUseGeolocation = true,
     radiusMiles = 50,
@@ -75,6 +78,7 @@ export function useFeaturedClinics(
   const [clinics, setClinics] = useState<FeaturedClinic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   const {
     location,
@@ -117,6 +121,9 @@ export function useFeaturedClinics(
       if (excludeClinicId) {
         params.set('exclude', excludeClinicId);
       }
+      if (serviceIds && serviceIds.length > 0) {
+        params.set('services', serviceIds.join(','));
+      }
       if (limit) {
         params.set('limit', String(limit));
       }
@@ -134,6 +141,7 @@ export function useFeaturedClinics(
 
       const data = await response.json();
       setClinics(data.clinics || []);
+      setIsFallback(data.fallback === true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setClinics([]);
@@ -167,6 +175,7 @@ export function useFeaturedClinics(
     isLoading: isLoading || (shouldUseGeolocation && isLocationLoading),
     error,
     hasLocation,
+    isFallback,
     refetch: fetchClinics,
   };
 }

@@ -17,6 +17,8 @@ const SearchFeaturedSection = dynamic(
 interface LazySearchFeaturedSectionProps {
   stateAbbrev?: string;
   city?: string;
+  excludeClinicId?: string;
+  serviceIds?: string[];
   className?: string;
   /** Distance from viewport to start loading (default: 200px) */
   rootMargin?: string;
@@ -32,6 +34,8 @@ interface LazySearchFeaturedSectionProps {
 export function LazySearchFeaturedSection({
   stateAbbrev,
   city,
+  excludeClinicId,
+  serviceIds,
   className,
   rootMargin = '200px',
 }: LazySearchFeaturedSectionProps) {
@@ -69,6 +73,8 @@ export function LazySearchFeaturedSection({
         <SearchFeaturedSection
           {...(stateAbbrev && { stateAbbrev })}
           {...(city && { city })}
+          {...(excludeClinicId && { excludeClinicId })}
+          {...(serviceIds && serviceIds.length > 0 && { serviceIds })}
           {...(className && { className })}
         />
       ) : (

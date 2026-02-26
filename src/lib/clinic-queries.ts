@@ -583,6 +583,111 @@ export async function getFeaturedClinics(options: GetFeaturedClinicsOptions = {}
 export type FeaturedClinic = Awaited<ReturnType<typeof getFeaturedClinics>>[number];
 
 /**
+ * Get clinics in the same state ranked by number of shared services.
+ * Used as a fallback when no featured clinics exist in the same city.
+ *
+ * Query: find published clinics in the same state that share at least 1 service
+ * with the given clinic, ordered by shared service count DESC, then rating DESC.
+ */
+export async function getSimilarClinicsByServices(options: {
+  stateAbbrev: string;
+  serviceIds: string[];
+  excludeClinicId?: string;
+  limit?: number;
+}) {
+  const { stateAbbrev, serviceIds, excludeClinicId, limit = 6 } = options;
+
+  if (serviceIds.length === 0) return [];
+
+  // Build a safe IN list for service IDs
+  const serviceIdList = sql.join(
+    serviceIds.map((id) => sql`${id}`),
+    sql`, `
+  );
+
+  interface SimilarClinicRow {
+    id: string;
+    title: string;
+    city: string;
+    state_abbreviation: string;
+    street_address: string | null;
+    postal_code: string | null;
+    phone: string | null;
+    permalink: string | null;
+    rating: number | null;
+    review_count: number | null;
+    map_latitude: number | null;
+    map_longitude: number | null;
+    is_featured: boolean;
+    featured_tier: string | null;
+    featured_until: Date | null;
+    image_featured: string | null;
+    image_url: string | null;
+    clinic_image_urls: string[] | null;
+    is_verified: boolean;
+    shared_service_count: number;
+  }
+
+  // Single query: join clinic_services, count shared services, filter by state
+  const results = (await db.execute(sql`
+    SELECT
+      c.id,
+      c.title,
+      c.city,
+      c.state_abbreviation,
+      c.street_address,
+      c.postal_code,
+      c.phone,
+      c.permalink,
+      c.rating,
+      c.review_count,
+      c.map_latitude,
+      c.map_longitude,
+      c.is_featured,
+      c.featured_tier,
+      c.featured_until,
+      c.image_featured,
+      c.image_url,
+      c.clinic_image_urls,
+      c.is_verified,
+      COUNT(cs.service_id)::int AS shared_service_count
+    FROM clinics c
+    INNER JOIN clinic_services cs ON cs.clinic_id = c.id
+    WHERE c.status = 'published'
+      AND UPPER(c.state_abbreviation) = UPPER(${stateAbbrev})
+      AND cs.service_id IN (${serviceIdList})
+      ${excludeClinicId ? sql`AND c.id != ${excludeClinicId}` : sql``}
+    GROUP BY c.id
+    ORDER BY shared_service_count DESC, c.rating DESC NULLS LAST
+    LIMIT ${limit}
+  `)) as unknown as SimilarClinicRow[];
+
+  // Map to same shape as getFeaturedClinics return type
+  return results.map((r) => ({
+    id: r.id,
+    title: r.title,
+    city: r.city,
+    stateAbbreviation: r.state_abbreviation,
+    streetAddress: r.street_address,
+    postalCode: r.postal_code ?? "",
+    phone: r.phone,
+    permalink: r.permalink ?? "",
+    rating: r.rating,
+    reviewCount: r.review_count,
+    mapLatitude: r.map_latitude,
+    mapLongitude: r.map_longitude,
+    isFeatured: r.is_featured,
+    featuredTier: r.featured_tier as "none" | "basic" | "premium" | null,
+    featuredUntil: r.featured_until,
+    imageFeatured: r.image_featured,
+    imageUrl: r.image_url,
+    clinicImageUrls: r.clinic_image_urls,
+    isVerified: r.is_verified,
+    distance: 0,
+  }));
+}
+
+/**
  * Look up a clinic by legacy WordPress slug format.
  * Old WordPress format: {clinic-name-slug}-{state}-{zipcode}
  * Example: open-arms-pain-clinic-co-80909

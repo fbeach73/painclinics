@@ -14,6 +14,8 @@ import {
 interface SearchFeaturedSectionProps {
   stateAbbrev?: string;
   city?: string;
+  excludeClinicId?: string;
+  serviceIds?: string[];
   className?: string;
 }
 
@@ -26,11 +28,15 @@ interface SearchFeaturedSectionProps {
 export function SearchFeaturedSection({
   stateAbbrev,
   city,
+  excludeClinicId,
+  serviceIds,
   className,
 }: SearchFeaturedSectionProps) {
-  const { clinics, isLoading, hasLocation } = useFeaturedClinics({
+  const { clinics, isLoading, hasLocation, isFallback } = useFeaturedClinics({
     ...(stateAbbrev && { stateAbbrev }),
     ...(city && { city }),
+    ...(excludeClinicId && { excludeClinicId }),
+    ...(serviceIds && serviceIds.length > 0 && { serviceIds }),
     limit: 6,
     useGeolocation: false, // Only request geolocation on homepage
     radiusMiles: 100,
@@ -47,6 +53,9 @@ export function SearchFeaturedSection({
 
   // Build the heading text based on context
   const getHeadingText = () => {
+    if (isFallback && stateAbbrev) {
+      return `Similar Clinics in ${stateAbbrev}`;
+    }
     if (city && stateAbbrev) {
       return `Featured Clinics in ${city}`;
     }
