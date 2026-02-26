@@ -303,6 +303,17 @@ export default function TreatmentOptionsPage() {
           <li>Your personal preferences and lifestyle</li>
         </ul>
 
+        <h2>Specialized Treatment Guides</h2>
+        <ul>
+          <li>
+            <a href="/treatment-options/regenerative-orthopedic-medicine">
+              Regenerative Orthopedic Medicine
+            </a>{" "}
+            — PRP therapy, stem cell treatments, and prolotherapy for joint and
+            tissue repair
+          </li>
+        </ul>
+
         <h2>Find a Pain Specialist</h2>
         <p>
           Ready to explore your treatment options? Use our{" "}
