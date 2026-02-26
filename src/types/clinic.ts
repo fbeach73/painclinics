@@ -119,6 +119,7 @@ export interface Clinic {
 
   // Enhanced content
   enhancedAbout?: string | undefined; // AI-generated, stored in newPostContent
+  businessDescription?: string | undefined; // From Google Places/Outscraper
 
   // Import tracking (for NEW/UPDATED badges)
   importedAt?: Date | string | null | undefined; // When clinic was first imported

@@ -5,12 +5,13 @@ import { cn } from '@/lib/utils';
 interface ClinicAboutProps {
   about: string;
   enhancedAbout?: string | undefined;
+  businessDescription?: string | undefined;
   className?: string;
 }
 
-export function ClinicAbout({ about, enhancedAbout, className }: ClinicAboutProps) {
-  // Prefer enhanced content if available
-  const content = enhancedAbout || about;
+export function ClinicAbout({ about, enhancedAbout, businessDescription, className }: ClinicAboutProps) {
+  // Prefer enhanced content, then original, then business description from Google Places
+  const content = enhancedAbout || about || businessDescription;
 
   if (!content) return null;
 

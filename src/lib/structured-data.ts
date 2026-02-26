@@ -13,8 +13,9 @@ export function generateClinicStructuredData(clinic: DbClinic) {
   const stateSlug = (clinic.stateAbbreviation || clinic.state || "").toLowerCase();
 
   // Clean description - remove HTML tags and truncate
-  const cleanDescription = clinic.content
-    ? stripHtmlTags(clinic.content).substring(0, 200)
+  const rawDescription = clinic.newPostContent || clinic.content || clinic.businessDescription;
+  const cleanDescription = rawDescription
+    ? stripHtmlTags(rawDescription).substring(0, 200)
     : `${clinic.title} provides pain management services in ${clinic.city}, ${clinic.stateAbbreviation || clinic.state}.`;
 
   const structuredData: Record<string, unknown> = {

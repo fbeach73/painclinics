@@ -88,6 +88,7 @@ export function transformDbClinicToType(dbClinic: ClinicRecordWithServices): Cli
 
     // Enhanced content
     enhancedAbout: dbClinic.newPostContent ?? undefined,
+    businessDescription: dbClinic.businessDescription ?? undefined,
 
     // Import tracking (for NEW/UPDATED badges)
     importedAt: dbClinic.importedAt ?? undefined,
