@@ -30,6 +30,22 @@ export const metadata: Metadata = {
     "daily pain journal template",
     "pain log for doctors",
   ],
+  alternates: {
+    canonical: "/pain-tracking",
+  },
+  openGraph: {
+    title: "Free Pain Tracking Templates | Printable Pain Diary",
+    description:
+      "Download free daily, weekly, and monthly pain tracking templates. Log symptoms, triggers, and treatments to share with your doctor.",
+    url: "/pain-tracking",
+    type: "article",
+  },
+  twitter: {
+    card: "summary",
+    title: "Free Pain Tracking Templates | Printable Pain Diary",
+    description:
+      "Download free daily, weekly, and monthly pain tracking templates. Log symptoms, triggers, and treatments to share with your doctor.",
+  },
 };
 
 const faqData = [
@@ -215,8 +231,11 @@ export default function PainTrackingPage() {
           {/* Pain Scale Visual - Eye-catching, close to CTA */}
           <h2>Understanding the Pain Scale</h2>
           <p>
-            Our pain trackers use the standard 0-10 numeric pain scale used by
-            healthcare providers worldwide. Here&apos;s what each level means:
+            Our pain trackers use the Numeric Rating Scale (NRS), the standard
+            0-10 pain assessment tool used by healthcare providers worldwide. The
+            NRS is recommended by the Initiative on Methods, Measurement, and
+            Pain Assessment in Clinical Trials (IMMPACT) as a core outcome
+            measure for chronic pain studies. Here&apos;s what each level means:
           </p>
 
           <PainScaleVisual />
@@ -252,6 +271,15 @@ export default function PainTrackingPage() {
             Tracking your pain is one of the most effective ways to take control of
             your health. A pain diary helps you and your doctor understand your
             condition better by revealing patterns that might otherwise go unnoticed.
+            Research published in the <em>European Journal of Pain</em> found that
+            patients who used structured pain diaries reported improved communication
+            with providers and greater satisfaction with their treatment plans.
+          </p>
+          <p>
+            Approximately 51.6 million U.S. adults — roughly 20.9% of the
+            population — live with chronic pain, according to the CDC. Among those
+            patients, consistent pain tracking is associated with earlier
+            identification of triggers and more effective treatment adjustments.
           </p>
           <p>Benefits of consistent pain tracking include:</p>
           <ul>
