@@ -147,6 +147,8 @@ export const auth = betterAuth({
     provider: "pg",
   }),
   trustedOrigins: [
+    "https://painclinics.com",
+    "https://www.painclinics.com",
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ],
   session: {

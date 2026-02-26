@@ -5,8 +5,9 @@ const stripeClientPlugin = stripeClient({
   subscription: true,
 })
 
+// Use current origin for auth requests to avoid www/non-www cross-origin issues.
+// Better Auth defaults to window.location.origin when baseURL is omitted.
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   plugins: [stripeClientPlugin],
 })
 
