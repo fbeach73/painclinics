@@ -56,6 +56,15 @@ const LEGACY_CLINIC_REDIRECTS: Record<string, string> = {
   "low-country-pain-vein-center": "/pain-management/low-country-pain-vein-center-sc-29115",
   "pain-physicians-of-wisconsin-dr-andrzej-staszkiewicz": "/pain-management/pain-physicians-of-wisconsin-dr-andrzej-staszkiewicz-wi-53221",
   "metro-mn-pain": "/pain-management/metro-mn-pain-mn-55429",
+  // New DB matches (Feb 2026)
+  "washington-regional-j-b-hunt-transport-services-neuroscience-institute": "/pain-management/washington-regional-interventional-pain-management-clinic-ar-72703",
+  "regen-doctors-pain-specialists-gene-v-levinstein-m-d-allentown-pa": "/pain-management/pennsylvania-pain-specialists-gene-levinstein-md-pa-18017",
+  "pain-management-dermatology": "/pain-management/pain-managementdermatology-mn-56601",
+  // No DB match — fallback to /clinics
+  "cottonwood-medical-clinic": "/clinics",
+  "texas-pain-clinic": "/clinics",
+  "advanced-pain-medical-center": "/clinics",
+  "whs-pain-management-center": "/clinics",
 };
 
 export function middleware(request: NextRequest) {

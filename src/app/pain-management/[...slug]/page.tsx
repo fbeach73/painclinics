@@ -34,7 +34,6 @@ import { getClinicServices } from "@/lib/clinic-services-queries";
 import { parseFilters } from "@/lib/directory/filters";
 import { generateFilteredMeta } from "@/lib/directory/meta";
 import { getFilteredClinics } from "@/lib/directory/queries";
-import { stripHtmlTags } from "@/lib/html-utils";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
@@ -175,14 +174,44 @@ export async function generateMetadata({ params, searchParams: searchParamsPromi
   }
 
   const stateName = getStateName(clinic.stateAbbreviation || clinic.state);
-  const title = `${clinic.title} - Pain Management in ${clinic.city}, ${stateName}`;
 
-  // Clean description - remove HTML tags
-  const cleanContent = clinic.content ? stripHtmlTags(clinic.content) : null;
+  // Build title differentiators — prefer rating+reviews, fall back to reviews only
+  const hasRating = clinic.rating && clinic.rating >= 3.0;
+  const hasReviews = clinic.reviewCount && clinic.reviewCount > 0;
 
-  const description =
-    cleanContent?.substring(0, 160) ||
-    `${clinic.title} provides pain management services in ${clinic.city}, ${stateName}. Call ${clinic.phone} for appointments.`;
+  let titleSuffix = "";
+  if (hasRating && hasReviews) {
+    titleSuffix = ` | ${clinic.rating!.toFixed(1)}★ ${clinic.reviewCount} Reviews`;
+  } else if (hasReviews) {
+    titleSuffix = ` | ${clinic.reviewCount} Reviews`;
+  } else if (hasRating) {
+    titleSuffix = ` | Rated ${clinic.rating!.toFixed(1)}★`;
+  }
+
+  // Keep total title under ~60 chars when possible; truncate clinic name if needed
+  const locationPart = ` - ${clinic.city}, ${clinic.stateAbbreviation || stateName}`;
+  const baseTitle = `${clinic.title}${locationPart}${titleSuffix}`;
+  const title = baseTitle.length <= 65 ? baseTitle : `${clinic.title}${locationPart}`;
+
+  // Build description: lead with social proof, add CTA and phone
+  let description: string;
+  if (hasRating && hasReviews) {
+    const base = `${clinic.title} in ${clinic.city}, ${stateName} — rated ${clinic.rating!.toFixed(1)}★ by ${clinic.reviewCount} patients.`;
+    const cta = clinic.phone ? ` Call ${clinic.phone} to book an appointment.` : " Find directions, hours & contact info.";
+    description = (base + cta).substring(0, 155);
+  } else if (hasReviews) {
+    const base = `${clinic.title} in ${clinic.city}, ${stateName} — reviewed by ${clinic.reviewCount} patients.`;
+    const cta = clinic.phone ? ` Call ${clinic.phone} for pain management appointments.` : " View contact info and directions.";
+    description = (base + cta).substring(0, 155);
+  } else if (hasRating) {
+    const base = `${clinic.title} — ${clinic.rating!.toFixed(1)}★ rated pain management clinic in ${clinic.city}, ${stateName}.`;
+    const cta = clinic.phone ? ` Call ${clinic.phone} to schedule.` : " View hours, location & contact info.";
+    description = (base + cta).substring(0, 155);
+  } else {
+    const base = `${clinic.title} is a pain management clinic in ${clinic.city}, ${stateName}.`;
+    const cta = clinic.phone ? ` Call ${clinic.phone} to book an appointment.` : " Find location, hours & contact details.";
+    description = (base + cta).substring(0, 155);
+  }
 
   const canonicalUrl = `${baseUrl}/${clinic.permalink}/`;
 
