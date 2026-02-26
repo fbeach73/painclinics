@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2, Sparkles } from "lucide-react";
+import Image from "next/image";
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  Sparkles,
+  Eye,
+  Pencil,
+  ImageIcon,
+  Wand2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TiptapEditor } from "@/components/admin/blog/tiptap-editor";
+import { FeaturedImageUpload } from "@/components/admin/blog/featured-image-upload";
+import { GuidePreview } from "@/components/admin/guides/guide-preview";
 
 const US_STATES = [
   { value: "", label: "None (general guide)" },
@@ -44,6 +57,11 @@ const US_STATES = [
   { value: "WI", label: "Wisconsin" }, { value: "WY", label: "Wyoming" },
 ];
 
+const STATE_NAMES: Record<string, string> = {};
+for (const s of US_STATES) {
+  if (s.value) STATE_NAMES[s.value] = s.label;
+}
+
 interface FAQ {
   question: string;
   answer: string;
@@ -61,6 +79,8 @@ interface GuideFormData {
   status: string;
   faqs: FAQ[];
   aboutTopics: string[];
+  featuredImageUrl: string | null;
+  featuredImageAlt: string;
 }
 
 interface GuideFormProps {
@@ -72,6 +92,12 @@ function slugify(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function getDefaultImagePrompt(stateAbbr: string): string {
+  const stateName = STATE_NAMES[stateAbbr];
+  if (!stateName) return "";
+  return `A beautiful panoramic landscape photograph of ${stateName} featuring iconic scenery and landmarks, with subtle warm healthcare and wellness elements woven in. Professional editorial photography style, soft natural lighting, 16:9 aspect ratio, suitable as a featured hero image for a medical directory website.`;
 }
 
 export function GuideForm({ initialData }: GuideFormProps) {
@@ -96,12 +122,41 @@ export function GuideForm({ initialData }: GuideFormProps) {
   const [aboutTopicsText, setAboutTopicsText] = useState(
     ((initialData?.aboutTopics as string[] | undefined) || []).join(", ")
   );
+  const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(
+    initialData?.featuredImageUrl ?? null
+  );
+  const [featuredImageAlt, setFeaturedImageAlt] = useState(
+    initialData?.featuredImageAlt || ""
+  );
+
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!initialData?.slug);
+  const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
 
-  async function handleGenerate() {
+  // AI Image generation
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [showImageGen, setShowImageGen] = useState(false);
+
+  async function handleImageUpload(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/admin/blog/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Upload failed");
+    }
+    const data = await res.json();
+    return data.url;
+  }
+
+  async function handleGenerateContent() {
     if (!stateAbbreviation || stateAbbreviation === "none") {
       setError("Select a state first to generate content");
       return;
@@ -139,10 +194,73 @@ export function GuideForm({ initialData }: GuideFormProps) {
     }
   }
 
+  async function handleGenerateImage() {
+    const prompt = imagePrompt.trim();
+    if (!prompt) {
+      setError("Enter an image prompt first");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setError(null);
+    setGeneratedImageUrl(null);
+
+    try {
+      const res = await fetch("/api/admin/guides/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Image generation failed");
+      }
+
+      const data = await res.json();
+      setGeneratedImageUrl(data.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image generation failed");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }
+
+  function handleSaveAsFeaturedImage() {
+    if (generatedImageUrl) {
+      setFeaturedImageUrl(generatedImageUrl);
+      setFeaturedImageAlt(
+        stateAbbreviation && STATE_NAMES[stateAbbreviation]
+          ? `Pain management guide for ${STATE_NAMES[stateAbbreviation]}`
+          : "Pain management guide"
+      );
+      setGeneratedImageUrl(null);
+      setShowImageGen(false);
+    }
+  }
+
+  function handleInsertIntoContent() {
+    if (generatedImageUrl) {
+      // Append an image tag to content — TipTap will pick it up
+      setContent(
+        (prev) => prev + `<img src="${generatedImageUrl}" alt="AI generated image" />`
+      );
+      setGeneratedImageUrl(null);
+    }
+  }
+
   function handleTitleChange(value: string) {
     setTitle(value);
     if (!slugManuallyEdited) {
       setSlug(slugify(value));
+    }
+  }
+
+  function handleStateChange(value: string) {
+    setStateAbbreviation(value);
+    // Auto-populate image prompt when state changes
+    if (value && value !== "none") {
+      setImagePrompt(getDefaultImagePrompt(value));
     }
   }
 
@@ -184,6 +302,8 @@ export function GuideForm({ initialData }: GuideFormProps) {
       status,
       faqs: validFaqs.length > 0 ? validFaqs : null,
       aboutTopics: aboutTopics.length > 0 ? aboutTopics : null,
+      featuredImageUrl: featuredImageUrl || null,
+      featuredImageAlt: featuredImageAlt || null,
     };
 
     try {
@@ -217,6 +337,38 @@ export function GuideForm({ initialData }: GuideFormProps) {
     }
   }
 
+  // Preview mode
+  if (activeTab === "preview") {
+    return (
+      <div className="max-w-4xl">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Preview</h1>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setActiveTab("edit")}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Back to Editor
+            </Button>
+          </div>
+        </div>
+        <div className="rounded-lg border p-6">
+          <GuidePreview
+            title={title}
+            excerpt={excerpt}
+            content={content}
+            stateAbbreviation={stateAbbreviation}
+            featuredImageUrl={featuredImageUrl}
+            featuredImageAlt={featuredImageAlt}
+            faqs={faqs.filter((f) => f.question && f.answer)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
       <div className="flex items-center justify-between">
@@ -224,6 +376,14 @@ export function GuideForm({ initialData }: GuideFormProps) {
           {isEditing ? "Edit Guide" : "New Guide"}
         </h1>
         <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setActiveTab("preview")}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -280,7 +440,7 @@ export function GuideForm({ initialData }: GuideFormProps) {
             <Label htmlFor="state">State</Label>
             <Select
               value={stateAbbreviation}
-              onValueChange={setStateAbbreviation}
+              onValueChange={handleStateChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select state..." />
@@ -310,7 +470,7 @@ export function GuideForm({ initialData }: GuideFormProps) {
           </div>
         </div>
 
-        {/* AI Generate */}
+        {/* AI Content Generate */}
         <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -322,7 +482,7 @@ export function GuideForm({ initialData }: GuideFormProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={handleGenerate}
+              onClick={handleGenerateContent}
               disabled={isGenerating || !stateAbbreviation || stateAbbreviation === "none"}
             >
               {isGenerating ? (
@@ -347,19 +507,109 @@ export function GuideForm({ initialData }: GuideFormProps) {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Featured Image */}
       <div className="space-y-4 rounded-lg border p-4">
-        <h2 className="font-semibold">Content (HTML)</h2>
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="<h2>Overview</h2><p>...</p>"
-          rows={20}
-          className="font-mono text-sm"
+        <h2 className="font-semibold">Featured Image</h2>
+
+        <FeaturedImageUpload
+          imageUrl={featuredImageUrl}
+          imageAlt={featuredImageAlt}
+          onImageChange={(url, alt) => {
+            setFeaturedImageUrl(url);
+            setFeaturedImageAlt(alt);
+          }}
+          onUpload={handleImageUpload}
         />
-        <p className="text-xs text-muted-foreground">
-          Paste HTML content. Styled with Tailwind prose classes on the frontend.
-        </p>
+
+        {/* AI Image Generation */}
+        <div className="border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setShowImageGen(!showImageGen);
+              if (!showImageGen && !imagePrompt && stateAbbreviation && stateAbbreviation !== "none") {
+                setImagePrompt(getDefaultImagePrompt(stateAbbreviation));
+              }
+            }}
+          >
+            <Wand2 className="h-4 w-4 mr-2" />
+            {showImageGen ? "Hide AI Image Generator" : "Generate with AI"}
+          </Button>
+
+          {showImageGen && (
+            <div className="mt-4 space-y-3 rounded-md border border-dashed border-primary/40 bg-primary/5 p-4">
+              <div className="space-y-2">
+                <Label htmlFor="imagePrompt" className="text-sm">Image Prompt</Label>
+                <Textarea
+                  id="imagePrompt"
+                  value={imagePrompt}
+                  onChange={(e) => setImagePrompt(e.target.value)}
+                  placeholder="Describe the image to generate..."
+                  rows={3}
+                  className="text-sm"
+                />
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleGenerateImage}
+                disabled={isGeneratingImage || !imagePrompt.trim()}
+              >
+                {isGeneratingImage ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                )}
+                {isGeneratingImage ? "Generating..." : "Generate Image"}
+              </Button>
+
+              {/* Generated image result */}
+              {generatedImageUrl && (
+                <div className="space-y-3">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+                    <Image
+                      src={generatedImageUrl}
+                      alt="AI generated image"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 600px) 100vw, 600px"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleSaveAsFeaturedImage}
+                    >
+                      Save as Featured Image
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleInsertIntoContent}
+                    >
+                      Insert into Content
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content — TipTap Editor */}
+      <div className="space-y-4 rounded-lg border p-4">
+        <h2 className="font-semibold">Content</h2>
+        <TiptapEditor
+          content={content}
+          onChange={setContent}
+          onImageUpload={handleImageUpload}
+        />
       </div>
 
       {/* SEO */}
