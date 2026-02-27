@@ -205,33 +205,9 @@ export async function SiteFooter() {
       {/* Copyright Bar */}
       <div className="border-t">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground">
-              &copy; {currentYear} Pain Clinics. All rights reserved.
-            </p>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/terms"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Terms
-              </Link>
-              <span className="text-muted-foreground">|</span>
-              <Link
-                href="/privacy"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Privacy
-              </Link>
-              <span className="text-muted-foreground">|</span>
-              <Link
-                href="/medical-disclaimer"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Medical Disclaimer
-              </Link>
-            </div>
-          </div>
+          <p className="text-sm text-muted-foreground text-center sm:text-left">
+            &copy; {currentYear} Pain Clinics. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

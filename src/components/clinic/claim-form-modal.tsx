@@ -132,7 +132,7 @@ export function ClaimFormModal({
               Claim {clinicName}
             </DialogTitle>
             <DialogDescription>
-              Sign in to claim this listing and manage your clinic profile.
+              Sign in or create an account to claim this listing and manage your clinic profile.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
@@ -150,7 +150,7 @@ export function ClaimFormModal({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSignIn}>Sign In to Claim</Button>
+            <Button onClick={handleSignIn}>Sign In / Register</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

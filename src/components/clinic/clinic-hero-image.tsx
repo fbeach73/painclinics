@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { ClinicImage } from './clinic-image';
 import { cn } from '@/lib/utils';
 
 interface ClinicHeroImageProps {
@@ -11,39 +10,18 @@ interface ClinicHeroImageProps {
   priority?: boolean;
 }
 
-const FALLBACK_IMAGE = '/images/clinic-placeholder.webp';
-
 /**
  * Clinic hero image component with automatic fallback handling.
- *
- * If the primary image fails to load (404, expired URL, etc.),
- * automatically displays the fallback placeholder image.
- *
- * This handles cases where:
- * - Google Street View URLs have expired
- * - External image URLs are broken
- * - Image URLs return 404 errors
+ * Wraps ClinicImage with hero-specific defaults (fill, object-cover).
  */
 export function ClinicHeroImage({ src, alt, className, priority = false }: ClinicHeroImageProps) {
-  const [imgSrc, setImgSrc] = useState<string>(src || FALLBACK_IMAGE);
-  const [hasError, setHasError] = useState(!src);
-
-  const handleError = () => {
-    if (!hasError) {
-      setHasError(true);
-      setImgSrc(FALLBACK_IMAGE);
-    }
-  };
-
   return (
-    <Image
-      src={imgSrc}
+    <ClinicImage
+      src={src}
       alt={alt}
       fill
-      className={cn('object-cover', hasError && 'opacity-80', className)}
+      className={cn('object-cover', className)}
       priority={priority}
-      {...(priority ? { fetchPriority: "high" as const } : {})}
-      onError={handleError}
     />
   );
 }
