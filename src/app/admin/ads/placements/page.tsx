@@ -1,4 +1,6 @@
-import { Info } from "lucide-react";
+import { Info, LayoutGrid, Eye } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -31,11 +33,27 @@ export default async function PlacementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Placements</h1>
-        <p className="text-muted-foreground">
-          Configure ad slots and manage the global ad server traffic split
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Placements</h1>
+          <p className="text-muted-foreground">
+            Configure ad slots and manage the global ad server traffic split
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/admin/ads/placements/cheat-sheet">
+              <LayoutGrid className="h-4 w-4 mr-1" />
+              Cheat Sheet
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/admin/ads/placements/preview">
+              <Eye className="h-4 w-4 mr-1" />
+              Page Preview
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Global percentage slider */}

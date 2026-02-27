@@ -353,6 +353,108 @@ export interface PlacementWithCampaignCount {
   updatedAt: Date;
 }
 
+// ============================================
+// getPlacementsWithCampaignDetails
+// ============================================
+
+export interface PlacementCampaignDetail {
+  campaignId: string;
+  campaignName: string;
+  advertiserName: string;
+  campaignStatus: "active" | "paused" | "ended";
+  weight: number;
+  activeCreativeCount: number;
+}
+
+export interface PlacementWithDetails {
+  id: string;
+  name: string;
+  label: string;
+  pageType: "clinic" | "directory" | "blog" | "homepage" | "global";
+  description: string | null;
+  defaultWidth: number | null;
+  defaultHeight: number | null;
+  isActive: boolean;
+  campaigns: PlacementCampaignDetail[];
+}
+
+export async function getPlacementsWithCampaignDetails(): Promise<PlacementWithDetails[]> {
+  type Row = {
+    id: string;
+    name: string;
+    label: string;
+    page_type: "clinic" | "directory" | "blog" | "homepage" | "global";
+    description: string | null;
+    default_width: number | null;
+    default_height: number | null;
+    is_active: boolean;
+    campaign_id: string | null;
+    campaign_name: string | null;
+    advertiser_name: string | null;
+    campaign_status: "active" | "paused" | "ended" | null;
+    weight: number | null;
+    active_creative_count: string | null;
+  };
+
+  const result = await db.execute<Row>(sql`
+    SELECT
+      p.id,
+      p.name,
+      p.label,
+      p.page_type,
+      p.description,
+      p.default_width,
+      p.default_height,
+      p.is_active,
+      c.id AS campaign_id,
+      c.name AS campaign_name,
+      c.advertiser_name,
+      c.status AS campaign_status,
+      cp.weight,
+      (
+        SELECT COUNT(*)::text
+        FROM ad_creatives cr
+        WHERE cr.campaign_id = c.id AND cr.is_active = true
+      ) AS active_creative_count
+    FROM ad_placements p
+    LEFT JOIN ad_campaign_placements cp ON cp.placement_id = p.id
+    LEFT JOIN ad_campaigns c ON c.id = cp.campaign_id
+    ORDER BY p.name, c.name
+  `);
+
+  const placementMap = new Map<string, PlacementWithDetails>();
+
+  for (const row of result) {
+    let placement = placementMap.get(row.id);
+    if (!placement) {
+      placement = {
+        id: row.id,
+        name: row.name,
+        label: row.label,
+        pageType: row.page_type,
+        description: row.description,
+        defaultWidth: row.default_width,
+        defaultHeight: row.default_height,
+        isActive: row.is_active,
+        campaigns: [],
+      };
+      placementMap.set(row.id, placement);
+    }
+    if (row.campaign_id) {
+      placement.campaigns.push({
+        campaignId: row.campaign_id,
+        campaignName: row.campaign_name!,
+        advertiserName: row.advertiser_name!,
+        campaignStatus: row.campaign_status!,
+        weight: row.weight ?? 1,
+        activeCreativeCount: Number(row.active_creative_count ?? 0),
+      });
+    }
+  }
+
+  return Array.from(placementMap.values());
+}
+
 export async function getPlacementsWithCounts(): Promise<PlacementWithCampaignCount[]> {
   const rows = await db
     .select({

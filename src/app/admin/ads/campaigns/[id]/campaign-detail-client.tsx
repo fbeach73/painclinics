@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, Edit2, Copy, Check, X, Upload, Loader2, Info } from "lucide-react";
+import { PlusCircle, Trash2, Edit2, Copy, Check, X, Upload, Loader2, Info, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { PLACEMENT_SPECS, getAdsenseSlotId } from "@/lib/ad-placement-specs";
+import type { CreativeType } from "@/lib/ad-queries";
 
 type Campaign = {
   id: string;
@@ -94,7 +95,7 @@ type AllPlacement = {
   pageType: string;
 };
 
-type CreativeStats = Record<string, { impressions: number; clicks: number }>;
+type CreativeStats = Record<string, { impressions: number; clicks: number; conversions: number }>;
 
 type Props = {
   campaign: Campaign;
@@ -115,6 +116,58 @@ function statusBadge(status: "active" | "paused" | "ended") {
 function formatDateInput(d: Date | null): string {
   if (!d) return "";
   return new Date(d).toISOString().split("T")[0] ?? "";
+}
+
+const ALL_RATIOS: AspectRatio[] = ["1:1", "16:9", "21:9", "4:3", "3:2", "auto"];
+const RATIO_LABELS: Record<AspectRatio, string> = {
+  "auto": "Auto (any slot)",
+  "1:1": "1:1 Square (sidebar)",
+  "21:9": "21:9 Ultrawide (leaderboard)",
+  "16:9": "16:9 Wide (content area)",
+  "4:3": "4:3 Landscape",
+  "3:2": "3:2 Landscape",
+};
+
+function isCreativeCompatible(
+  creativeType: string,
+  aspectRatio: string,
+  placementName: string,
+): boolean {
+  const spec = PLACEMENT_SPECS[placementName];
+  if (!spec) return true;
+  if (spec.allowedTypes && !spec.allowedTypes.includes(creativeType as CreativeType)) {
+    return false;
+  }
+  if (
+    creativeType === "image_banner" &&
+    spec.allowedRatios &&
+    aspectRatio !== "auto" &&
+    !spec.allowedRatios.includes(aspectRatio as AspectRatio)
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function getRelevantRatios(assignedPlacementNames: string[]): AspectRatio[] {
+  if (assignedPlacementNames.length === 0) return ALL_RATIOS;
+  const ratioSet = new Set<AspectRatio>();
+  ratioSet.add("auto");
+  for (const name of assignedPlacementNames) {
+    const spec = PLACEMENT_SPECS[name];
+    if (!spec) {
+      // No spec = all ratios accepted
+      return ALL_RATIOS;
+    }
+    if (!spec.allowedTypes || spec.allowedTypes.includes("image_banner")) {
+      if (spec.allowedRatios) {
+        for (const r of spec.allowedRatios) ratioSet.add(r);
+      } else {
+        return ALL_RATIOS;
+      }
+    }
+  }
+  return ALL_RATIOS.filter((r) => ratioSet.has(r));
 }
 
 export function CampaignDetailClient({
@@ -383,6 +436,57 @@ export function CampaignDetailClient({
 
   // ── Placement assignment state ────────────────────────────────────────
   const assignedIds = new Set(assignedPlacements.map((p) => p.id));
+  const assignedPlacementNames = assignedPlacements.map((p) => p.name);
+  const relevantRatios = getRelevantRatios(assignedPlacementNames);
+
+  // Compatibility check for current creative form against assigned placements
+  const compatibilityResults = assignedPlacements.map((p) => ({
+    name: p.name,
+    label: p.label,
+    compatible: isCreativeCompatible(creativeForm.creativeType, creativeForm.aspectRatio, p.name),
+  }));
+  const anyCompatible = assignedPlacements.length === 0 || compatibilityResults.some((r) => r.compatible);
+
+  function renderCompatibilityBadges() {
+    if (assignedPlacements.length === 0) {
+      return (
+        <p className="text-xs text-muted-foreground italic">
+          No placements assigned to this campaign yet.
+        </p>
+      );
+    }
+    return (
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Placement Compatibility</Label>
+        <div className="flex flex-wrap gap-1.5">
+          {compatibilityResults.map((r) => (
+            <Badge
+              key={r.name}
+              variant="outline"
+              className={`text-xs gap-1 ${
+                r.compatible
+                  ? "border-green-500/50 text-green-700 dark:text-green-400"
+                  : "border-red-500/50 text-red-700 dark:text-red-400"
+              }`}
+            >
+              {r.compatible ? (
+                <CheckCircle2 className="h-3 w-3" />
+              ) : (
+                <XCircle className="h-3 w-3" />
+              )}
+              {r.label}
+            </Badge>
+          ))}
+        </div>
+        {!anyCompatible && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            This creative type+ratio won&apos;t match any assigned placement.
+          </div>
+        )}
+      </div>
+    );
+  }
 
   async function togglePlacement(placementId: string, currentlyAssigned: boolean) {
     if (currentlyAssigned) {
@@ -728,12 +832,9 @@ export function CampaignDetailClient({
                         onChange={(e) => setCreativeField("aspectRatio", e.target.value)}
                         className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       >
-                        <option value="auto">Auto (any slot)</option>
-                        <option value="1:1">1:1 Square (sidebar)</option>
-                        <option value="21:9">21:9 Ultrawide (leaderboard)</option>
-                        <option value="16:9">16:9 Wide (content area)</option>
-                        <option value="4:3">4:3 Landscape</option>
-                        <option value="3:2">3:2 Landscape</option>
+                        {relevantRatios.map((r) => (
+                          <option key={r} value={r}>{RATIO_LABELS[r]}</option>
+                        ))}
                       </select>
                       <p className="text-xs text-muted-foreground">
                         Controls which placements this creative can appear in. &quot;Auto&quot; allows any slot.
@@ -798,6 +899,7 @@ export function CampaignDetailClient({
                     </div>
                   </div>
                 )}
+                {renderCompatibilityBadges()}
                 <div className="space-y-2">
                   <Label>Weight</Label>
                   <Input
@@ -838,6 +940,7 @@ export function CampaignDetailClient({
                   <TableHead className="text-right">Impr.</TableHead>
                   <TableHead className="text-right">Clicks</TableHead>
                   <TableHead className="text-right">CTR</TableHead>
+                  <TableHead className="text-right">Conv.</TableHead>
                   <TableHead className="text-right">Weight</TableHead>
                   <TableHead className="text-center">Active</TableHead>
                   <TableHead></TableHead>
@@ -872,6 +975,9 @@ export function CampaignDetailClient({
                         if (!stats || stats.impressions === 0) return "—";
                         return `${((stats.clicks / stats.impressions) * 100).toFixed(2)}%`;
                       })()}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {(creativeStats[c.id]?.conversions ?? 0).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{c.weight}</TableCell>
                     <TableCell className="text-center">
@@ -997,12 +1103,9 @@ export function CampaignDetailClient({
                     onChange={(e) => setCreativeField("aspectRatio", e.target.value)}
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    <option value="auto">Auto (any slot)</option>
-                    <option value="1:1">1:1 Square (sidebar)</option>
-                    <option value="21:9">21:9 Ultrawide (leaderboard)</option>
-                    <option value="16:9">16:9 Wide (content area)</option>
-                    <option value="4:3">4:3 Landscape</option>
-                    <option value="3:2">3:2 Landscape</option>
+                    {relevantRatios.map((r) => (
+                      <option key={r} value={r}>{RATIO_LABELS[r]}</option>
+                    ))}
                   </select>
                   <p className="text-xs text-muted-foreground">
                     Controls which placements this creative can appear in.
@@ -1064,6 +1167,7 @@ export function CampaignDetailClient({
                 </div>
               </div>
             )}
+            {renderCompatibilityBadges()}
             <div className="space-y-2">
               <Label>Weight</Label>
               <Input

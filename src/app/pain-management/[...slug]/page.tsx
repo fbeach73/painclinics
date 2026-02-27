@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, MessageCircle, Phone } from "lucide-react";
 import { AdSlotClient } from "@/components/ads";
+import { TopLeaderboardAd } from "@/components/ads/TopLeaderboardAd";
 import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -558,7 +559,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {/* Top leaderboard ad — desktop only */}
           <div className="hidden lg:block mb-6">
-            <AdSlotClient
+            <TopLeaderboardAd
               placement="clinic-top-leaderboard"
               path={`/pain-management/${slugPath}`}
               useHostedAds={useHostedAds}

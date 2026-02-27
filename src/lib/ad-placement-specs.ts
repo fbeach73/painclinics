@@ -25,10 +25,8 @@ export const DEFAULT_ADSENSE_SLOT = "9665261047";
 
 export const PLACEMENT_SPECS: Record<string, PlacementSpec> = {
   "clinic-top-leaderboard": {
-    allowedTypes: ["image_banner"],
-    allowedRatios: ["21:9"],
     adsenseSlotId: "7320134815",
-    note: "Image banner only, 21:9 ultrawide. Full-width desktop leaderboard.",
+    note: "All types, all ratios. Floating card above content on desktop.",
   },
   "clinic-below-header": {
     adsenseSlotId: "9841851791",

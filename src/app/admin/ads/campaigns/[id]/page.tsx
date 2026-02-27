@@ -10,6 +10,7 @@ import {
   adCampaignPlacements,
   adImpressions,
   adClicks,
+  adConversions,
 } from "@/lib/schema";
 import { Button } from "@/components/ui/button";
 import { CampaignDetailClient } from "./campaign-detail-client";
@@ -24,7 +25,7 @@ async function getCampaignData(id: string) {
   });
   if (!campaign) return null;
 
-  const [creatives, placements, allPlacements, impressionStats, clickStats] = await Promise.all([
+  const [creatives, placements, allPlacements, impressionStats, clickStats, conversionStats] = await Promise.all([
     db.select().from(adCreatives).where(eq(adCreatives.campaignId, id)),
     db
       .select({
@@ -69,19 +70,38 @@ async function getCampaignData(id: string) {
       .innerJoin(adImpressions, eq(adClicks.clickId, adImpressions.clickId))
       .where(sql`${adImpressions.campaignId} = ${id} AND ${adClicks.isBot} = false`)
       .groupBy(adImpressions.creativeId),
+    // Conversions per creative (join through clicks -> impressions)
+    db
+      .select({
+        creativeId: adImpressions.creativeId,
+        conversions: count().as("conversions"),
+      })
+      .from(adConversions)
+      .innerJoin(adClicks, eq(adConversions.clickId, adClicks.clickId))
+      .innerJoin(adImpressions, eq(adClicks.clickId, adImpressions.clickId))
+      .where(eq(adImpressions.campaignId, id))
+      .groupBy(adImpressions.creativeId),
   ]);
 
-  // Build stats map: creativeId -> { impressions, clicks }
-  const creativeStats: Record<string, { impressions: number; clicks: number }> = {};
+  // Build stats map: creativeId -> { impressions, clicks, conversions }
+  const creativeStats: Record<string, { impressions: number; clicks: number; conversions: number }> = {};
   for (const row of impressionStats) {
-    creativeStats[row.creativeId] = { impressions: row.impressions, clicks: 0 };
+    creativeStats[row.creativeId] = { impressions: row.impressions, clicks: 0, conversions: 0 };
   }
   for (const row of clickStats) {
     const existing = creativeStats[row.creativeId];
     if (!existing) {
-      creativeStats[row.creativeId] = { impressions: 0, clicks: row.clicks };
+      creativeStats[row.creativeId] = { impressions: 0, clicks: row.clicks, conversions: 0 };
     } else {
       existing.clicks = row.clicks;
+    }
+  }
+  for (const row of conversionStats) {
+    const existing = creativeStats[row.creativeId];
+    if (!existing) {
+      creativeStats[row.creativeId] = { impressions: 0, clicks: 0, conversions: row.conversions };
+    } else {
+      existing.conversions = row.conversions;
     }
   }
 
