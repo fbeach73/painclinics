@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Phone, Star, BadgeCheck } from 'lucide-react';
+import { ClinicImage } from '@/components/clinic/clinic-image';
 import type { FeaturedTier } from '@/components/clinic/featured-badge';
 import { StarRating } from '@/components/clinic/star-rating';
 import { ClinicImportBadge } from '@/components/clinics/clinic-import-badge';
@@ -18,8 +18,6 @@ interface FeaturedClinicCardProps {
 export function FeaturedClinicCard({ clinic, className }: FeaturedClinicCardProps) {
   const featuredTier = (clinic.featuredTier || 'basic') as FeaturedTier;
   const isPremium = featuredTier === 'premium';
-  const hasPhoto = clinic.photos && clinic.photos.length > 0;
-
   return (
     <Card
       className={cn(
@@ -40,8 +38,8 @@ export function FeaturedClinicCard({ clinic, className }: FeaturedClinicCardProp
     >
       {/* Image section with gradient overlay */}
       <div className="relative h-52 bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/30 overflow-hidden">
-        <Image
-          src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+        <ClinicImage
+          src={clinic.photos[0]}
           alt={clinic.name}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"

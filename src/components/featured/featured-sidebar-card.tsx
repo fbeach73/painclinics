@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, BadgeCheck } from 'lucide-react';
+import { ClinicImage } from '@/components/clinic/clinic-image';
 import { FeaturedBadge, type FeaturedTier } from '@/components/clinic/featured-badge';
 import { StarRating } from '@/components/clinic/star-rating';
 import { Badge } from '@/components/ui/badge';
@@ -20,8 +20,6 @@ interface FeaturedSidebarCardProps {
 export function FeaturedSidebarCard({ clinic, className }: FeaturedSidebarCardProps) {
   const featuredTier = (clinic.featuredTier || 'basic') as FeaturedTier;
   const isPremium = featuredTier === 'premium';
-  const hasPhoto = clinic.photos && clinic.photos.length > 0;
-
   return (
     <Link href={`/pain-management/${clinic.slug}/`} className="block group">
       <Card
@@ -38,8 +36,8 @@ export function FeaturedSidebarCard({ clinic, className }: FeaturedSidebarCardPr
         <div className="flex gap-3 p-3">
           {/* Thumbnail */}
           <div className="relative h-20 w-20 shrink-0 rounded-md overflow-hidden bg-muted">
-            <Image
-              src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+            <ClinicImage
+              src={clinic.photos[0]}
               alt={clinic.name}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-200"

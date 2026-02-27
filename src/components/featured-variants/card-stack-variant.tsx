@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Phone, Star, BadgeCheck, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ClinicImage } from '@/components/clinic/clinic-image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -55,8 +55,6 @@ interface StackCardProps {
 
 function StackCard({ clinic, index, isExpanded, onToggle, totalCount }: StackCardProps) {
   const isPremium = clinic.featuredTier === 'premium';
-  const hasPhoto = clinic.photos && clinic.photos.length > 0;
-
   // Calculate stacking offset for collapsed state
   const stackOffset = Math.min(index * 8, 40);
   const zIndex = totalCount - index;
@@ -86,8 +84,8 @@ function StackCard({ clinic, index, isExpanded, onToggle, totalCount }: StackCar
         <div className="flex items-stretch">
           {/* Thumbnail */}
           <div className="relative w-32 h-32 sm:w-40 sm:h-40 shrink-0">
-            <Image
-              src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+            <ClinicImage
+              src={clinic.photos[0]}
               alt={clinic.name}
               fill
               className="object-cover"

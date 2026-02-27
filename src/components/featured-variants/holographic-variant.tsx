@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Phone, Star, BadgeCheck, ExternalLink } from 'lucide-react';
+import { ClinicImage } from '@/components/clinic/clinic-image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useFeaturedClinics, featuredToClinicWithDistance } from '@/hooks/use-featured-clinics';
@@ -49,8 +49,6 @@ function HolographicCard({ clinic }: { clinic: ReturnType<typeof featuredToClini
   };
 
   const isPremium = clinic.featuredTier === 'premium';
-  const hasPhoto = clinic.photos && clinic.photos.length > 0;
-
   return (
     <div
       className="group relative"
@@ -85,8 +83,8 @@ function HolographicCard({ clinic }: { clinic: ReturnType<typeof featuredToClini
 
         {/* Image with holographic overlay */}
         <div className="relative h-48 overflow-hidden rounded-t-2xl">
-          <Image
-            src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+          <ClinicImage
+            src={clinic.photos[0]}
             alt={clinic.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"

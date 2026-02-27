@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Phone, Star, BadgeCheck, ExternalLink, Pause, Play, ChevronLeft, ChevronRight, Gauge } from 'lucide-react';
+import { ClinicImage } from '@/components/clinic/clinic-image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useFeaturedClinics, featuredToClinicWithDistance } from '@/hooks/use-featured-clinics';
@@ -236,16 +236,14 @@ interface MarqueeCardProps {
 
 function MarqueeCard({ clinic }: MarqueeCardProps) {
   const isPremium = clinic.featuredTier === 'premium';
-  const hasPhoto = clinic.photos && clinic.photos.length > 0;
-
   return (
     <div className="relative shrink-0 w-72 group">
       {/* Card with gradient border effect */}
       <div className="relative h-full bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border-2 border-cyan-200/50 dark:border-cyan-800/30 shadow-lg shadow-cyan-500/10 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20 hover:-translate-y-2 hover:scale-105">
         {/* Image section */}
         <div className="relative h-36 overflow-hidden">
-          <Image
-            src={hasPhoto && clinic.photos[0] ? clinic.photos[0] : '/images/clinic-placeholder.webp'}
+          <ClinicImage
+            src={clinic.photos[0]}
             alt={clinic.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"

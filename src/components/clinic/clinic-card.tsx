@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import { ClinicImage } from './clinic-image';
 import { MapPin, Phone, BadgeCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,8 +47,8 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
       {/* Image - featured variant only */}
       {isVariantFeatured && (
         <div className="relative h-48 bg-muted overflow-hidden">
-          <Image
-            src={clinic.photos[0] || '/images/clinic-placeholder.webp'}
+          <ClinicImage
+            src={clinic.photos[0]}
             alt={clinic.name}
             fill
             className="object-cover"
