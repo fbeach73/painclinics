@@ -193,7 +193,7 @@ export async function generateMetadata({ params, searchParams: searchParamsPromi
   }
 
   // Keep total title under ~60 chars when possible; truncate clinic name if needed
-  const locationPart = ` - ${clinic.city}, ${clinic.stateAbbreviation || stateName}`;
+  const locationPart = ` - Pain Management in ${clinic.city}, ${clinic.stateAbbreviation || stateName}`;
   const baseTitle = `${clinic.title}${locationPart}${titleSuffix}`;
   const title = baseTitle.length <= 65 ? baseTitle : `${clinic.title}${locationPart}`;
 
