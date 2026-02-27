@@ -81,9 +81,9 @@ export function DeferredAdSense({
       // Use passive listener for better scroll performance
       window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
 
-      // Also load after 7 seconds as fallback (user might not scroll on desktop)
-      // Kept well past LCP window (~4s) to avoid impacting Core Web Vitals
-      const fallbackTimer = setTimeout(loadAdSenseScript, 7000);
+      // Also load after 3 seconds as fallback (user might not scroll on desktop)
+      // Past LCP window (~2.5s) but fast enough for ad viewability and fill rates
+      const fallbackTimer = setTimeout(loadAdSenseScript, 3000);
 
       return () => {
         window.removeEventListener('scroll', handleScroll, { capture: true });
