@@ -37,6 +37,7 @@ const PRICING = {
 const BASIC_FEATURES = [
   "Featured badge on listing",
   "Priority placement in search results",
+  "Ad-free clinic page",
   "Highlighted card in directory",
   "Featured marker on map",
   "Up to 5 photos",
