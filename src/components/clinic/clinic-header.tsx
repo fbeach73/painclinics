@@ -13,6 +13,7 @@ import type { Clinic } from '@/types/clinic';
 import { ClaimListingButton } from './claim-listing-button';
 import { FeaturedBadge, type FeaturedTier } from './featured-badge';
 import { StarRating } from './star-rating';
+import { TrackableCallLink, TrackableLink } from './trackable-call-link';
 
 interface ClinicHeaderProps {
   clinic: Clinic;
@@ -211,16 +212,23 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
       {/* CTA buttons */}
       <div className="flex flex-wrap gap-3">
         <Button asChild size="lg" className="font-semibold">
-          <a href={`tel:${clinic.phone}`}>
+          <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone}>
             <Phone className="h-4 w-4" />
             Call Now
-          </a>
+          </TrackableCallLink>
         </Button>
         <Button variant="outline" size="lg" asChild className="font-semibold">
-          <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
+          <TrackableLink
+            href={googleMapsUrl}
+            clinicId={clinic.id}
+            clinicName={clinic.name}
+            eventType="directions_click"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Navigation className="h-4 w-4" />
             Get Directions
-          </a>
+          </TrackableLink>
         </Button>
       </div>
     </div>

@@ -13,6 +13,7 @@ import { ClinicGallery } from "@/components/clinic/clinic-gallery";
 import { ClinicHeroImage } from "@/components/clinic/clinic-hero-image";
 import { ClinicHeader } from "@/components/clinic/clinic-header";
 import { ClinicHours } from "@/components/clinic/clinic-hours";
+import { TrackableCallLink, TrackableLink } from "@/components/clinic/trackable-call-link";
 import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
@@ -767,15 +768,18 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                       <p className="text-sm font-medium text-muted-foreground mb-1">
                         Website
                       </p>
-                      <a
+                      <TrackableLink
                         href={stripUrlQueryParams(clinic.website)}
+                        clinicId={clinic.id}
+                        clinicName={clinic.name}
+                        eventType="website_click"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline flex items-center gap-1 min-w-0"
                       >
                         <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
                         <span className="truncate">{formatDisplayUrl(clinic.website)}</span>
-                      </a>
+                      </TrackableLink>
                     </div>
                   )}
 
@@ -797,10 +801,10 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                   {/* Call to Action */}
                   <div className="pt-2 space-y-2">
                     <Button asChild className="w-full">
-                      <a href={`tel:${clinic.phone}`}>
+                      <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone}>
                         <Phone className="h-4 w-4" />
                         Call to Schedule
-                      </a>
+                      </TrackableCallLink>
                     </Button>
                     <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
                       <a

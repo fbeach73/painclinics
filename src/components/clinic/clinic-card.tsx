@@ -11,6 +11,7 @@ import { ClinicImportBadge } from '@/components/clinics/clinic-import-badge';
 import { FeaturedBadge, type FeaturedTier } from './featured-badge';
 import { ServiceIcons, DynamicServiceIcons } from './service-icons';
 import { StarRating } from './star-rating';
+import { TrackableCallLink } from './trackable-call-link';
 
 interface ClinicCardProps {
   clinic: ClinicWithDistance;
@@ -149,7 +150,7 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
         </Button>
         {isVariantFeatured && (
           <Button variant="outline" asChild>
-            <a href={`tel:${clinic.phone}`}>Call</a>
+            <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone}>Call</TrackableCallLink>
           </Button>
         )}
       </CardFooter>

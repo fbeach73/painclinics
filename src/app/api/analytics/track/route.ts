@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { analyticsEvents } from "@/lib/schema";
 
 interface TrackRequest {
-  eventType: "pageview" | "clinic_view" | "ab_test";
+  eventType: "pageview" | "clinic_view" | "ab_test" | "phone_click" | "directions_click" | "website_click";
   path: string;
   clinicId?: string;
   referrer?: string;
@@ -36,17 +36,19 @@ export async function POST(request: Request) {
     }
 
     // Validate eventType
-    if (!["pageview", "clinic_view", "ab_test"].includes(body.eventType)) {
+    const validEventTypes = ["pageview", "clinic_view", "ab_test", "phone_click", "directions_click", "website_click"];
+    if (!validEventTypes.includes(body.eventType)) {
       return NextResponse.json(
-        { error: "Invalid eventType. Must be 'pageview', 'clinic_view', or 'ab_test'" },
+        { error: `Invalid eventType. Must be one of: ${validEventTypes.join(", ")}` },
         { status: 400 }
       );
     }
 
-    // clinic_view requires clinicId
-    if (body.eventType === "clinic_view" && !body.clinicId) {
+    // These event types require clinicId
+    const clinicRequiredTypes = ["clinic_view", "phone_click", "directions_click", "website_click"];
+    if (clinicRequiredTypes.includes(body.eventType) && !body.clinicId) {
       return NextResponse.json(
-        { error: "clinicId is required for clinic_view events" },
+        { error: "clinicId is required for clinic interaction events" },
         { status: 400 }
       );
     }
