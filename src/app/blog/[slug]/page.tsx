@@ -11,6 +11,8 @@ import type { BlogPostWithRelations } from "@/lib/blog/types";
 import { generateFAQStructuredData, generateBlogBreadcrumbSchema } from "@/lib/structured-data";
 import type { Metadata } from "next";
 
+export const revalidate = 86400; // Revalidate every 24 hours
+
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }

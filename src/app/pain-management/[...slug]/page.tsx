@@ -48,10 +48,10 @@ import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
-// Revalidate clinic pages weekly to reduce Vercel ISR costs
+// Revalidate clinic pages monthly to reduce Neon DB costs
 // Use on-demand revalidation via admin actions for immediate updates
-// 1 week cache (604800 seconds) - only ~750 ISR writes/day vs 120K+/day at 1 hour
-export const revalidate = 604800;
+// 30 days cache (2592000 seconds)
+export const revalidate = 2592000;
 
 // Check if a slug is a valid US state abbreviation
 function isValidStateAbbrev(slug: string): boolean {

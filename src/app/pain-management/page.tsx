@@ -15,7 +15,7 @@ import { DirectorySearchInput } from "@/components/search/directory-search-input
 import { SearchResultsGrouped } from "@/components/search/search-results-grouped";
 import type { Metadata } from "next";
 
-export const revalidate = 86400; // Revalidate every 24 hours
+export const revalidate = 2592000; // Revalidate every 30 days
 
 const RESULTS_PER_PAGE = 24;
 

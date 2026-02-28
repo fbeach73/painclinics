@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-// Revalidate sitemap every hour (3600 seconds)
+// Revalidate sitemap daily
 export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { searchClinics } from "@/lib/clinic-queries";
 
+export const revalidate = 86400; // Revalidate every 24 hours
+
 interface ClinicsPageProps {
   searchParams: Promise<{ q?: string }>;
 }

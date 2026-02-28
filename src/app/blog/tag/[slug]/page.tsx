@@ -3,6 +3,8 @@ import { BlogPostCard, BlogPagination, BlogSidebar } from "@/components/blog";
 import { getBlogPosts, getTagBySlug, getAllTags } from "@/lib/blog/blog-queries";
 import type { Metadata } from "next";
 
+export const revalidate = 86400; // Revalidate every 24 hours
+
 interface TagPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;

@@ -7,6 +7,8 @@ import {
 } from "@/lib/blog/blog-queries";
 import type { Metadata } from "next";
 
+export const revalidate = 86400; // Revalidate every 24 hours
+
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string }>;

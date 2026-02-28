@@ -3,6 +3,8 @@ import { BlogPostCard, BlogPagination, BlogSidebar } from "@/components/blog";
 import { getBlogPosts } from "@/lib/blog/blog-queries";
 import type { Metadata } from "next";
 
+export const revalidate = 86400; // Revalidate every 24 hours
+
 export const metadata: Metadata = {
   title: "Pain Management Blog | Pain Clinics",
   description:
