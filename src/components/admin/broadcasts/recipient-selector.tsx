@@ -289,9 +289,9 @@ export function RecipientSelector({
           <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
             <RadioGroupItem value="featured_only" id="featured_only" />
             <Label htmlFor="featured_only" className="flex-1 cursor-pointer">
-              <div className="font-medium">Featured clinics only</div>
+              <div className="font-medium">Featured clinics (non-subscribers)</div>
               <div className="text-sm text-muted-foreground">
-                Only clinics with active featured listings
+                Featured clinics excluding active paying subscribers
               </div>
             </Label>
           </div>

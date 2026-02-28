@@ -60,8 +60,9 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       break;
 
     case "featured_only":
-      conditions.push(eq(clinics.isFeatured, true));
-      break;
+      // Featured clinics excluding active paying subscribers
+      return getFeaturedNonSubscriberClinics(filters);
+
 
     case "claimed_owners":
       // Target clinics that have been claimed (have an owner) but are NOT paying subscribers
@@ -356,6 +357,104 @@ async function getSubscriberClinics(
     }));
 
   // Exclude unsubscribed users/emails if requested
+  if (filters?.excludeUnsubscribed) {
+    const unsubscribedUsers = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(isNotNull(user.emailUnsubscribedAt));
+
+    const unsubscribedUserIds = new Set(unsubscribedUsers.map((u) => u.id));
+
+    const unsubscribedEmails = await db
+      .select({ email: emailUnsubscribes.email })
+      .from(emailUnsubscribes)
+      .where(isNotNull(emailUnsubscribes.unsubscribedAt));
+
+    const unsubscribedEmailSet = new Set(unsubscribedEmails.map((e) => e.email.toLowerCase()));
+
+    targetClinics = targetClinics.filter((c) => {
+      if (c.ownerUserId && unsubscribedUserIds.has(c.ownerUserId)) {
+        return false;
+      }
+      if (unsubscribedEmailSet.has(c.email.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  return targetClinics;
+}
+
+/**
+ * Get featured clinics that do NOT have active subscriptions
+ * These are free featured listings (not paying customers)
+ */
+async function getFeaturedNonSubscriberClinics(
+  filters?: TargetFilters
+): Promise<ClinicEmail[]> {
+  const activeSubscriptions = await db
+    .select({ clinicId: featuredSubscriptions.clinicId })
+    .from(featuredSubscriptions)
+    .where(eq(featuredSubscriptions.status, "active"));
+
+  const activeSubscriberIds = new Set(activeSubscriptions.map((s) => s.clinicId));
+
+  const result = await db
+    .select({
+      clinicId: clinics.id,
+      clinicName: clinics.title,
+      emails: clinics.emails,
+      ownerUserId: clinics.ownerUserId,
+      permalink: clinics.permalink,
+      city: clinics.city,
+      state: clinics.state,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      website: clinics.website,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+    })
+    .from(clinics)
+    .where(
+      and(
+        eq(clinics.status, "published"),
+        eq(clinics.isFeatured, true),
+        isNotNull(clinics.emails),
+        sql`array_length(${clinics.emails}, 1) > 0`
+      )
+    );
+
+  let targetClinics: ClinicEmail[] = result
+    .filter((c) => {
+      if (!c.emails || c.emails.length === 0 || !c.emails[0]) return false;
+      if (activeSubscriberIds.has(c.clinicId)) return false;
+      return true;
+    })
+    .map((c) => ({
+      clinicId: c.clinicId,
+      clinicName: c.clinicName,
+      email: c.emails![0] as string,
+      bccEmails: c.emails!.length > 1 ? c.emails!.slice(1).join(",") : null,
+      ownerUserId: c.ownerUserId,
+      permalink: c.permalink,
+      city: c.city,
+      state: c.state,
+      stateAbbreviation: c.stateAbbreviation,
+      streetAddress: c.streetAddress,
+      postalCode: c.postalCode,
+      phone: c.phone,
+      website: c.website,
+      rating: c.rating,
+      reviewCount: c.reviewCount,
+      isFeatured: c.isFeatured,
+      featuredTier: c.featuredTier,
+    }));
+
   if (filters?.excludeUnsubscribed) {
     const unsubscribedUsers = await db
       .select({ id: user.id })
