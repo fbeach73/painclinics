@@ -17,6 +17,7 @@ import {
   PenSquare,
   Activity,
   Send,
+  RotateCw,
   Users,
   UserCheck,
   ChevronLeft,
@@ -44,6 +45,7 @@ const navItems = [
   { href: "/admin/stats", label: "Site Stats", icon: Activity },
   { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/broadcasts", label: "Broadcasts", icon: Send },
+  { href: "/admin/rotation", label: "Rotation", icon: RotateCw },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

@@ -1122,6 +1122,7 @@ export const clinicsRelations = relations(clinics, ({ one, many }) => ({
   clinicServices: many(clinicServices),
   clinicInsurance: many(clinicInsurance),
   analyticsEvents: many(analyticsEvents),
+  rotationLogs: many(featuredRotationLog),
 }));
 
 export const clinicClaimsRelations = relations(clinicClaims, ({ one }) => ({
@@ -1526,6 +1527,47 @@ export const adConversionsRelations = relations(adConversions, ({ one }) => ({
     references: [adClicks.clickId],
   }),
 }));
+
+// ============================================
+// Featured Rotation Log Table
+// ============================================
+
+export const featuredRotationLog = pgTable(
+  "featured_rotation_log",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    featuredAt: timestamp("featured_at").notNull(),
+    unfeaturedAt: timestamp("unfeatured_at"),
+    batchId: text("batch_id").notNull(),
+    broadcastId: text("broadcast_id").references(() => emailBroadcasts.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("featured_rotation_log_clinic_idx").on(table.clinicId),
+    index("featured_rotation_log_batch_idx").on(table.batchId),
+    index("featured_rotation_log_featured_at_idx").on(table.featuredAt),
+    index("featured_rotation_log_unfeatured_at_idx").on(table.unfeaturedAt),
+  ]
+);
+
+export const featuredRotationLogRelations = relations(
+  featuredRotationLog,
+  ({ one }) => ({
+    clinic: one(clinics, {
+      fields: [featuredRotationLog.clinicId],
+      references: [clinics.id],
+    }),
+    broadcast: one(emailBroadcasts, {
+      fields: [featuredRotationLog.broadcastId],
+      references: [emailBroadcasts.id],
+    }),
+  })
+);
 
 export const webhookEvents = pgTable(
   "webhook_events",
