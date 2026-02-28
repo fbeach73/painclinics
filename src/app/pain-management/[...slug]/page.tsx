@@ -43,7 +43,6 @@ import {
   generateFAQStructuredData,
 } from "@/lib/structured-data";
 import { US_STATES_REVERSE, getStateName } from "@/lib/us-states";
-import { shouldUseHostedAds } from "@/lib/ad-decision";
 import { formatDisplayUrl, stripUrlQueryParams } from "@/lib/utils";
 import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
@@ -509,10 +508,9 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   }
 
   // Fetch services, insurance, and ad decision in parallel
-  const [clinicServices, insuranceSlugs, useHostedAds] = await Promise.all([
+  const [clinicServices, insuranceSlugs] = await Promise.all([
     getClinicServices(dbClinic.id),
     getClinicInsuranceSlugs(dbClinic.id),
-    shouldUseHostedAds(),
   ]);
 
   // Add services and insurance to the clinic record for transformation
@@ -567,7 +565,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
               <TopLeaderboardAd
                 placement="clinic-top-leaderboard"
                 path={`/pain-management/${slugPath}`}
-                useHostedAds={useHostedAds}
+
               />
             </div>
           )}
@@ -639,7 +637,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                   placement="clinic-above-image"
                   path={`/pain-management/${slugPath}`}
                   showLabel={false}
-                  useHostedAds={useHostedAds}
+  
                 />
               )}
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
@@ -660,7 +658,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 <AdSlotClient
                   placement="clinic-above-fold"
                   path={`/pain-management/${slugPath}`}
-                  useHostedAds={useHostedAds}
+  
                 />
               </div>
             )}
@@ -690,7 +688,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 <AdSlotClient
                   placement="clinic-mid-content"
                   path={`/pain-management/${slugPath}`}
-                  useHostedAds={useHostedAds}
+  
                 />
               )}
 

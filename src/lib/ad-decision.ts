@@ -1,33 +1,12 @@
-import { db } from "@/lib/db";
-import { adSettings } from "@/lib/schema";
-import { eq } from "drizzle-orm";
-import { unstable_cache } from "next/cache";
-
 /**
- * Fetch the global ad server percentage, cached for 60s.
- */
-const getAdServerPercentage = unstable_cache(
-  async () => {
-    const row = await db
-      .select({ adServerPercentage: adSettings.adServerPercentage })
-      .from(adSettings)
-      .where(eq(adSettings.id, 1))
-      .limit(1);
-    return row[0]?.adServerPercentage ?? 0;
-  },
-  ["ad-server-percentage"],
-  { revalidate: 60 }
-);
-
-/**
- * Decide whether the current page load should use hosted ads.
- * Call ONCE per page render, pass result to all <AdSlot> instances.
+ * Per-placement ad decision: each slot independently checks for an active
+ * hosted campaign via /api/ads/serve. If none exists, AdSense fills.
  *
- * Returns true if hosted ads should be shown, false for AdSense.
+ * The global traffic-split percentage is no longer used. This file is kept
+ * for backwards compatibility but the function always returns true so that
+ * callers attempt the hosted-ad path (which naturally falls back to AdSense
+ * when no campaign is assigned).
  */
 export async function shouldUseHostedAds(): Promise<boolean> {
-  const percentage = await getAdServerPercentage();
-  if (percentage <= 0) return false;
-  if (percentage >= 100) return true;
-  return Math.random() * 100 < percentage;
+  return true;
 }

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
 import { AdSlot } from '@/components/ads';
-import { shouldUseHostedAds } from '@/lib/ad-decision';
 import { LazyHomepageFeaturedSection } from '@/components/featured';
 import {
   FindClinicSection,
@@ -106,10 +105,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
-  const [{ states, totalClinics, popularStates, topCities, recentPosts }, useHostedAds] = await Promise.all([
-    getHomepageData(),
-    shouldUseHostedAds(),
-  ]);
+  const { states, totalClinics, popularStates, topCities, recentPosts } = await getHomepageData();
 
   // Generate structured data schemas
   const websiteSchema = generateWebSiteSchema(baseUrl, totalClinics);
@@ -150,7 +146,7 @@ export default async function Home() {
 
         {/* Single In-Page Ad */}
         <section className="container mx-auto py-6">
-          <AdSlot placement="homepage-mid" path="/" useHostedAds={useHostedAds} />
+          <AdSlot placement="homepage-mid" path="/" />
         </section>
 
         {/* Popular Searches Section */}

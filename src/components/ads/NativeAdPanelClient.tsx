@@ -23,12 +23,6 @@ export function NativeAdPanelClient() {
 
     async function load() {
       try {
-        const decisionRes = await fetch("/api/ads/decision", { cache: "no-store" });
-        if (!decisionRes.ok) return;
-        const { useHostedAds } = (await decisionRes.json()) as { useHostedAds: boolean };
-
-        if (cancelled || !useHostedAds) return;
-
         const params = new URLSearchParams({
           placement: PLACEMENT,
           path: pathname,

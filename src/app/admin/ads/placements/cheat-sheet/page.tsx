@@ -153,8 +153,8 @@ export default async function CheatSheetPage() {
                     />
                     <span className="text-xs text-muted-foreground">
                       {hasFill
-                        ? `${activeCampaigns.length} active campaign${activeCampaigns.length !== 1 ? "s" : ""}`
-                        : "No active ads — AdSense fallback"}
+                        ? `Hosted — ${activeCampaigns.length} active campaign${activeCampaigns.length !== 1 ? "s" : ""}`
+                        : "AdSense — no active campaigns"}
                     </span>
                   </div>
                 </div>

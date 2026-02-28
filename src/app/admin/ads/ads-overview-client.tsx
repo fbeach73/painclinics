@@ -22,7 +22,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChartContainer,
@@ -41,10 +40,6 @@ type StatsResponse = {
   topCreatives: CreativeStats[];
 };
 
-type SettingsResponse = {
-  adServerPercentage: number;
-};
-
 const chartConfig = {
   impressions: { label: "Impressions", color: "hsl(215, 70%, 55%)" },
   clicks: { label: "Clicks", color: "hsl(150, 60%, 45%)" },
@@ -57,11 +52,6 @@ export function AdsOverviewClient() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState(false);
 
-  const [adPercentage, setAdPercentage] = useState(0);
-  const [sliderValue, setSliderValue] = useState(0);
-  const [settingsLoading, setSettingsLoading] = useState(true);
-  const [settingsSaving, setSettingsSaving] = useState(false);
-  const [settingsSaved, setSettingsSaved] = useState(false);
 
   async function fetchStats() {
     setStatsLoading(true);
@@ -80,46 +70,11 @@ export function AdsOverviewClient() {
     }
   }
 
-  async function fetchSettings() {
-    setSettingsLoading(true);
-    try {
-      const r = await fetch("/api/admin/ads/settings");
-      const data = (await r.json()) as SettingsResponse;
-      setAdPercentage(data.adServerPercentage);
-      setSliderValue(data.adServerPercentage);
-      setSettingsLoading(false);
-    } catch {
-      setSettingsLoading(false);
-    }
-  }
-
-  function saveSettings() {
-    setSettingsSaving(true);
-    setSettingsSaved(false);
-    fetch("/api/admin/ads/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ adServerPercentage: sliderValue }),
-    })
-      .then((r) => r.json())
-      .then(() => {
-        setAdPercentage(sliderValue);
-        setSettingsSaving(false);
-        setSettingsSaved(true);
-        setTimeout(() => setSettingsSaved(false), 2000);
-      })
-      .catch(() => setSettingsSaving(false));
-  }
 
   useEffect(() => {
     void fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range]);
-
-  useEffect(() => {
-    void fetchSettings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const overview = stats?.overview ?? {
     impressions: 0,
@@ -333,55 +288,21 @@ export function AdsOverviewClient() {
         </CardContent>
       </Card>
 
-      {/* Ad server percentage control */}
+      {/* Ad serving info */}
       <Card>
         <CardHeader>
-          <CardTitle>Ad Server Traffic Split</CardTitle>
+          <CardTitle>Ad Serving</CardTitle>
           <CardDescription>
-            Percentage of page requests that are eligible to receive ads from
-            the direct ad server (vs. falling back to AdSense).
+            Each placement independently checks for an active hosted campaign.
+            If one exists, it serves the hosted ad. Otherwise, AdSense fills the slot.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {settingsLoading ? (
-            <p className="text-sm text-muted-foreground">Loading settings…</p>
-          ) : (
-            <>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={sliderValue}
-                  onChange={(e) => setSliderValue(Number(e.target.value))}
-                  className="flex-1 h-2 accent-primary cursor-pointer"
-                />
-                <Badge variant="secondary" className="min-w-[56px] justify-center text-base font-mono">
-                  {sliderValue}%
-                </Badge>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={saveSettings}
-                  disabled={settingsSaving || sliderValue === adPercentage}
-                  size="sm"
-                >
-                  {settingsSaving ? "Saving…" : "Save"}
-                </Button>
-                {settingsSaved && (
-                  <span className="text-sm text-green-600 dark:text-green-400">
-                    Saved
-                  </span>
-                )}
-                {sliderValue !== adPercentage && !settingsSaving && (
-                  <span className="text-xs text-muted-foreground">
-                    Current: {adPercentage}% → New: {sliderValue}%
-                  </span>
-                )}
-              </div>
-            </>
-          )}
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            To serve hosted ads on a placement, create a campaign, upload creatives,
+            and assign it to the desired placement. All unassigned placements
+            automatically show AdSense.
+          </p>
         </CardContent>
       </Card>
 

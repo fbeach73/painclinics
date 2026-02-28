@@ -9,7 +9,6 @@ import {
 import { extractFAQsFromContent } from "@/lib/blog/seo/faq-extractor";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
 import { generateFAQStructuredData, generateBlogBreadcrumbSchema } from "@/lib/structured-data";
-import { shouldUseHostedAds } from "@/lib/ad-decision";
 import type { Metadata } from "next";
 
 interface BlogPostPageProps {
@@ -74,11 +73,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  // Get related posts and ad decision in parallel
-  const [relatedPosts, useHostedAds] = await Promise.all([
-    getRelatedPosts(post.id, 3),
-    shouldUseHostedAds(),
-  ]);
+  const relatedPosts = await getRelatedPosts(post.id, 3);
 
   // Build structured data
   const categories = post.postCategories.map((pc) => pc.category);
@@ -155,7 +150,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <AdSlot
             placement="blog-mid-content"
             path={`/blog/${post.slug}`}
-            useHostedAds={useHostedAds}
           />
         </div>
 

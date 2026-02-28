@@ -46,17 +46,6 @@ export function StickyAnchorAd() {
 
     async function decide() {
       try {
-        const decisionRes = await fetch("/api/ads/decision", { cache: "no-store" });
-        if (!decisionRes.ok) throw new Error("decision fetch failed");
-        const { useHostedAds } = (await decisionRes.json()) as { useHostedAds: boolean };
-
-        if (cancelled) return;
-
-        if (!useHostedAds) {
-          setState({ status: "adsense" });
-          return;
-        }
-
         const params = new URLSearchParams({ placement: PLACEMENT, path: pathname });
         const adRes = await fetch(`/api/ads/serve?${params}`, { cache: "no-store" });
         if (!adRes.ok) throw new Error("serve fetch failed");

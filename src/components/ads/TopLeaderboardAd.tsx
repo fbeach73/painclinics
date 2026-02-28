@@ -21,13 +21,11 @@ type AdState =
 interface TopLeaderboardAdProps {
   placement: string;
   path: string;
-  useHostedAds?: boolean;
 }
 
 export function TopLeaderboardAd({
   placement,
   path,
-  useHostedAds: preResolvedDecision,
 }: TopLeaderboardAdProps) {
   const [state, setState] = useState<AdState>({ status: "loading" });
   const [minimized, setMinimized] = useState(false);
@@ -38,29 +36,12 @@ export function TopLeaderboardAd({
     setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
   }, []);
 
-  // Fetch ad decision
+  // Fetch hosted ad — fall back to AdSense if none
   useEffect(() => {
     let cancelled = false;
 
     async function decide() {
       try {
-        let shouldUseHosted: boolean;
-        if (preResolvedDecision !== undefined) {
-          shouldUseHosted = preResolvedDecision;
-        } else {
-          const decisionRes = await fetch("/api/ads/decision", { cache: "no-store" });
-          if (!decisionRes.ok) throw new Error("decision fetch failed");
-          const data = (await decisionRes.json()) as { useHostedAds: boolean };
-          shouldUseHosted = data.useHostedAds;
-        }
-
-        if (cancelled) return;
-
-        if (!shouldUseHosted) {
-          setState({ status: "adsense" });
-          return;
-        }
-
         const params = new URLSearchParams({ placement, path });
         const adRes = await fetch(`/api/ads/serve?${params}`, { cache: "no-store" });
         if (!adRes.ok) throw new Error("serve fetch failed");
@@ -76,20 +57,10 @@ export function TopLeaderboardAd({
     void decide();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, path, preResolvedDecision]);
+  }, [placement, path]);
 
-  // Loading placeholder
-  if (state.status === "loading") {
-    return (
-      <div
-        className="contain-layout"
-        style={{ minHeight: "90px" }}
-        aria-hidden="true"
-      />
-    );
-  }
-
-  if (state.status === "hidden" || dismissed) return null;
+  // Don't render anything while loading, hidden, or dismissed
+  if (state.status === "loading" || state.status === "hidden" || dismissed) return null;
 
   function handleDismiss() {
     sessionStorage.setItem(DISMISS_KEY, "1");
@@ -97,6 +68,15 @@ export function TopLeaderboardAd({
   }
 
   const isHosted = state.status === "hosted";
+
+  // For AdSense: render without the SPONSORED card wrapper — AdSense provides its own label
+  if (state.status === "adsense") {
+    return (
+      <InPageAd slot={getAdsenseSlotId(placement)} format={getAdsenseFormat(placement)} />
+    );
+  }
+
+  // Hosted ad: render in the styled card container
   const headline = isHosted ? state.ad.creative.headline : null;
 
   return (
@@ -132,24 +112,17 @@ export function TopLeaderboardAd({
           opacity: minimized ? 0 : 1,
         }}
       >
-        {state.status === "adsense" && (
-          <InPageAd slot={getAdsenseSlotId(placement)} format={getAdsenseFormat(placement)} />
+        {state.ad.creative.creativeType === "image_banner" && (
+          <BannerAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} placement={placement} />
         )}
-        {isHosted && (
-          <>
-            {state.ad.creative.creativeType === "image_banner" && (
-              <BannerAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} placement={placement} />
-            )}
-            {state.ad.creative.creativeType === "html" && (
-              <HtmlAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} />
-            )}
-            {state.ad.creative.creativeType === "text" && (
-              <TextAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} />
-            )}
-            {state.ad.creative.creativeType === "native" && (
-              <NativeAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} />
-            )}
-          </>
+        {state.ad.creative.creativeType === "html" && (
+          <HtmlAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} />
+        )}
+        {state.ad.creative.creativeType === "text" && (
+          <TextAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} />
+        )}
+        {state.ad.creative.creativeType === "native" && (
+          <NativeAd creative={state.ad.creative} clickUrl={state.ad.clickUrl} />
         )}
       </div>
     </div>

@@ -11,8 +11,6 @@ interface AdSlotProps {
   placement: string;
   /** Current page path for impression tracking */
   path: string;
-  /** Whether to attempt serving hosted ads (from shouldUseHostedAds()) */
-  useHostedAds: boolean;
   /** Optional className passed to AdPlacement wrapper */
   className?: string;
   /** Whether to show the "Advertisement" label (default true) */
@@ -22,24 +20,13 @@ interface AdSlotProps {
 export async function AdSlot({
   placement,
   path,
-  useHostedAds,
   className,
   showLabel = true,
 }: AdSlotProps) {
   const cls = className ?? "";
   const hostedOnly = isHostedOnly(placement);
 
-  // AdSense mode — skip entirely for hosted-only placements
-  if (!useHostedAds) {
-    if (hostedOnly) return null;
-    return (
-      <AdPlacement className={cls} showLabel={showLabel}>
-        <InPageAd slot={getAdsenseSlotId(placement)} format={getAdsenseFormat(placement)} />
-      </AdPlacement>
-    );
-  }
-
-  // Hosted ads mode — try to find an eligible creative
+  // Always try to find a hosted ad for this placement
   const allowedTypes = getAllowedTypes(placement);
   const allowedRatios = getAllowedRatios(placement);
   const ad = await getAdForPlacement(placement, path, allowedTypes, allowedRatios);

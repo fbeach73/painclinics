@@ -14,8 +14,6 @@ interface AdSlotClientProps {
   path: string;
   className?: string;
   showLabel?: boolean;
-  /** Pre-resolved ad decision from server. Skips /api/ads/decision fetch when provided. */
-  useHostedAds?: boolean;
 }
 
 /** Placements that only render hosted ads — no AdSense fallback */
@@ -28,16 +26,14 @@ type AdState =
   | { status: "hidden" };
 
 /**
- * Client-side ad slot that makes its own ad-type decision on every page load.
- * This bypasses ISR caching so the traffic split is applied per-visitor, not
- * per ISR regeneration cycle.
+ * Client-side ad slot. Tries /api/ads/serve for a hosted campaign first;
+ * if none exists, falls back to AdSense (unless hosted-only placement).
  */
 export function AdSlotClient({
   placement,
   path,
   className,
   showLabel = true,
-  useHostedAds: preResolvedDecision,
 }: AdSlotClientProps) {
   const [state, setState] = useState<AdState>({ status: "loading" });
   const cls = className ?? "";
@@ -48,26 +44,6 @@ export function AdSlotClient({
 
     async function decide() {
       try {
-        // Use pre-resolved decision if available (batched server-side),
-        // otherwise fall back to per-slot /api/ads/decision fetch
-        let shouldUseHosted: boolean;
-        if (preResolvedDecision !== undefined) {
-          shouldUseHosted = preResolvedDecision;
-        } else {
-          const decisionRes = await fetch("/api/ads/decision", { cache: "no-store" });
-          if (!decisionRes.ok) throw new Error("decision fetch failed");
-          const data = (await decisionRes.json()) as { useHostedAds: boolean };
-          shouldUseHosted = data.useHostedAds;
-        }
-
-        if (cancelled) return;
-
-        if (!shouldUseHosted) {
-          setState(hostedOnly ? { status: "hidden" } : { status: "adsense" });
-          return;
-        }
-
-        // Fetch a hosted ad for this placement
         const params = new URLSearchParams({ placement, path });
         const adRes = await fetch(`/api/ads/serve?${params}`, { cache: "no-store" });
         if (!adRes.ok) throw new Error("serve fetch failed");
@@ -75,10 +51,10 @@ export function AdSlotClient({
 
         if (cancelled) return;
 
-        if (!ad) {
-          setState(hostedOnly ? { status: "hidden" } : { status: "adsense" });
-        } else {
+        if (ad) {
           setState({ status: "hosted", ad });
+        } else {
+          setState(hostedOnly ? { status: "hidden" } : { status: "adsense" });
         }
       } catch {
         if (!cancelled) {
@@ -90,7 +66,7 @@ export function AdSlotClient({
     void decide();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placement, path, preResolvedDecision]);
+  }, [placement, path]);
 
   if (state.status === "loading") {
     // Render an invisible placeholder to reserve space and avoid CLS
