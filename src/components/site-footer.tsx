@@ -26,7 +26,6 @@ const companyLinks = [
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
   { label: "Submit a Clinic", href: "/submit-clinic" },
-  { label: "Advertise With Us", href: "/for-clinics" },
   { label: "FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap-page" },
 ];
@@ -123,7 +122,16 @@ export async function SiteFooter() {
           <FooterLinkColumn title="Legal" links={legalLinks} />
 
           {/* Column 4: Company */}
-          <FooterLinkColumn title="Company" links={companyLinks} />
+          <div>
+            <FooterLinkColumn title="Company" links={companyLinks} />
+            <Link
+              href="/for-clinics"
+              className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Feature Your Clinic
+            </Link>
+          </div>
 
           {/* Column 5: Popular Locations (Dynamic) */}
           <div>
