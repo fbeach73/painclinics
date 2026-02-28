@@ -8,8 +8,12 @@
   },
   "crons": [
     {
-      "path": "/api/cron/rotate-featured",
+      "path": "/api/cron/rotation-email",
       "schedule": "0 10 * * 1"
+    },
+    {
+      "path": "/api/cron/rotate-featured",
+      "schedule": "0 10 * * 2"
     }
   ]
 }

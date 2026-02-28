@@ -5,6 +5,7 @@ import {
   clinics,
   featuredSubscriptions,
   featuredRotationLog,
+  rotationConfig,
 } from "@/lib/schema";
 
 export interface RotationResult {
@@ -307,4 +308,56 @@ export async function linkBroadcastToBatch(
     .update(featuredRotationLog)
     .set({ broadcastId })
     .where(eq(featuredRotationLog.batchId, batchId));
+}
+
+// ============================================
+// Rotation Config (email template + settings)
+// ============================================
+
+export interface RotationConfigData {
+  emailSubject: string;
+  emailPreviewText: string | null;
+  emailHtmlContent: string;
+  batchSize: number;
+}
+
+/**
+ * Get the rotation config (email template + batch size).
+ * Returns null if not configured yet.
+ */
+export async function getRotationConfig(): Promise<RotationConfigData | null> {
+  const config = await db.query.rotationConfig.findFirst();
+  if (!config) return null;
+  return {
+    emailSubject: config.emailSubject,
+    emailPreviewText: config.emailPreviewText,
+    emailHtmlContent: config.emailHtmlContent,
+    batchSize: config.batchSize,
+  };
+}
+
+/**
+ * Save rotation config (upsert — single row).
+ */
+export async function saveRotationConfig(data: RotationConfigData) {
+  const existing = await db.query.rotationConfig.findFirst();
+  if (existing) {
+    await db
+      .update(rotationConfig)
+      .set({
+        emailSubject: data.emailSubject,
+        emailPreviewText: data.emailPreviewText,
+        emailHtmlContent: data.emailHtmlContent,
+        batchSize: data.batchSize,
+        updatedAt: new Date(),
+      })
+      .where(eq(rotationConfig.id, existing.id));
+  } else {
+    await db.insert(rotationConfig).values({
+      emailSubject: data.emailSubject,
+      emailPreviewText: data.emailPreviewText,
+      emailHtmlContent: data.emailHtmlContent,
+      batchSize: data.batchSize,
+    });
+  }
 }

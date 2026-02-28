@@ -1529,6 +1529,24 @@ export const adConversionsRelations = relations(adConversions, ({ one }) => ({
 }));
 
 // ============================================
+// Featured Rotation Config Table (single row)
+// ============================================
+
+export const rotationConfig = pgTable("rotation_config", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  emailSubject: text("email_subject").notNull(),
+  emailPreviewText: text("email_preview_text"),
+  emailHtmlContent: text("email_html_content").notNull(),
+  batchSize: integer("batch_size").default(150).notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// ============================================
 // Featured Rotation Log Table
 // ============================================
 

@@ -17,8 +17,13 @@ import {
 import {
   getRotationHistory,
   getCurrentRotationBatch,
+  getRotationConfig,
 } from "@/lib/rotation/featured-rotation";
-import { RotateNowButton } from "./rotation-actions";
+import {
+  RotateNowButton,
+  RotationEmailTemplate,
+  ManualSendButton,
+} from "./rotation-actions";
 
 export const metadata = {
   title: "Featured Rotation - Admin",
@@ -37,12 +42,20 @@ function formatDate(date: Date | null) {
 }
 
 export default async function RotationPage() {
-  const [currentBatch, history] = await Promise.all([
+  const [currentBatch, history, config] = await Promise.all([
     getCurrentRotationBatch(),
     getRotationHistory(),
+    getRotationConfig(),
   ]);
 
   const uniqueStates = new Set(currentBatch.map((c) => c.clinicState));
+  const currentBatchId = currentBatch[0]?.batchId ?? null;
+
+  // Check if current batch already has a broadcast linked
+  const currentBatchHistory = currentBatchId
+    ? history.find((h) => h.batchId === currentBatchId)
+    : null;
+  const batchHasBroadcast = !!currentBatchHistory?.broadcastId;
 
   return (
     <div className="space-y-6">
@@ -52,7 +65,7 @@ export default async function RotationPage() {
             Featured Rotation
           </h1>
           <p className="text-muted-foreground">
-            Rotate featured clinics weekly to prospect clinic owners
+            Monday: email current batch. Tuesday: rotate to new batch.
           </p>
         </div>
       </div>
@@ -68,7 +81,17 @@ export default async function RotationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <RotateNowButton />
+          <RotateNowButton savedBatchSize={config?.batchSize ?? 150} />
+
+          {batchHasBroadcast && (
+            <Badge variant="default">Email sent to this batch</Badge>
+          )}
+
+          <ManualSendButton
+            hasBatch={currentBatch.length > 0}
+            batchHasBroadcast={batchHasBroadcast}
+            clinicCount={currentBatch.length}
+          />
 
           {currentBatch.length > 0 && (
             <div className="max-h-96 overflow-auto rounded border">
@@ -96,6 +119,9 @@ export default async function RotationPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Email Template */}
+      <RotationEmailTemplate initialConfig={config} />
 
       {/* Rotation History */}
       <Card>
