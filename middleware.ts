@@ -187,6 +187,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Block legacy WordPress paths and vulnerability scanner probes at the edge
+  if (
+    pathname.startsWith("/wp-") ||
+    pathname.startsWith("/wordpress") ||
+    pathname === "/xmlrpc.php" ||
+    pathname === "/login" ||
+    pathname === "/signin" ||
+    pathname === "/sign-in" ||
+    pathname === "/user/login" ||
+    pathname === "/account/login" ||
+    pathname === "/customer/login"
+  ) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
   // Skip API routes from bot blocking (but not rate limiting)
   const isApiRoute = pathname.startsWith("/api");
 
