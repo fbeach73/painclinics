@@ -18,7 +18,7 @@ import type { NextRequest } from "next/server";
 // ============================
 const ipHits = new Map<string, { count: number; windowStart: number }>();
 const RATE_WINDOW_MS = 60_000; // 1 minute
-const MAX_HITS_PER_WINDOW = 15; // 15 page requests per minute per IP
+const MAX_HITS_PER_WINDOW = 60; // 60 page requests per minute per IP
 const CLEANUP_INTERVAL = 120_000; // Clean stale entries every 2 min
 let lastCleanup = Date.now();
 
