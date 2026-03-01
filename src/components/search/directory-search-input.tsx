@@ -1,30 +1,31 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 interface DirectorySearchInputProps {
   initialQuery?: string | undefined;
+  onSearch: (query: string) => void;
+  onClear: () => void;
+  isSearching: boolean;
 }
 
-export function DirectorySearchInput({ initialQuery }: DirectorySearchInputProps) {
-  const router = useRouter();
+export function DirectorySearchInput({ initialQuery, onSearch, onClear, isSearching }: DirectorySearchInputProps) {
   const [query, setQuery] = useState(initialQuery ?? '');
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = query.trim();
     if (trimmed.length >= 2) {
-      router.push(`/pain-management?q=${encodeURIComponent(trimmed)}`, { scroll: false });
+      onSearch(trimmed);
     }
   }
 
   function handleClear() {
     setQuery('');
-    router.push('/pain-management', { scroll: false });
+    onClear();
   }
 
   return (
@@ -41,7 +42,7 @@ export function DirectorySearchInput({ initialQuery }: DirectorySearchInputProps
         autoComplete="off"
       />
       <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-        {query.length > 0 && (
+        {(query.length > 0 || isSearching) && (
           <Button
             type="button"
             variant="ghost"

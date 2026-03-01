@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { MapPin, Phone, Star, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -13,20 +15,20 @@ interface SearchResultsGroupedProps {
   currentPage: number;
   totalPages: number;
   resultsPerPage: number;
+  onPageChange: (page: number) => void;
+  onClear: () => void;
 }
 
 function SearchPagination({
-  query,
   currentPage,
   totalPages,
+  onPageChange,
 }: {
-  query: string;
   currentPage: number;
   totalPages: number;
+  onPageChange: (page: number) => void;
 }) {
   if (totalPages <= 1) return null;
-
-  const baseHref = `/pain-management?q=${encodeURIComponent(query)}`;
 
   // Build page numbers to show: current +/- 2, plus first and last
   const pages: (number | 'ellipsis')[] = [];
@@ -43,21 +45,12 @@ function SearchPagination({
       <Button
         variant="outline"
         size="sm"
-        asChild={currentPage > 1}
         disabled={currentPage <= 1}
+        onClick={() => onPageChange(currentPage - 1)}
         className="gap-1"
       >
-        {currentPage > 1 ? (
-          <Link href={`${baseHref}&page=${currentPage - 1}`}>
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </Link>
-        ) : (
-          <span>
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </span>
-        )}
+        <ChevronLeft className="h-4 w-4" />
+        Previous
       </Button>
 
       <div className="flex items-center gap-1 mx-2">
@@ -71,14 +64,11 @@ function SearchPagination({
               key={page}
               variant={page === currentPage ? 'default' : 'outline'}
               size="sm"
-              asChild={page !== currentPage}
+              onClick={() => onPageChange(page)}
+              disabled={page === currentPage}
               className="min-w-[36px]"
             >
-              {page === currentPage ? (
-                <span>{page}</span>
-              ) : (
-                <Link href={`${baseHref}&page=${page}`}>{page}</Link>
-              )}
+              {page}
             </Button>
           )
         )}
@@ -87,21 +77,12 @@ function SearchPagination({
       <Button
         variant="outline"
         size="sm"
-        asChild={currentPage < totalPages}
         disabled={currentPage >= totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
         className="gap-1"
       >
-        {currentPage < totalPages ? (
-          <Link href={`${baseHref}&page=${currentPage + 1}`}>
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        ) : (
-          <span>
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </span>
-        )}
+        Next
+        <ChevronRight className="h-4 w-4" />
       </Button>
     </nav>
   );
@@ -114,6 +95,8 @@ export function SearchResultsGrouped({
   currentPage,
   totalPages,
   resultsPerPage,
+  onPageChange,
+  onClear,
 }: SearchResultsGroupedProps) {
   if (totalResults === 0) {
     return (
@@ -123,9 +106,7 @@ export function SearchResultsGrouped({
         <p className="text-muted-foreground mb-6">
           No clinics matched &ldquo;{query}&rdquo;. Try a different search or browse by state.
         </p>
-        <Button asChild>
-          <Link href="/pain-management">Browse All States</Link>
-        </Button>
+        <Button onClick={onClear}>Browse All States</Button>
       </div>
     );
   }
@@ -163,8 +144,8 @@ export function SearchResultsGrouped({
           )}
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/pain-management">Clear Search</Link>
+          <Button variant="outline" size="sm" onClick={onClear}>
+            Clear Search
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/pain-management#states">Browse All States</Link>
@@ -174,7 +155,7 @@ export function SearchResultsGrouped({
 
       {/* Top pagination */}
       <div className="mb-8">
-        <SearchPagination query={query} currentPage={currentPage} totalPages={totalPages} />
+        <SearchPagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
       </div>
 
       {/* Grouped results */}
@@ -214,7 +195,7 @@ export function SearchResultsGrouped({
                       {clinic.rating !== null && clinic.reviewCount !== null && clinic.rating > 0 && (
                         <div className="flex items-center gap-1 text-sm">
                           <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{clinic.rating.toFixed(1)}</span>
+                          <span className="font-medium">{Number(clinic.rating).toFixed(1)}</span>
                           <span className="text-muted-foreground">({clinic.reviewCount})</span>
                         </div>
                       )}
@@ -244,7 +225,7 @@ export function SearchResultsGrouped({
 
       {/* Bottom pagination */}
       <div className="mt-10">
-        <SearchPagination query={query} currentPage={currentPage} totalPages={totalPages} />
+        <SearchPagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
       </div>
     </div>
   );
