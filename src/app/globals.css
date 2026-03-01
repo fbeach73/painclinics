@@ -347,6 +347,11 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
   animation: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
 }
 
+/* CSS containment for ad placements — prevents layout thrashing */
+.contain-layout {
+  contain: layout;
+}
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .badge-animate,

@@ -114,7 +114,7 @@ export default function RootLayout({
         <VercelAnalytics />
         {/* Deferred third-party scripts for better PageSpeed scores */}
         <DeferredGTM gtmId="GTM-ZGCKNRS" delayMs={2000} />
-        {/* AdSense loads on scroll (or after 8s fallback) to improve PageSpeed */}
+        {/* AdSense loads on scroll (or after 3s fallback) to improve PageSpeed */}
         <DeferredAdSense clientId="ca-pub-5028121986513144" strategy="scroll" />
       </body>
     </html>
