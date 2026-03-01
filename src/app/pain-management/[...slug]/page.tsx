@@ -532,9 +532,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   // The ClaimBenefitsBanner handles user-specific logic client-side
   const showClaimBanner = !clinic.ownerUserId;
 
-  // Featured clinics get ad-free pages
-  const showAds = !dbClinic.isFeatured;
-
   return (
     <>
       {/* Structured Data for SEO */}
@@ -558,12 +555,10 @@ export default async function PainManagementClinicPage({ params, searchParams: s
 
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          {/* Top leaderboard ad — desktop only, hidden for featured clinics */}
-          {showAds && (
-            <div className="hidden lg:block mb-6">
-              <AdPlacement><InPageAd slot="7320134815" /></AdPlacement>
-            </div>
-          )}
+          {/* Top leaderboard ad — desktop only */}
+          <div className="hidden lg:block mb-6">
+            <AdPlacement><InPageAd slot="7320134815" /></AdPlacement>
+          </div>
 
           {/* Edit Listing Button - Client component handles auth check */}
           <ClinicEditButton
@@ -637,13 +632,11 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           </div>
 
           {/* Services + Ad Row */}
-          <div className={`grid gap-8 ${showAds ? "lg:grid-cols-[1fr_300px]" : ""} mb-8 min-w-0`}>
-            {/* Ad - shows first on mobile, second on desktop, hidden for featured clinics */}
-            {showAds && (
-              <div className="order-first lg:order-last min-w-0">
-                <AdPlacement><InPageAd slot="7243608610" /></AdPlacement>
-              </div>
-            )}
+          <div className="grid gap-8 lg:grid-cols-[1fr_300px] mb-8 min-w-0">
+            {/* Ad - shows first on mobile, second on desktop */}
+            <div className="order-first lg:order-last min-w-0">
+              <AdPlacement><InPageAd slot="7243608610" /></AdPlacement>
+            </div>
             {/* Services - shows second on mobile, first on desktop */}
             {clinic.services.length > 0 && (
               <div className="order-last lg:order-first min-w-0">
@@ -665,10 +658,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 />
               )}
 
-              {/* In-Page Ad - Content break, hidden for featured clinics */}
-              {showAds && (
-                <AdPlacement><InPageAd slot="7268163920" /></AdPlacement>
-              )}
+              {/* In-Page Ad - Content break */}
+              <AdPlacement><InPageAd slot="7268163920" /></AdPlacement>
 
               {/* FAQ Section */}
               {clinic.questions && clinic.questions.length > 0 && (
