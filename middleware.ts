@@ -18,18 +18,21 @@ import type { NextRequest } from "next/server";
 // ============================
 const ipHits = new Map<string, { count: number; windowStart: number }>();
 const RATE_WINDOW_MS = 60_000; // 1 minute
-const MAX_HITS_PER_WINDOW = 40; // 40 page requests per minute per IP
+const MAX_HITS_PER_WINDOW = 15; // 15 page requests per minute per IP
 const CLEANUP_INTERVAL = 120_000; // Clean stale entries every 2 min
 let lastCleanup = Date.now();
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
 
-  // Periodic cleanup of stale entries
+  // Periodic cleanup of stale entries (shared with directory pattern tracker)
   if (now - lastCleanup > CLEANUP_INTERVAL) {
     const cutoff = now - RATE_WINDOW_MS * 2;
     for (const [key, val] of ipHits.entries()) {
       if (val.windowStart < cutoff) ipHits.delete(key);
+    }
+    for (const [key, val] of ipDirectoryPaths.entries()) {
+      if (val.windowStart < cutoff) ipDirectoryPaths.delete(key);
     }
     lastCleanup = now;
   }
@@ -42,6 +45,31 @@ function isRateLimited(ip: string): boolean {
 
   record.count++;
   return record.count > MAX_HITS_PER_WINDOW;
+}
+
+// ============================
+// Directory crawl pattern detection
+// ============================
+// No real user visits 5+ unique state or city pages in 60 seconds.
+// This catches bots that rotate IPs but still systematically crawl directory pages.
+const ipDirectoryPaths = new Map<string, { paths: Set<string>; windowStart: number }>();
+const MAX_UNIQUE_DIRECTORY_PAGES = 5;
+// Matches /pain-management/XX (state) or /pain-management/XX/city-name (city)
+const DIRECTORY_PATTERN = /^\/pain-management\/([a-z]{2})(\/[a-z-]+)?$/;
+
+function isDirectoryCrawler(ip: string, pathname: string): boolean {
+  if (!DIRECTORY_PATTERN.test(pathname)) return false;
+
+  const now = Date.now();
+  const record = ipDirectoryPaths.get(ip);
+
+  if (!record || now - record.windowStart > RATE_WINDOW_MS) {
+    ipDirectoryPaths.set(ip, { paths: new Set([pathname]), windowStart: now });
+    return false;
+  }
+
+  record.paths.add(pathname);
+  return record.paths.size > MAX_UNIQUE_DIRECTORY_PAGES;
 }
 
 // ============================
@@ -180,6 +208,11 @@ export function middleware(request: NextRequest) {
         status: 429,
         headers: { "Retry-After": "60" },
       });
+    }
+
+    // Block IPs crawling 5+ unique state/city pages in 60s (no human does this)
+    if (ip !== "unknown" && isDirectoryCrawler(ip, pathname)) {
+      return new NextResponse("Forbidden", { status: 403 });
     }
   }
 
