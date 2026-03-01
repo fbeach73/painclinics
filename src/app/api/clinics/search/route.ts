@@ -39,12 +39,20 @@ export async function GET(request: NextRequest) {
       countSearchClinics(q),
     ]);
 
-    return NextResponse.json({
-      results,
-      totalResults,
-      totalPages: Math.ceil(totalResults / limit),
-      currentPage: page,
-    });
+    return NextResponse.json(
+      {
+        results,
+        totalResults,
+        totalPages: Math.ceil(totalResults / limit),
+        currentPage: page,
+      },
+      {
+        headers: {
+          // Cache identical search queries at Vercel CDN edge for 60s
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
+    );
   } catch (error) {
     console.error("Clinic search API error:", error);
     return NextResponse.json(

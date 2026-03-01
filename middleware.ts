@@ -4,12 +4,93 @@ import type { NextRequest } from "next/server";
 /**
  * Next.js Middleware for request handling.
  * Handles:
- * 1. Legacy /clinics/[slug] redirects to /pain-management/[slug]
- * 2. Case normalization (lowercase)
+ * 1. Bot rate limiting (429 for aggressive crawlers)
+ * 2. Known bad bot blocking
+ * 3. Legacy /clinics/[slug] redirects to /pain-management/[slug]
+ * 4. Case normalization (lowercase)
  *
  * Note: Geo-blocking is handled by Vercel Firewall (Pro plan)
  * Note: Trailing slashes handled by Next.js default behavior
  */
+
+// ============================
+// Rate limiting (per IP, best-effort on Edge)
+// ============================
+const ipHits = new Map<string, { count: number; windowStart: number }>();
+const RATE_WINDOW_MS = 60_000; // 1 minute
+const MAX_HITS_PER_WINDOW = 40; // 40 page requests per minute per IP
+const CLEANUP_INTERVAL = 120_000; // Clean stale entries every 2 min
+let lastCleanup = Date.now();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+
+  // Periodic cleanup of stale entries
+  if (now - lastCleanup > CLEANUP_INTERVAL) {
+    const cutoff = now - RATE_WINDOW_MS * 2;
+    for (const [key, val] of ipHits.entries()) {
+      if (val.windowStart < cutoff) ipHits.delete(key);
+    }
+    lastCleanup = now;
+  }
+
+  const record = ipHits.get(ip);
+  if (!record || now - record.windowStart > RATE_WINDOW_MS) {
+    ipHits.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+
+  record.count++;
+  return record.count > MAX_HITS_PER_WINDOW;
+}
+
+// ============================
+// Bot user-agent blocking
+// ============================
+// Block aggressive SEO crawlers and scrapers (not search engines we want)
+const BLOCKED_BOT_PATTERNS = [
+  /semrush/i,
+  /ahrefs/i,
+  /mj12bot/i,
+  /dotbot/i,
+  /petalbot/i,
+  /bytespider/i,
+  /sogou/i,
+  /blexbot/i,
+  /dataforseo/i,
+  /zoominfobot/i,
+  /censys/i,
+  /masscan/i,
+  /zgrab/i,
+  /netcraft/i,
+  /serpstatbot/i,
+  /megaindex/i,
+  /barkrowler/i,
+  /seekport/i,
+  /aspiegelbot/i,
+  /rogerbot/i,
+  /linkfluence/i,
+  /seznambot/i,
+  /yandexbot/i,
+  /baidu/i,
+  /go-http-client/i,
+  /python-requests/i,
+  /python-urllib/i,
+  /scrapy/i,
+  /java\//i,
+  /libwww/i,
+  /curl\//i,
+  /wget\//i,
+  /http_request/i,
+];
+
+function isBlockedBot(ua: string | null): boolean {
+  if (!ua) return false;
+  // Very short UAs with no browser info are suspicious
+  if (ua.length < 20) return true;
+  return BLOCKED_BOT_PATTERNS.some((pattern) => pattern.test(ua));
+}
+
 // Legacy /?clinics=slug → canonical /pain-management/slug-state-zip redirects
 // Generated from GSC data: 95 legacy URLs with 287K total impressions
 const LEGACY_CLINIC_REDIRECTS: Record<string, string> = {
@@ -70,13 +151,36 @@ const LEGACY_CLINIC_REDIRECTS: Record<string, string> = {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip static files and API routes
+  // Skip static files
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();
+  }
+
+  // Skip API routes from bot blocking (but not rate limiting)
+  const isApiRoute = pathname.startsWith("/api");
+
+  const ua = request.headers.get("user-agent");
+
+  // Block known bad bots immediately (not on API routes used by our own frontend)
+  if (!isApiRoute && isBlockedBot(ua)) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
+  // Rate limit by IP on page routes (not API, not admin)
+  if (!isApiRoute && !pathname.startsWith("/admin")) {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? request.headers.get("x-real-ip")
+      ?? "unknown";
+
+    if (ip !== "unknown" && isRateLimited(ip)) {
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: { "Retry-After": "60" },
+      });
+    }
   }
 
   // 0. Redirect legacy /?clinics=slug to canonical clinic URL
