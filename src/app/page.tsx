@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, MapPin, Phone, Search, Shield, Star, Users } from 'lucide-react';
-import { AdSlot } from '@/components/ads';
+import { InPageAd, AdPlacement } from '@/components/ads/adsense';
 import { LazyHomepageFeaturedSection } from '@/components/featured';
 import {
   FindClinicSection,
@@ -146,7 +146,7 @@ export default async function Home() {
 
         {/* Single In-Page Ad */}
         <section className="container mx-auto py-6">
-          <AdSlot placement="homepage-mid" path="/" />
+          <AdPlacement><InPageAd slot="5636206419" /></AdPlacement>
         </section>
 
         {/* Popular Searches Section */}

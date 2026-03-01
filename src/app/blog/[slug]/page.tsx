@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AdSlot } from "@/components/ads";
+import { InPageAd, AdPlacement } from "@/components/ads/adsense";
 import { BlogPostContent, RelatedPostCard, FloatingToc } from "@/components/blog";
 import {
   getBlogPostBySlug,
@@ -149,10 +149,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         {/* Mid-content ad */}
         <div className="max-w-4xl mx-auto mt-8">
-          <AdSlot
-            placement="blog-mid-content"
-            path={`/blog/${post.slug}`}
-          />
+          <AdPlacement><InPageAd slot="4155603783" /></AdPlacement>
         </div>
 
         {/* Floating Table of Contents */}

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { ChevronRight, ExternalLink, MessageCircle, Phone } from "lucide-react";
-import { AdSlotClient } from "@/components/ads";
-import { TopLeaderboardAd } from "@/components/ads/TopLeaderboardAd";
+import { InPageAd, AdPlacement } from "@/components/ads/adsense";
 import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
 import { ClinicAbout } from "@/components/clinic/clinic-about";
@@ -562,11 +561,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           {/* Top leaderboard ad — desktop only, hidden for featured clinics */}
           {showAds && (
             <div className="hidden lg:block mb-6">
-              <TopLeaderboardAd
-                placement="clinic-top-leaderboard"
-                path={`/pain-management/${slugPath}`}
-
-              />
+              <AdPlacement><InPageAd slot="7320134815" /></AdPlacement>
             </div>
           )}
 
@@ -631,15 +626,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
               <ClinicHeader clinic={clinic} />
             </div>
             <div className="space-y-2">
-              {/* Text link ad — above featured image, hidden for featured clinics */}
-              {showAds && (
-                <AdSlotClient
-                  placement="clinic-above-image"
-                  path={`/pain-management/${slugPath}`}
-                  showLabel={false}
-  
-                />
-              )}
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
                 <ClinicHeroImage
                   src={dbClinic.imageFeatured || dbClinic.imageUrl}
@@ -655,11 +641,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             {/* Ad - shows first on mobile, second on desktop, hidden for featured clinics */}
             {showAds && (
               <div className="order-first lg:order-last min-w-0">
-                <AdSlotClient
-                  placement="clinic-above-fold"
-                  path={`/pain-management/${slugPath}`}
-  
-                />
+                <AdPlacement><InPageAd slot="7243608610" /></AdPlacement>
               </div>
             )}
             {/* Services - shows second on mobile, first on desktop */}
@@ -685,11 +667,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
 
               {/* In-Page Ad - Content break, hidden for featured clinics */}
               {showAds && (
-                <AdSlotClient
-                  placement="clinic-mid-content"
-                  path={`/pain-management/${slugPath}`}
-  
-                />
+                <AdPlacement><InPageAd slot="7268163920" /></AdPlacement>
               )}
 
               {/* FAQ Section */}

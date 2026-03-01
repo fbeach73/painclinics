@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { AdSlotClient } from "@/components/ads";
+import { InPageAd, AdPlacement } from "@/components/ads/adsense";
 import { Button } from "@/components/ui/button";
 import type { DirectoryFilters } from "@/lib/directory/filters";
 import { hasActiveFilters } from "@/lib/directory/filters";
@@ -170,11 +170,7 @@ export function DirectoryLayout({
                     <ClinicListCard clinic={clinic} />
                     {/* Ad after card 3 */}
                     {index === 2 && (
-                      <AdSlotClient
-                        placement="directory-in-list"
-                        path={basePath}
-                        className="my-3"
-                      />
+                      <AdPlacement className="my-3"><InPageAd slot="8968946764" /></AdPlacement>
                     )}
                   </div>
                 ))}
