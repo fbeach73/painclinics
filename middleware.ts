@@ -179,6 +179,12 @@ const LEGACY_CLINIC_REDIRECTS: Record<string, string> = {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Block non-production hostnames (Vercel preview URLs get crawled by bots)
+  const host = request.headers.get("host") ?? "";
+  if (host && !host.includes("painclinics.com") && !host.includes("localhost")) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
   // Skip static files
   if (
     pathname.startsWith("/_next") ||
