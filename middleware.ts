@@ -218,8 +218,12 @@ export function middleware(request: NextRequest) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
-  // Rate limit by IP on page routes (not API, not admin)
-  if (!isApiRoute && !pathname.startsWith("/admin")) {
+  // Skip RSC prefetches from rate limiting — Next.js prefetches every visible link
+  // on page load via ?_rsc= params. Bots don't send these.
+  const isRscPrefetch = request.nextUrl.searchParams.has("_rsc");
+
+  // Rate limit by IP on page routes (not API, not admin, not RSC prefetches)
+  if (!isApiRoute && !isRscPrefetch && !pathname.startsWith("/admin")) {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
       ?? request.headers.get("x-real-ip")
       ?? "unknown";
