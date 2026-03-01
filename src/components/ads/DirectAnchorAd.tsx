@@ -7,8 +7,13 @@ import { InPageAd } from "@/components/ads/adsense";
 
 const DISMISS_KEY = "anchor-ad-dismissed";
 
+/** Routes where the anchor ad should not appear */
+const AD_FREE_PATHS = new Set([
+  "/pain-management/amir-abdel-kader-md-de-19804", // Paying featured subscriber
+]);
+
 function isExcludedRoute(pathname: string) {
-  return pathname.startsWith("/admin") || pathname.startsWith("/my-clinics");
+  return pathname.startsWith("/admin") || pathname.startsWith("/my-clinics") || AD_FREE_PATHS.has(pathname);
 }
 
 function subscribeToDismiss(callback: () => void) {
