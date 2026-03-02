@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { getFeaturedClinics, getSimilarClinicsByServices } from "@/lib/clinic-queries";
 import { formatDistance } from "@/lib/distance";
 
@@ -84,21 +85,38 @@ export async function GET(request: Request) {
     if (city) queryOptions.city = city;
     if (excludeClinicId) queryOptions.excludeClinicId = excludeClinicId;
 
-    let clinics = await getFeaturedClinics(queryOptions);
-    let fallbackUsed = false;
+    // Cache key derived from query params — featured clinics change weekly at most
+    const cacheKey = [
+      "featured",
+      stateAbbrev || "all",
+      city || "all",
+      excludeClinicId || "none",
+      String(limit),
+      randomize ? "rand" : "det",
+      serviceIds.join("-") || "no-svc",
+    ].join(":");
 
-    // Tier 2 fallback: if no featured clinics found and we have state + services,
-    // find state-level clinics ranked by shared service overlap
-    if (clinics.length === 0 && stateAbbrev && serviceIds.length > 0) {
-      const similarClinics = await getSimilarClinicsByServices({
-        stateAbbrev,
-        serviceIds,
-        ...(excludeClinicId ? { excludeClinicId } : {}),
-        limit,
-      });
-      clinics = similarClinics as typeof clinics;
-      fallbackUsed = true;
-    }
+    const { clinics, fallbackUsed } = await unstable_cache(
+      async () => {
+        let result = await getFeaturedClinics(queryOptions);
+        let fb = false;
+
+        if (result.length === 0 && stateAbbrev && serviceIds.length > 0) {
+          const similarClinics = await getSimilarClinicsByServices({
+            stateAbbrev,
+            serviceIds,
+            ...(excludeClinicId ? { excludeClinicId } : {}),
+            limit,
+          });
+          result = similarClinics as typeof result;
+          fb = true;
+        }
+
+        return { clinics: result, fallbackUsed: fb };
+      },
+      [cacheKey],
+      { revalidate: 3600, tags: ["featured-clinics"] }
+    )();
 
     // Transform to frontend-friendly format
     const formattedClinics = clinics.map((clinic) => {
