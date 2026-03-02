@@ -236,7 +236,8 @@ export function middleware(request: NextRequest) {
     }
 
     // Block IPs crawling 5+ unique state/city pages in 60s (no human does this)
-    if (ip !== "unknown" && isDirectoryCrawler(ip, pathname)) {
+    // Skip RSC prefetches — Next.js prefetches all visible links on homepage
+    if (ip !== "unknown" && !isRscPrefetch && isDirectoryCrawler(ip, pathname)) {
       return new NextResponse("Forbidden", { status: 403 });
     }
   }
