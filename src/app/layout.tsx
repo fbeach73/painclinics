@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DeferredAdSense } from "@/components/ads/deferred-adsense";
 import { DeferredGTM } from "@/components/analytics/deferred-gtm";
-import { PageTracker } from "@/components/analytics/page-tracker";
+
 import { VercelAnalytics } from "@/components/analytics/vercel-analytics";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -109,7 +109,7 @@ export default function RootLayout({
           </div>
           <Toaster richColors position="top-right" />
           <DirectAnchorAd />
-          <PageTracker />
+
         </ThemeProvider>
         <VercelAnalytics />
         {/* Deferred third-party scripts for better PageSpeed scores */}

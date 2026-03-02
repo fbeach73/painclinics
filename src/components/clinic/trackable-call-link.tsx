@@ -12,6 +12,8 @@ interface TrackableLinkProps {
   eventType: TrackEventType;
   /** Extra fields pushed to dataLayer alongside event/clinic_id/clinic_name */
   dataLayerExtras?: Record<string, string>;
+  /** When false, skips analytics tracking (DB write + dataLayer push). Defaults to true. */
+  trackingEnabled?: boolean | undefined;
   target?: string | undefined;
   rel?: string | undefined;
   className?: string | undefined;
@@ -22,6 +24,8 @@ interface TrackableCallLinkProps {
   clinicId: string;
   clinicName: string;
   phone: string;
+  /** When false, skips analytics tracking (DB write + dataLayer push). Defaults to true. */
+  trackingEnabled?: boolean | undefined;
   className?: string | undefined;
   children: ReactNode;
 }
@@ -52,6 +56,7 @@ export function TrackableLink({
   clinicName,
   eventType,
   dataLayerExtras,
+  trackingEnabled = true,
   target,
   rel,
   className,
@@ -60,6 +65,7 @@ export function TrackableLink({
   const pathname = usePathname();
 
   function handleClick() {
+    if (!trackingEnabled) return;
     try {
       const w = window as typeof window & { dataLayer?: Record<string, unknown>[] };
       w.dataLayer = w.dataLayer || [];
@@ -102,6 +108,7 @@ export function TrackableCallLink({
   clinicId,
   clinicName,
   phone,
+  trackingEnabled = true,
   className,
   children,
 }: TrackableCallLinkProps) {
@@ -112,6 +119,7 @@ export function TrackableCallLink({
       clinicName={clinicName}
       eventType="phone_click"
       dataLayerExtras={{ phone_number: phone }}
+      trackingEnabled={trackingEnabled}
       className={className}
     >
       {children}

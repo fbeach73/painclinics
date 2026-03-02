@@ -35,6 +35,9 @@ import { getClinicServices } from "@/lib/clinic-services-queries";
 import { parseFilters } from "@/lib/directory/filters";
 import { generateFilteredMeta } from "@/lib/directory/meta";
 import { getFilteredClinics } from "@/lib/directory/queries";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { featuredSubscriptions } from "@/lib/schema";
 import {
   generateBreadcrumbStructuredData,
   generateClinicStructuredData,
@@ -506,11 +509,22 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     notFound();
   }
 
-  // Fetch services, insurance, and ad decision in parallel
-  const [clinicServices, insuranceSlugs] = await Promise.all([
+  // Fetch services, insurance, and subscription status in parallel
+  const [clinicServices, insuranceSlugs, activeSubscription] = await Promise.all([
     getClinicServices(dbClinic.id),
     getClinicInsuranceSlugs(dbClinic.id),
+    db.select({ id: featuredSubscriptions.id })
+      .from(featuredSubscriptions)
+      .where(
+        and(
+          eq(featuredSubscriptions.clinicId, dbClinic.id),
+          eq(featuredSubscriptions.status, "active"),
+        )
+      )
+      .limit(1),
   ]);
+
+  const hasActiveSubscription = activeSubscription.length > 0;
 
   // Add services and insurance to the clinic record for transformation
   const dbClinicWithServices = {
@@ -554,8 +568,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
         />
       )}
 
-      {/* Analytics tracking for clinic views */}
-      <PageTracker clinicId={clinic.id} />
+      {/* Analytics tracking — only for clinics with active paid subscriptions */}
+      {hasActiveSubscription && <PageTracker clinicId={clinic.id} />}
 
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -624,7 +638,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 </ol>
               </nav>
 
-              <ClinicHeader clinic={clinic} />
+              <ClinicHeader clinic={clinic} trackingEnabled={hasActiveSubscription} />
             </div>
             <div className="space-y-2">
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
@@ -761,6 +775,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                         clinicId={clinic.id}
                         clinicName={clinic.name}
                         eventType="website_click"
+                        trackingEnabled={hasActiveSubscription}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline flex items-center gap-1 min-w-0"
@@ -789,7 +804,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                   {/* Call to Action */}
                   <div className="pt-2 space-y-2">
                     <Button asChild className="w-full">
-                      <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone}>
+                      <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone} trackingEnabled={hasActiveSubscription}>
                         <Phone className="h-4 w-4" />
                         Call to Schedule
                       </TrackableCallLink>

@@ -17,6 +17,8 @@ import { TrackableCallLink, TrackableLink } from './trackable-call-link';
 
 interface ClinicHeaderProps {
   clinic: Clinic;
+  /** Whether analytics tracking is enabled for this clinic (active subscription). */
+  trackingEnabled?: boolean | undefined;
   className?: string;
 }
 
@@ -134,7 +136,7 @@ function hasHoursData(clinic: Clinic): boolean {
   });
 }
 
-export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
+export function ClinicHeader({ clinic, trackingEnabled = false, className }: ClinicHeaderProps) {
   const { data: session } = useSession();
   const hasHours = hasHoursData(clinic);
   const openStatus = hasHours ? isCurrentlyOpen(clinic) : null;
@@ -212,7 +214,7 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
       {/* CTA buttons */}
       <div className="flex flex-wrap gap-3">
         <Button asChild size="lg" className="font-semibold">
-          <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone}>
+          <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone} trackingEnabled={trackingEnabled}>
             <Phone className="h-4 w-4" />
             Call Now
           </TrackableCallLink>
@@ -223,6 +225,7 @@ export function ClinicHeader({ clinic, className }: ClinicHeaderProps) {
             clinicId={clinic.id}
             clinicName={clinic.name}
             eventType="directions_click"
+            trackingEnabled={trackingEnabled}
             target="_blank"
             rel="noopener noreferrer"
           >

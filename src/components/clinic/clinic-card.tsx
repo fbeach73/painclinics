@@ -150,7 +150,7 @@ export function ClinicCard({ clinic, clinicServices, variant = 'default', classN
         </Button>
         {isVariantFeatured && (
           <Button variant="outline" asChild>
-            <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone}>Call</TrackableCallLink>
+            <TrackableCallLink clinicId={clinic.id} clinicName={clinic.name} phone={clinic.phone} trackingEnabled={false}>Call</TrackableCallLink>
           </Button>
         )}
       </CardFooter>

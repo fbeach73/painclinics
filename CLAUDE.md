@@ -100,6 +100,10 @@ pnpm db:generate  # Generate migrations
 
 ## Guidelines for AI Assistants
 
+### Cost Awareness (Neon DB)
+
+Before adding components that write to the database on every pageview or request, flag the Neon compute cost impact. The DB runs on Neon with scale-to-zero — frequent writes keep compute awake and cost $6-8/day. Prefer batching, conditional writes, or gating behind feature flags (e.g., only track analytics for paying subscribers).
+
 ### Critical Rules
 
 1. **ALWAYS run lint and typecheck** after changes:
