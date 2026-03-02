@@ -4,73 +4,14 @@ import type { NextRequest } from "next/server";
 /**
  * Next.js Middleware for request handling.
  * Handles:
- * 1. Bot rate limiting (429 for aggressive crawlers)
- * 2. Known bad bot blocking
- * 3. Legacy /clinics/[slug] redirects to /pain-management/[slug]
- * 4. Case normalization (lowercase)
+ * 1. Known bad bot blocking (UA-based only)
+ * 2. Legacy /clinics/[slug] redirects to /pain-management/[slug]
+ * 3. Case normalization (lowercase)
  *
- * Note: Geo-blocking is handled by Vercel Firewall (Pro plan)
+ * Note: Rate limiting removed — was causing false positives on real users.
+ *       Use Vercel Firewall (Pro plan) for DDoS/abuse protection instead.
  * Note: Trailing slashes handled by Next.js default behavior
  */
-
-// ============================
-// Rate limiting (per IP, best-effort on Edge)
-// ============================
-const ipHits = new Map<string, { count: number; windowStart: number }>();
-const RATE_WINDOW_MS = 60_000; // 1 minute
-const MAX_HITS_PER_WINDOW = 60; // 60 page requests per minute per IP
-const CLEANUP_INTERVAL = 120_000; // Clean stale entries every 2 min
-let lastCleanup = Date.now();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-
-  // Periodic cleanup of stale entries (shared with directory pattern tracker)
-  if (now - lastCleanup > CLEANUP_INTERVAL) {
-    const cutoff = now - RATE_WINDOW_MS * 2;
-    for (const [key, val] of ipHits.entries()) {
-      if (val.windowStart < cutoff) ipHits.delete(key);
-    }
-    for (const [key, val] of ipDirectoryPaths.entries()) {
-      if (val.windowStart < cutoff) ipDirectoryPaths.delete(key);
-    }
-    lastCleanup = now;
-  }
-
-  const record = ipHits.get(ip);
-  if (!record || now - record.windowStart > RATE_WINDOW_MS) {
-    ipHits.set(ip, { count: 1, windowStart: now });
-    return false;
-  }
-
-  record.count++;
-  return record.count > MAX_HITS_PER_WINDOW;
-}
-
-// ============================
-// Directory crawl pattern detection
-// ============================
-// No real user visits 5+ unique state or city pages in 60 seconds.
-// This catches bots that rotate IPs but still systematically crawl directory pages.
-const ipDirectoryPaths = new Map<string, { paths: Set<string>; windowStart: number }>();
-const MAX_UNIQUE_DIRECTORY_PAGES = 5;
-// Matches /pain-management/XX (state) or /pain-management/XX/city-name (city)
-const DIRECTORY_PATTERN = /^\/pain-management\/([a-z]{2})(\/[a-z-]+)?$/;
-
-function isDirectoryCrawler(ip: string, pathname: string): boolean {
-  if (!DIRECTORY_PATTERN.test(pathname)) return false;
-
-  const now = Date.now();
-  const record = ipDirectoryPaths.get(ip);
-
-  if (!record || now - record.windowStart > RATE_WINDOW_MS) {
-    ipDirectoryPaths.set(ip, { paths: new Set([pathname]), windowStart: now });
-    return false;
-  }
-
-  record.paths.add(pathname);
-  return record.paths.size > MAX_UNIQUE_DIRECTORY_PAGES;
-}
 
 // ============================
 // Bot user-agent blocking
@@ -101,21 +42,11 @@ const BLOCKED_BOT_PATTERNS = [
   /seznambot/i,
   /yandexbot/i,
   /baidu/i,
-  /go-http-client/i,
-  /python-requests/i,
-  /python-urllib/i,
   /scrapy/i,
-  /java\//i,
-  /libwww/i,
-  /curl\//i,
-  /wget\//i,
-  /http_request/i,
 ];
 
 function isBlockedBot(ua: string | null): boolean {
   if (!ua) return false;
-  // Very short UAs with no browser info are suspicious
-  if (ua.length < 20) return true;
   return BLOCKED_BOT_PATTERNS.some((pattern) => pattern.test(ua));
 }
 
@@ -208,38 +139,12 @@ export function middleware(request: NextRequest) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
-  // Skip API routes from bot blocking (but not rate limiting)
+  // Block known bad bots (skip API routes used by our own frontend)
   const isApiRoute = pathname.startsWith("/api");
-
   const ua = request.headers.get("user-agent");
 
-  // Block known bad bots immediately (not on API routes used by our own frontend)
   if (!isApiRoute && isBlockedBot(ua)) {
     return new NextResponse("Forbidden", { status: 403 });
-  }
-
-  // Skip RSC prefetches from rate limiting — Next.js prefetches every visible link
-  // on page load via ?_rsc= params. Bots don't send these.
-  const isRscPrefetch = request.nextUrl.searchParams.has("_rsc");
-
-  // Rate limit by IP on page routes (not API, not admin, not RSC prefetches)
-  if (!isApiRoute && !isRscPrefetch && !pathname.startsWith("/admin")) {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-      ?? request.headers.get("x-real-ip")
-      ?? "unknown";
-
-    if (ip !== "unknown" && isRateLimited(ip)) {
-      return new NextResponse("Too Many Requests", {
-        status: 429,
-        headers: { "Retry-After": "60" },
-      });
-    }
-
-    // Block IPs crawling 5+ unique state/city pages in 60s (no human does this)
-    // Skip RSC prefetches — Next.js prefetches all visible links on homepage
-    if (ip !== "unknown" && !isRscPrefetch && isDirectoryCrawler(ip, pathname)) {
-      return new NextResponse("Forbidden", { status: 403 });
-    }
   }
 
   // 0. Redirect legacy /?clinics=slug to canonical clinic URL
