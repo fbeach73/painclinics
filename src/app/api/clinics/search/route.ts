@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import {
   searchClinicsWithRelevance,
   countSearchClinics,
@@ -6,6 +7,18 @@ import {
 } from "@/lib/clinic-queries";
 
 const RESULTS_PER_PAGE = 24;
+
+const getCachedSearchResults = unstable_cache(
+  async (q: string, limit: number, offset: number) => {
+    const [results, totalResults] = await Promise.all([
+      searchClinicsWithRelevance(q, limit, offset),
+      countSearchClinics(q),
+    ]);
+    return { results, totalResults };
+  },
+  ["clinic-search"],
+  { revalidate: 3600 }
+);
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -34,10 +47,7 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * limit;
 
   try {
-    const [results, totalResults] = await Promise.all([
-      searchClinicsWithRelevance(q, limit, offset),
-      countSearchClinics(q),
-    ]);
+    const { results, totalResults } = await getCachedSearchResults(q, limit, offset);
 
     return NextResponse.json(
       {
