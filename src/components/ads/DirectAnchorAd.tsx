@@ -6,13 +6,14 @@ import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 const DISMISS_KEY = "anchor-ad-dismissed";
 
-/** Routes where the anchor ad should not appear */
-const AD_FREE_PATHS = new Set([
-  "/pain-management/amir-abdel-kader-md-de-19804", // Paying featured subscriber
-]);
-
 function isExcludedRoute(pathname: string) {
-  return pathname.startsWith("/admin") || pathname.startsWith("/my-clinics") || AD_FREE_PATHS.has(pathname);
+  return pathname.startsWith("/admin") || pathname.startsWith("/my-clinics");
+}
+
+/** Check if the current page is ad-free (paid subscriber clinic pages render a hidden #ad-free-page element) */
+function isAdFreePage() {
+  if (typeof document === "undefined") return false;
+  return document.getElementById("ad-free-page") !== null;
 }
 
 function subscribeToDismiss(callback: () => void) {
@@ -68,6 +69,15 @@ export function DirectAnchorAd() {
   const pathname = usePathname();
   const [minimized, setMinimized] = useState(false);
   const [localDismissed, setLocalDismissed] = useState(false);
+  const adFree = useSyncExternalStore(
+    (cb) => {
+      const observer = new MutationObserver(cb);
+      observer.observe(document.body, { childList: true, subtree: true });
+      return () => observer.disconnect();
+    },
+    isAdFreePage,
+    () => false,
+  );
   const storageDismissed = useSyncExternalStore(subscribeToDismiss, getDismissSnapshot, getDismissServerSnapshot);
   const dismissed = storageDismissed || localDismissed;
   const autoAnchorShowing = useAutoAnchorDetected();
@@ -80,7 +90,7 @@ export function DirectAnchorAd() {
     () => false,
   );
 
-  if (isExcludedRoute(pathname) || dismissed) return null;
+  if (isExcludedRoute(pathname) || dismissed || adFree) return null;
   // Don't double-stack anchor ads on mobile
   if (isMobile && autoAnchorShowing) return null;
 
@@ -92,7 +102,7 @@ export function DirectAnchorAd() {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background shadow-[0_-2px_10px_rgba(0,0,0,0.08)] dark:shadow-[0_-2px_10px_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out"
-      style={{ maxHeight: minimized ? "40px" : "150px" }}
+      style={{ maxHeight: minimized ? "40px" : "130px" }}
     >
       {/* Control bar */}
       <div className="flex items-center justify-between px-3 h-10 shrink-0">
@@ -117,15 +127,15 @@ export function DirectAnchorAd() {
         </div>
       </div>
 
-      {/* Ad content — responsive format per AdSense optimization recommendation */}
+      {/* Ad content — responsive horizontal format per AdSense optimization */}
       <div
         className="overflow-hidden transition-all duration-300 ease-in-out"
         style={{
-          maxHeight: minimized ? "0px" : "110px",
+          maxHeight: minimized ? "0px" : "90px",
           opacity: minimized ? 0 : 1,
         }}
       >
-        <div className="px-3 pb-3 flex justify-center">
+        <div className="px-3 pb-2 flex justify-center">
           <ResponsiveAnchorAd />
         </div>
       </div>
@@ -144,13 +154,13 @@ function ResponsiveAnchorAd() {
   }, []);
 
   return (
-    <div className="w-full max-w-[720px]">
+    <div className="w-full max-w-[720px] max-h-[90px] overflow-hidden">
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
         data-ad-client="ca-pub-5028121986513144"
         data-ad-slot="5827778104"
-        data-ad-format="auto"
+        data-ad-format="horizontal"
         data-full-width-responsive="true"
       />
     </div>

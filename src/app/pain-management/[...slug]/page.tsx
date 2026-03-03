@@ -562,9 +562,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   // The ClaimBenefitsBanner handles user-specific logic client-side
   const showClaimBanner = !clinic.ownerUserId;
 
-  // Ad-free pages for paying featured subscribers (managed manually)
-  const AD_FREE_SLUGS = new Set(["amir-abdel-kader-md-de-19804"]);
-  const showAds = !AD_FREE_SLUGS.has(slugPath);
+  // Ad-free only for clinics with an active paid subscription
+  const showAds = !hasActiveSubscription;
 
   return (
     <>
@@ -583,6 +582,9 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
         />
       )}
+
+      {/* Signal to global anchor ad to hide on paid subscriber pages */}
+      {!showAds && <div id="ad-free-page" hidden />}
 
       {/* Analytics tracking — only for clinics with active paid subscriptions */}
       {hasActiveSubscription && <PageTracker clinicId={clinic.id} />}
