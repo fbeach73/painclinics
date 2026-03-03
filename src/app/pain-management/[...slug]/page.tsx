@@ -106,6 +106,16 @@ export async function generateMetadata({ params, searchParams: searchParamsPromi
   const searchParams = await searchParamsPromise;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
 
+  // Handle double "pain-management" prefix — redirect handles in page component
+  if (slug[0] === "pain-management" && slug.length >= 2) {
+    const correctedSlug = slug.slice(1).join("/");
+    return {
+      alternates: {
+        canonical: `${baseUrl}/pain-management/${correctedSlug}`,
+      },
+    };
+  }
+
   // Check if this is a state page (single segment, 2-char state abbrev)
   const firstSlug = slug[0];
   if (slug.length === 1 && firstSlug && isValidStateAbbrev(firstSlug)) {
@@ -296,6 +306,12 @@ export default async function PainManagementClinicPage({ params, searchParams: s
   // If slug was cleaned, redirect to the clean version
   if (slug.some((s, i) => s !== rawSlug[i])) {
     redirect(`/pain-management/${slug.join("/")}`);
+  }
+
+  // Handle double "pain-management" prefix from legacy/cached URLs
+  // e.g., /pain-management/pain-management/clinic-slug → /pain-management/clinic-slug
+  if (slug[0] === "pain-management" && slug.length >= 2) {
+    permanentRedirect(`/pain-management/${slug.slice(1).join("/")}`);
   }
 
   // Check if this is a state page (single segment, 2-char state abbrev)
