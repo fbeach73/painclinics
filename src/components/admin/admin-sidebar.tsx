@@ -25,7 +25,6 @@ import {
   MessageSquare,
   Megaphone,
   BookOpen,
-  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -47,7 +46,6 @@ const navItems = [
   { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/broadcasts", label: "Broadcasts", icon: Send },
   { href: "/admin/rotation", label: "Rotation", icon: RotateCw },
-  { href: "/admin/billing", label: "DB Billing", icon: DollarSign },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
