@@ -196,6 +196,9 @@ export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: Clini
   // Ownership removal state
   const [isRemovingOwnership, setIsRemovingOwnership] = useState(false);
 
+  // Claim invite state
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+
   // Reset form when initial data changes
   useEffect(() => {
     setFormData(initialData);
@@ -368,6 +371,34 @@ export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: Clini
   };
 
   // Handle ownership removal
+  const handleSendClaimInvite = async () => {
+    const email = formData.emails?.[0];
+    if (!email) return;
+
+    setIsSendingInvite(true);
+    try {
+      const response = await fetch(`/api/admin/clinics/${clinicId}/send-claim-invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to send invite");
+      }
+
+      toast.success("Claim invite sent", {
+        description: `Email sent to ${email}`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to send invite";
+      toast.error("Failed to send claim invite", { description: message });
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
   const handleRemoveOwnership = async () => {
     setIsRemovingOwnership(true);
     try {
@@ -486,16 +517,48 @@ export function ClinicDetailsTab({ clinicId, initialData, ownershipData }: Clini
               </AlertDialog>
             </div>
           ) : (
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Building2 className="h-6 w-6" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <Badge variant="outline" className="mb-1">Unclaimed</Badge>
+                  <p className="text-sm">
+                    This clinic has no owner. Business owners can claim it through the public listing page.
+                  </p>
+                </div>
               </div>
-              <div>
-                <Badge variant="outline" className="mb-1">Unclaimed</Badge>
-                <p className="text-sm">
-                  This clinic has no owner. Business owners can claim it through the public listing page.
-                </p>
-              </div>
+              {formData.emails?.[0] && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isSendingInvite}>
+                      {isSendingInvite ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Mail className="mr-2 h-4 w-4" />
+                      )}
+                      Send Claim Invite
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Send Claim Invite</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will send an email to <strong>{formData.emails[0]}</strong> with
+                        a one-time link to claim ownership of this clinic. The link expires in 30 days.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleSendClaimInvite}>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Send Invite
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           )}
         </CardContent>

@@ -6,6 +6,7 @@ import {
   renderBroadcastEmail,
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
+  renderClaimInviteEmail,
   renderClaimPendingAdminEmail,
   renderClaimRejectedEmail,
   renderContactClinicInquiryEmail,
@@ -25,6 +26,7 @@ import {
   type BroadcastEmailProps,
   type ClaimVerificationProps,
   type ClaimApprovedProps,
+  type ClaimInviteProps,
   type ClaimPendingAdminProps,
   type ClaimRejectedProps,
   type ContactClinicInquiryProps,
@@ -285,6 +287,36 @@ export async function sendClaimApprovedEmail(
     metadata: {
       ...(options?.clinicId && { clinicId: options.clinicId }),
       ...(options?.claimId && { claimId: options.claimId }),
+    },
+  });
+}
+
+export async function sendClaimInviteEmail(
+  to: string,
+  clinicName: string,
+  clinicUrl: string,
+  claimUrl: string,
+  options?: {
+    clinicId?: string | undefined;
+  }
+): Promise<SendEmailResult> {
+  const subject = `Your Clinic is Live - ${clinicName}`;
+  const props: ClaimInviteProps = {
+    clinicName,
+    clinicUrl,
+    claimUrl,
+  };
+
+  const html = await renderClaimInviteEmail(props);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    templateName: EMAIL_TEMPLATES.CLAIM_INVITE,
+    bcc: "hello@painclinics.com",
+    metadata: {
+      ...(options?.clinicId && { clinicId: options.clinicId }),
     },
   });
 }

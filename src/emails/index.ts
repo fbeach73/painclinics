@@ -2,6 +2,7 @@ import { render } from "@react-email/components";
 import { AdvertiseInquiry } from "./advertise-inquiry";
 import { BroadcastEmail, type BroadcastEmailProps } from "./broadcast-email";
 import { ClaimApproved } from "./claim-approved";
+import { ClaimInvite } from "./claim-invite";
 import { ClaimPendingAdmin, type ClaimPendingAdminProps } from "./claim-pending-admin";
 import { ClaimRejected } from "./claim-rejected";
 import { ClaimVerification } from "./claim-verification";
@@ -25,6 +26,7 @@ export {
   BroadcastEmail,
   ClaimVerification,
   ClaimApproved,
+  ClaimInvite,
   ClaimPendingAdmin,
   ClaimRejected,
   ContactClinicInquiry,
@@ -52,6 +54,13 @@ export interface ClaimVerificationProps {
 export interface ClaimApprovedProps {
   clinicName: string;
   dashboardUrl: string;
+  unsubscribeUrl?: string | undefined;
+}
+
+export interface ClaimInviteProps {
+  clinicName: string;
+  clinicUrl: string;
+  claimUrl: string;
   unsubscribeUrl?: string | undefined;
 }
 
@@ -188,6 +197,10 @@ export async function renderClaimApprovedEmail(props: ClaimApprovedProps): Promi
   return render(ClaimApproved(props));
 }
 
+export async function renderClaimInviteEmail(props: ClaimInviteProps): Promise<string> {
+  return render(ClaimInvite(props));
+}
+
 export async function renderClaimRejectedEmail(props: ClaimRejectedProps): Promise<string> {
   return render(ClaimRejected(props));
 }
@@ -260,6 +273,7 @@ export const EMAIL_TEMPLATES = {
   CLAIM_VERIFICATION: "claim-verification",
   CLAIM_APPROVED: "claim-approved",
   CLAIM_PENDING_ADMIN: "claim-pending-admin",
+  CLAIM_INVITE: "claim-invite",
   CLAIM_REJECTED: "claim-rejected",
   CONTACT_CLINIC_INQUIRY: "contact-clinic-inquiry",
   FEATURED_RENEWAL: "featured-renewal",
