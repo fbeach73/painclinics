@@ -912,8 +912,27 @@ export async function removeClinicOwnership(clinicId: string) {
 }
 
 /**
+ * Common directory terms that appear in nearly every listing.
+ * These are deprioritized in search scoring to avoid flooding results.
+ */
+const COMMON_TERMS = new Set([
+  "pain", "clinic", "clinics", "management", "center", "medical",
+  "health", "healthcare", "wellness", "institute", "specialist",
+  "specialists", "doctor", "physicians", "care", "treatment",
+]);
+
+/**
  * Parse search query into terms and build SQL conditions for search.
  * Shared between searchClinicsWithRelevance and countSearchClinics.
+ *
+ * Scoring priorities:
+ * - Exact field matches score highest (title=100, city=80)
+ * - Word-boundary matches score higher than substring matches
+ * - Common directory terms (pain, clinic, etc.) are deprioritized
+ * - Street address only matches on word boundaries
+ * - State abbreviation only matches exactly (not LIKE)
+ * - Multi-term queries get a phrase bonus for consecutive matches
+ * - Results below a minimum relevance threshold are filtered out
  */
 function buildSearchConditions(query: string) {
   const terms = query
@@ -924,29 +943,59 @@ function buildSearchConditions(query: string) {
 
   if (terms.length === 0) return null;
 
+  // Separate meaningful terms from common/filler terms
+  const meaningfulTerms = terms.filter((t) => !COMMON_TERMS.has(t));
+  const hasOnlyCommonTerms = meaningfulTerms.length === 0;
+
   // Build per-term relevance CASE expressions
   const termScores = terms.map((term) => {
     const pattern = `%${term}%`;
     const startsPattern = `${term}%`;
+    // Word boundary patterns: match term at start/end of word
+    const wordBoundaryPattern = `% ${term}%`;
+    const isCommon = COMMON_TERMS.has(term);
+    // Common terms get heavily reduced scores so they don't dominate
+    const multiplier = isCommon ? 0.1 : 1;
+
     return sql`(
-      CASE WHEN LOWER(${clinics.title}) = ${term} THEN 100
-           WHEN LOWER(${clinics.title}) LIKE ${startsPattern} THEN 50
-           WHEN LOWER(${clinics.title}) LIKE ${pattern} THEN 20
-           ELSE 0 END
-      + CASE WHEN LOWER(${clinics.city}) = ${term} THEN 80
+      (CASE WHEN LOWER(${clinics.title}) = ${term} THEN ${100 * multiplier}
+           WHEN LOWER(${clinics.title}) LIKE ${startsPattern} THEN ${50 * multiplier}
+           WHEN LOWER(${clinics.title}) LIKE ${wordBoundaryPattern} THEN ${30 * multiplier}
+           WHEN LOWER(${clinics.title}) LIKE ${pattern} THEN ${5 * multiplier}
+           ELSE 0 END)
+      + (CASE WHEN LOWER(${clinics.city}) = ${term} THEN 80
              WHEN LOWER(${clinics.city}) LIKE ${startsPattern} THEN 40
-             WHEN LOWER(${clinics.city}) LIKE ${pattern} THEN 15
-             ELSE 0 END
-      + CASE WHEN LOWER(${clinics.streetAddress}) LIKE ${pattern} THEN 10 ELSE 0 END
-      + CASE WHEN ${clinics.postalCode} = ${term} THEN 30
+             WHEN LOWER(${clinics.city}) LIKE ${wordBoundaryPattern} THEN 25
+             WHEN LOWER(${clinics.city}) LIKE ${pattern} THEN 10
+             ELSE 0 END)
+      + (CASE WHEN LOWER(${clinics.streetAddress}) LIKE ${wordBoundaryPattern} THEN 8
+             WHEN LOWER(${clinics.streetAddress}) LIKE ${startsPattern} THEN 8
+             ELSE 0 END)
+      + (CASE WHEN ${clinics.postalCode} = ${term} THEN 30
              WHEN ${clinics.postalCode} LIKE ${startsPattern} THEN 15
-             ELSE 0 END
+             ELSE 0 END)
+      + (CASE WHEN UPPER(${clinics.stateAbbreviation}) = UPPER(${term}) THEN 25 ELSE 0 END)
     )`;
   });
 
-  const relevanceScore = sql<number>`(${sql.join(termScores, sql` + `)})`;
+  // Full-phrase title bonus when 2+ terms
+  const fullPhrase = terms.join(' ');
+  const phraseBonus = terms.length >= 2
+    ? sql`CASE WHEN LOWER(${clinics.title}) LIKE ${`%${fullPhrase}%`} THEN 200 ELSE 0 END`
+    : sql`0`;
 
-  // Build WHERE: any term matches any column (OR across terms)
+  // City phrase bonus: "new york" should strongly match city="New York"
+  const cityPhraseBonus = terms.length >= 2
+    ? sql`CASE WHEN LOWER(${clinics.city}) = ${fullPhrase} THEN 150
+           WHEN LOWER(${clinics.city}) LIKE ${`%${fullPhrase}%`} THEN 80
+           ELSE 0 END`
+    : sql`0`;
+
+  const relevanceScore = sql<number>`(${sql.join(termScores, sql` + `)} + ${phraseBonus} + ${cityPhraseBonus})`;
+
+  // Build WHERE: each term must match at least one column
+  // For meaningful terms, require all to match (AND)
+  // For common-only queries, still require match but accept broader results
   const termMatches = terms.map((term) => {
     const pattern = `%${term}%`;
     return sql`(
@@ -954,12 +1003,19 @@ function buildSearchConditions(query: string) {
       OR LOWER(${clinics.city}) LIKE ${pattern}
       OR LOWER(${clinics.streetAddress}) LIKE ${pattern}
       OR ${clinics.postalCode} LIKE ${pattern}
+      OR UPPER(${clinics.stateAbbreviation}) = UPPER(${term})
     )`;
   });
 
-  const matchesAnyTerm = sql`(${sql.join(termMatches, sql` OR `)})`;
+  // Always AND between terms — all terms must match somewhere
+  const matchesAnyTerm = sql`(${sql.join(termMatches, sql` AND `)})`;
 
-  return { relevanceScore, matchesAnyTerm };
+  // Minimum relevance threshold to filter out weak/noisy matches
+  // Higher threshold for common-only queries to limit flood
+  const minRelevance = hasOnlyCommonTerms ? 10 : 15;
+  const withMinRelevance = sql`(${matchesAnyTerm} AND ${relevanceScore} >= ${minRelevance})`;
+
+  return { relevanceScore, matchesAnyTerm: withMinRelevance };
 }
 
 /**
