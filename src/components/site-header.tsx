@@ -86,52 +86,48 @@ export function SiteHeader() {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/pain-tracking">
-                    Pain Tracking
+                  <Link href="/clinics">
+                    Find Clinics
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/pain-relief-tool">
-                    Pain Relief Tool
+                  <Link href="/treatment-options">
+                    Treatments
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/blog">
+                    Blog
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[300px] gap-1 p-2">
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          href="/blog"
+                          href="/pain-tracking"
                           className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium">Blog</div>
-                          <p className="text-xs text-muted-foreground">Latest articles on pain management</p>
+                          <div className="text-sm font-medium">Pain Tracking</div>
+                          <p className="text-xs text-muted-foreground">Track and log your pain levels</p>
                         </Link>
                       </NavigationMenuLink>
                     </li>
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          href="/clinics"
+                          href="/pain-relief-tool"
                           className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
-                          <div className="text-sm font-medium">Browse Clinics</div>
-                          <p className="text-xs text-muted-foreground">Find pain clinics near you</p>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/treatment-options"
-                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="text-sm font-medium">Treatment Options</div>
-                          <p className="text-xs text-muted-foreground">Explore pain treatment methods</p>
+                          <div className="text-sm font-medium">Pain Relief Tool</div>
+                          <p className="text-xs text-muted-foreground">Find relief methods for your pain</p>
                         </Link>
                       </NavigationMenuLink>
                     </li>
@@ -159,22 +155,22 @@ export function SiteHeader() {
                 <Menu className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild className="py-3">
+                <Link href="/clinics">Find Clinics</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="py-3">
+                <Link href="/treatment-options">Treatment Options</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="py-3">
+                <Link href="/blog">Blog</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-3">
                 <Link href="/pain-tracking">Pain Tracking</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-3">
                 <Link href="/pain-relief-tool">Pain Relief Tool</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="py-3">
-                <Link href="/blog">Blog</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="py-3">
-                <Link href="/clinics">Browse Clinics</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="py-3">
-                <Link href="/treatment-options">Treatment Options</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-3">
@@ -185,8 +181,11 @@ export function SiteHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Spacer to push actions right */}
+          <div className="flex-1 lg:hidden" />
+
           {/* Actions */}
-          <div className="flex items-center gap-2" role="group" aria-label="User actions">
+          <div className="flex items-center gap-1 sm:gap-2" role="group" aria-label="User actions">
             {/* Mobile search button */}
             <Button
               variant="ghost"
