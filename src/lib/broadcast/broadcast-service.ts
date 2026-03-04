@@ -12,6 +12,12 @@ import {
   type TargetAudience,
 } from "./broadcast-queries";
 import { getTargetClinics, MERGE_TAGS, type ClinicEmail } from "./clinic-targeting";
+import {
+  getTargetContacts,
+  substituteContactMergeTags,
+  getSampleContactData,
+} from "./contact-targeting";
+import type { ContactEmail } from "@/lib/contact-queries";
 
 // ============================================
 // Constants
@@ -19,6 +25,12 @@ import { getTargetClinics, MERGE_TAGS, type ClinicEmail } from "./clinic-targeti
 
 const BATCH_SIZE = 50;
 const BATCH_DELAY_MS = 200; // ~250 emails/min, under 300/min limit
+
+function isContactAudience(
+  audience: string
+): audience is "contacts_all" | "contacts_users" | "contacts_leads" {
+  return audience.startsWith("contacts_");
+}
 
 // ============================================
 // Types
@@ -204,15 +216,29 @@ export async function sendTestEmail(
     return { success: false, error: "Broadcast not found" };
   }
 
-  // Use sample clinic data to show how merge tags will render
-  const sampleClinic = getSampleClinicData();
+  const audienceType = (broadcast.targetAudience || "all_with_email") as string;
 
-  // Substitute merge tags with sample data
-  const personalizedSubject = substituteMergeTags(broadcast.subject, sampleClinic);
-  const personalizedContent = substituteMergeTags(broadcast.htmlContent, sampleClinic);
-  const personalizedPreview = broadcast.previewText
-    ? substituteMergeTags(broadcast.previewText, sampleClinic)
-    : undefined;
+  let personalizedSubject: string;
+  let personalizedContent: string;
+  let personalizedPreview: string | undefined;
+
+  if (isContactAudience(audienceType)) {
+    // Use sample contact data for contact audiences
+    const sampleContact = getSampleContactData();
+    personalizedSubject = substituteContactMergeTags(broadcast.subject, sampleContact);
+    personalizedContent = substituteContactMergeTags(broadcast.htmlContent, sampleContact);
+    personalizedPreview = broadcast.previewText
+      ? substituteContactMergeTags(broadcast.previewText, sampleContact)
+      : undefined;
+  } else {
+    // Use sample clinic data for clinic audiences
+    const sampleClinic = getSampleClinicData();
+    personalizedSubject = substituteMergeTags(broadcast.subject, sampleClinic);
+    personalizedContent = substituteMergeTags(broadcast.htmlContent, sampleClinic);
+    personalizedPreview = broadcast.previewText
+      ? substituteMergeTags(broadcast.previewText, sampleClinic)
+      : undefined;
+  }
 
   // Generate a test unsubscribe URL (won't actually work for unsubscribing)
   const unsubscribeUrl = getUnsubscribeUrl("test-token");
@@ -259,70 +285,128 @@ export async function sendBroadcast(broadcastId: string): Promise<SendBroadcastR
     };
   }
 
-  // 2. Get target clinics
+  // 2. Get target recipients (clinics or contacts)
+  const audienceType = (broadcast.targetAudience || "all_with_email") as string;
   const targetFilters = broadcast.targetFilters as TargetFilters | null;
-  const targetClinics = await getTargetClinics({
-    audience: (broadcast.targetAudience || "all_with_email") as TargetAudience,
-    filters: targetFilters || undefined,
-  });
 
-  if (targetClinics.length === 0) {
-    return {
-      success: false,
-      broadcastId,
-      sentCount: 0,
-      failedCount: 0,
-      error: "No target clinics found with the specified filters",
-    };
-  }
-
-  // 3. Update status to sending
-  await updateBroadcastStatus(broadcastId, "sending", {
-    startedAt: new Date(),
-    recipientCount: targetClinics.length,
-  });
-
-  // 4. Send emails in batches
+  let recipientCount: number;
   let sentCount = 0;
   let failedCount = 0;
 
-  for (let i = 0; i < targetClinics.length; i += BATCH_SIZE) {
-    const batch = targetClinics.slice(i, i + BATCH_SIZE);
+  if (isContactAudience(audienceType)) {
+    // Contact-based audience
+    const targetContacts = await getTargetContacts(
+      audienceType,
+      targetFilters?.excludeUnsubscribed ?? true
+    );
 
-    // Process batch
-    await Promise.all(
-      batch.map(async (clinic) => {
-        try {
-          const success = await sendBroadcastToClinic(broadcast, clinic);
-          if (success) {
-            sentCount++;
-            await incrementSentCount(broadcastId);
-          } else {
+    if (targetContacts.length === 0) {
+      return {
+        success: false,
+        broadcastId,
+        sentCount: 0,
+        failedCount: 0,
+        error: "No target contacts found with the specified filters",
+      };
+    }
+
+    recipientCount = targetContacts.length;
+
+    // 3. Update status to sending
+    await updateBroadcastStatus(broadcastId, "sending", {
+      startedAt: new Date(),
+      recipientCount,
+    });
+
+    // 4. Send emails in batches
+    for (let i = 0; i < targetContacts.length; i += BATCH_SIZE) {
+      const batch = targetContacts.slice(i, i + BATCH_SIZE);
+
+      await Promise.all(
+        batch.map(async (contact) => {
+          try {
+            const success = await sendBroadcastToContact(broadcast, contact);
+            if (success) {
+              sentCount++;
+              await incrementSentCount(broadcastId);
+            } else {
+              failedCount++;
+              await incrementFailedCount(broadcastId);
+            }
+          } catch (error) {
+            console.error(`Failed to send to ${contact.email}:`, error);
             failedCount++;
             await incrementFailedCount(broadcastId);
           }
-        } catch (error) {
-          console.error(`Failed to send to ${clinic.email}:`, error);
-          failedCount++;
-          await incrementFailedCount(broadcastId);
-        }
-      })
-    );
+        })
+      );
 
-    // Delay between batches (except after last batch)
-    if (i + BATCH_SIZE < targetClinics.length) {
-      await delay(BATCH_DELAY_MS);
+      if (i + BATCH_SIZE < targetContacts.length) {
+        await delay(BATCH_DELAY_MS);
+      }
+    }
+  } else {
+    // Clinic-based audience
+    const targetClinics = await getTargetClinics({
+      audience: audienceType as TargetAudience,
+      filters: targetFilters || undefined,
+    });
+
+    if (targetClinics.length === 0) {
+      return {
+        success: false,
+        broadcastId,
+        sentCount: 0,
+        failedCount: 0,
+        error: "No target clinics found with the specified filters",
+      };
+    }
+
+    recipientCount = targetClinics.length;
+
+    // 3. Update status to sending
+    await updateBroadcastStatus(broadcastId, "sending", {
+      startedAt: new Date(),
+      recipientCount,
+    });
+
+    // 4. Send emails in batches
+    for (let i = 0; i < targetClinics.length; i += BATCH_SIZE) {
+      const batch = targetClinics.slice(i, i + BATCH_SIZE);
+
+      await Promise.all(
+        batch.map(async (clinic) => {
+          try {
+            const success = await sendBroadcastToClinic(broadcast, clinic);
+            if (success) {
+              sentCount++;
+              await incrementSentCount(broadcastId);
+            } else {
+              failedCount++;
+              await incrementFailedCount(broadcastId);
+            }
+          } catch (error) {
+            console.error(`Failed to send to ${clinic.email}:`, error);
+            failedCount++;
+            await incrementFailedCount(broadcastId);
+          }
+        })
+      );
+
+      if (i + BATCH_SIZE < targetClinics.length) {
+        await delay(BATCH_DELAY_MS);
+      }
     }
   }
 
   // 5. Update final status
-  const finalStatus = failedCount === targetClinics.length ? "failed" : "completed";
+  const finalStatus = failedCount === recipientCount ? "failed" : "completed";
   await updateBroadcastStatus(broadcastId, finalStatus, {
     completedAt: new Date(),
   });
 
   return {
-    success: failedCount < targetClinics.length,
+    success: failedCount < recipientCount,
     broadcastId,
     sentCount,
     failedCount,
@@ -369,12 +453,54 @@ async function sendBroadcastToClinic(
 }
 
 /**
+ * Send broadcast email to a single contact
+ * Substitutes contact merge tags with actual contact data
+ */
+async function sendBroadcastToContact(
+  broadcast: Broadcast,
+  contact: ContactEmail
+): Promise<boolean> {
+  // Use the contact's existing unsubscribe token
+  const unsubscribeToken = contact.unsubscribeToken || await getOrCreateUnsubscribeToken(
+    contact.userId,
+    contact.email,
+    null
+  );
+  const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken);
+
+  // Substitute merge tags with actual contact data
+  const personalizedSubject = substituteContactMergeTags(broadcast.subject, contact);
+  const personalizedContent = substituteContactMergeTags(broadcast.htmlContent, contact);
+  const personalizedPreview = broadcast.previewText
+    ? substituteContactMergeTags(broadcast.previewText, contact)
+    : undefined;
+
+  const result = await sendBroadcastEmail({
+    to: contact.email,
+    subject: personalizedSubject,
+    htmlContent: personalizedContent,
+    previewText: personalizedPreview,
+    broadcastId: broadcast.id,
+    unsubscribeUrl,
+  });
+
+  return result.success;
+}
+
+/**
  * Preview recipient count without sending
  */
 export async function previewRecipientCount(
   audience: TargetAudience,
   filters?: TargetFilters | undefined
 ): Promise<number> {
+  if (isContactAudience(audience)) {
+    const contacts = await getTargetContacts(
+      audience,
+      filters?.excludeUnsubscribed ?? true
+    );
+    return contacts.length;
+  }
   const clinics = await getTargetClinics({ audience, filters });
   return clinics.length;
 }

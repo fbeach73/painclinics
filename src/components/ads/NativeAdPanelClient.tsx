@@ -18,6 +18,7 @@ export function NativeAdPanelClient() {
 
   useEffect(() => {
     if (isExcludedRoute(pathname)) return;
+    if (document.getElementById("ad-free-page")) return;
 
     let cancelled = false;
 

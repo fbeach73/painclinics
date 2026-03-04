@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getClinicById } from "@/lib/clinic-queries";
+import { upsertContact } from "@/lib/contact-queries";
 import { sendContactClinicInquiryEmail } from "@/lib/email";
 import { createLead } from "@/lib/lead-queries";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -139,6 +140,18 @@ export async function POST(request: NextRequest) {
     } catch (leadError) {
       // Log but don't fail the request - email was sent successfully
       console.error("Failed to create lead record:", leadError);
+    }
+
+    // Sync to contacts table
+    try {
+      await upsertContact({
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        tags: ["lead"],
+      });
+    } catch (contactErr) {
+      console.error("Failed to upsert contact:", contactErr);
     }
 
     return NextResponse.json(

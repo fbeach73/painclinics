@@ -25,6 +25,7 @@ import {
   MessageSquare,
   Megaphone,
   BookOpen,
+  Contact2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/admin/guides", label: "Guides", icon: BookOpen },
   { href: "/admin/claims", label: "Claims", icon: Shield },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
+  { href: "/admin/contacts", label: "Contacts", icon: Contact2 },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/users", label: "User Activity", icon: UserCheck },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },

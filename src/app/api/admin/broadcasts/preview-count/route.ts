@@ -32,6 +32,9 @@ export async function GET(request: NextRequest) {
       "by_tier",
       "custom",
       "manual",
+      "contacts_all",
+      "contacts_users",
+      "contacts_leads",
     ];
     if (!validAudiences.includes(audience)) {
       return NextResponse.json(

@@ -17,12 +17,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MERGE_TAGS, type MergeTagKey } from "@/lib/broadcast/merge-tags";
+import { CONTACT_MERGE_TAGS, type ContactMergeTagKey } from "@/lib/broadcast/contact-targeting";
 
 interface MergeTagHelperProps {
   onInsert?: (tag: string) => void;
+  isContactAudience?: boolean;
 }
 
-export function MergeTagHelper({ onInsert }: MergeTagHelperProps) {
+export function MergeTagHelper({ onInsert, isContactAudience = false }: MergeTagHelperProps) {
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
 
   const handleCopy = async (tag: string) => {
@@ -40,7 +42,9 @@ export function MergeTagHelper({ onInsert }: MergeTagHelperProps) {
     }
   };
 
-  const mergeTagEntries = Object.entries(MERGE_TAGS) as [MergeTagKey, typeof MERGE_TAGS[MergeTagKey]][];
+  const mergeTagEntries = isContactAudience
+    ? (Object.entries(CONTACT_MERGE_TAGS) as [ContactMergeTagKey, typeof CONTACT_MERGE_TAGS[ContactMergeTagKey]][])
+    : (Object.entries(MERGE_TAGS) as [MergeTagKey, typeof MERGE_TAGS[MergeTagKey]][]);
 
   return (
     <Popover>
@@ -99,8 +103,17 @@ export function MergeTagHelper({ onInsert }: MergeTagHelperProps) {
         </div>
         <div className="p-3 border-t bg-muted/50">
           <p className="text-xs text-muted-foreground">
-            <strong>Tip:</strong> Use <code className="bg-muted px-1 rounded">{"{{claim_url}}"}</code> to
-            link directly to each clinic&apos;s claim button.
+            {isContactAudience ? (
+              <>
+                <strong>Tip:</strong> Use <code className="bg-muted px-1 rounded">{"{{contact_name}}"}</code> to
+                personalize emails with the recipient&apos;s name.
+              </>
+            ) : (
+              <>
+                <strong>Tip:</strong> Use <code className="bg-muted px-1 rounded">{"{{claim_url}}"}</code> to
+                link directly to each clinic&apos;s claim button.
+              </>
+            )}
           </p>
         </div>
       </PopoverContent>

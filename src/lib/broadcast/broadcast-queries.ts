@@ -20,7 +20,7 @@ export type Attachment = {
 };
 
 export type BroadcastStatus = "draft" | "sending" | "completed" | "failed";
-export type TargetAudience = "all_with_email" | "featured_only" | "claimed_owners" | "by_state" | "by_tier" | "custom" | "manual";
+export type TargetAudience = "all_with_email" | "featured_only" | "claimed_owners" | "by_state" | "by_tier" | "custom" | "manual" | "contacts_all" | "contacts_users" | "contacts_leads";
 
 export type Broadcast = typeof emailBroadcasts.$inferSelect;
 export type NewBroadcast = typeof emailBroadcasts.$inferInsert;

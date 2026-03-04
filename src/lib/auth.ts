@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { eq } from "drizzle-orm"
 import Stripe from "stripe"
 import { db } from "./db"
+import { upsertContact } from "./contact-queries"
 import { generateUnsubscribeToken, sendWelcomeEmail } from "./email"
 import * as schema from "./schema"
 import {
@@ -186,6 +187,20 @@ export const auth = betterAuth({
               .update(schema.user)
               .set({ role: "admin" })
               .where(eq(schema.user.id, user.id))
+          }
+
+          // Sync to contacts table
+          if (user.email) {
+            try {
+              await upsertContact({
+                email: user.email,
+                name: user.name || null,
+                tags: ["user"],
+                userId: user.id,
+              })
+            } catch (err) {
+              console.error("[Auth] Failed to upsert contact:", err)
+            }
           }
 
           // Send welcome email to new users

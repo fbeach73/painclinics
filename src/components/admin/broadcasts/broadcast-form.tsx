@@ -514,7 +514,7 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Email Content</Label>
-                  <MergeTagHelper />
+                  <MergeTagHelper isContactAudience={formData.targetAudience.startsWith("contacts_")} />
                 </div>
                 <TiptapEditor
                   content={formData.htmlContent}

@@ -1,5 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   pgEnum,
@@ -101,6 +101,9 @@ export const targetAudienceEnum = pgEnum("target_audience", [
   "by_tier",
   "custom",
   "manual",
+  "contacts_all",
+  "contacts_users",
+  "contacts_leads",
 ]);
 
 export const leadStatusEnum = pgEnum("lead_status", [
@@ -1109,6 +1112,7 @@ export const userRelations = relations(user, ({ many }) => ({
   subscriptions: many(featuredSubscriptions),
   emailLogs: many(emailLogs),
   broadcasts: many(emailBroadcasts),
+  contacts: many(contacts),
 }));
 
 export const clinicsRelations = relations(clinics, ({ one, many }) => ({
@@ -1652,3 +1656,45 @@ export const guides = pgTable(
     index("guides_state_idx").on(table.stateAbbreviation),
   ]
 );
+
+// ============================================
+// Contacts Table (Unified Users + Leads)
+// ============================================
+
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    email: text("email").notNull().unique(),
+    name: text("name"),
+    phone: text("phone"),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    tags: text("tags")
+      .array()
+      .default(sql`'{}'::text[]`)
+      .notNull(),
+    unsubscribedAt: timestamp("unsubscribed_at"),
+    unsubscribeToken: text("unsubscribe_token").unique().$defaultFn(() => createId()),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("contacts_email_idx").on(table.email),
+    index("contacts_user_id_idx").on(table.userId),
+    index("contacts_tags_idx").using("gin", table.tags),
+    index("contacts_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const contactsRelations = relations(contacts, ({ one }) => ({
+  user: one(user, {
+    fields: [contacts.userId],
+    references: [user.id],
+  }),
+}));

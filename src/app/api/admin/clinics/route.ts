@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status")?.trim();
     const enhanced = searchParams.get("enhanced");
     const updated = searchParams.get("updated");
+    const source = searchParams.get("source")?.trim();
     const sortBy = (searchParams.get("sortBy") || "createdAt") as SortColumn;
     const sortDir = (searchParams.get("sortDir") || "desc") as SortDirection;
     const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 500);
@@ -97,6 +98,13 @@ export async function GET(request: NextRequest) {
       conditions.push(
         sql`${clinics.importUpdatedAt} >= NOW() - INTERVAL '14 days'`
       );
+    }
+
+    // Source filter (manual vs imported)
+    if (source === "manual") {
+      conditions.push(isNull(clinics.placeId));
+    } else if (source === "imported") {
+      conditions.push(isNotNull(clinics.placeId));
     }
 
     // Build the query

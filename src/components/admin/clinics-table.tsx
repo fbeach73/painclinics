@@ -83,6 +83,7 @@ export function ClinicsTable({
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [enhancedFilter, setEnhancedFilter] = useState<string>('');
   const [updatedFilter, setUpdatedFilter] = useState<string>('');
+  const [sourceFilter, setSourceFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<SortColumn>('publishedAt');
   const [sortDir, setSortDir] = useState<SortDirection>('desc');
   const [offset, setOffset] = useState(0);
@@ -209,6 +210,7 @@ export function ClinicsTable({
       if (statusFilter) params.set('status', statusFilter);
       if (enhancedFilter) params.set('enhanced', enhancedFilter);
       if (updatedFilter) params.set('updated', updatedFilter);
+      if (sourceFilter) params.set('source', sourceFilter);
       params.set('sortBy', sortBy);
       params.set('sortDir', sortDir);
       params.set('limit', limit.toString());
@@ -225,7 +227,7 @@ export function ClinicsTable({
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, updatedFilter, sortBy, sortDir]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, updatedFilter, sourceFilter, sortBy, sortDir]);
 
   // Debounced search - only triggers on filter/sort changes, resets to page 1
   useEffect(() => {
@@ -234,7 +236,7 @@ export function ClinicsTable({
       fetchClinics(0);
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, updatedFilter, sortBy, sortDir, fetchClinics]);
+  }, [searchQuery, selectedState, featuredFilter, statusFilter, enhancedFilter, updatedFilter, sourceFilter, sortBy, sortDir, fetchClinics]);
 
   // Fetch on offset change (pagination) - separate from filter changes
   useEffect(() => {
@@ -250,12 +252,13 @@ export function ClinicsTable({
     setStatusFilter('');
     setEnhancedFilter('');
     setUpdatedFilter('');
+    setSourceFilter('');
     setSortBy('publishedAt');
     setSortDir('desc');
     setOffset(0);
   };
 
-  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter || enhancedFilter || updatedFilter;
+  const hasFilters = searchQuery || selectedState || featuredFilter || statusFilter || enhancedFilter || updatedFilter || sourceFilter;
 
   // Toggle sort on column header click
   const handleSort = (column: SortColumn) => {
@@ -372,6 +375,18 @@ export function ClinicsTable({
               <SelectItem value="updated">Recently Updated</SelectItem>
               <SelectItem value="updated-7">Updated (7 days)</SelectItem>
               <SelectItem value="updated-14">Updated (14 days)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Source Filter (manual vs imported) */}
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="w-full sm:w-[130px]">
+              <SelectValue placeholder="All Sources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sources</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
+              <SelectItem value="imported">Imported</SelectItem>
             </SelectContent>
           </Select>
 

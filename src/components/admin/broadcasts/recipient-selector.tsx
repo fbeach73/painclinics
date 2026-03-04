@@ -249,7 +249,9 @@ export function RecipientSelector({
               {recipientCount?.toLocaleString() ?? "—"}
             </span>
           )}
-          <span className="text-muted-foreground">clinics with email</span>
+          <span className="text-muted-foreground">
+            {audience.startsWith("contacts_") ? "contacts" : "clinics with email"}
+          </span>
         </div>
       </div>
 
@@ -342,6 +344,48 @@ export function RecipientSelector({
               <div className="font-medium">Manual email list</div>
               <div className="text-sm text-muted-foreground">
                 Enter specific email addresses
+              </div>
+            </Label>
+          </div>
+
+          {/* Contact audiences */}
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                People (Contacts)
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
+            <RadioGroupItem value="contacts_all" id="contacts_all" />
+            <Label htmlFor="contacts_all" className="flex-1 cursor-pointer">
+              <div className="font-medium">All contacts</div>
+              <div className="text-sm text-muted-foreground">
+                Send to all users and leads in the contacts list
+              </div>
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
+            <RadioGroupItem value="contacts_users" id="contacts_users" />
+            <Label htmlFor="contacts_users" className="flex-1 cursor-pointer">
+              <div className="font-medium">User contacts</div>
+              <div className="text-sm text-muted-foreground">
+                People who created an account on the site
+              </div>
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50">
+            <RadioGroupItem value="contacts_leads" id="contacts_leads" />
+            <Label htmlFor="contacts_leads" className="flex-1 cursor-pointer">
+              <div className="font-medium">Lead contacts</div>
+              <div className="text-sm text-muted-foreground">
+                People who submitted a clinic inquiry form
               </div>
             </Label>
           </div>

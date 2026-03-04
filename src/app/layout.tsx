@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { DirectAnchorAd } from "@/components/ads/DirectAnchorAd";
+import { NativeAdPanelClient } from "@/components/ads/NativeAdPanelClient";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -105,6 +106,7 @@ export default function RootLayout({
             <main id="main-content" className="flex-1">
               {children}
             </main>
+            <NativeAdPanelClient />
             <SiteFooter />
           </div>
           <Toaster richColors position="top-right" />
