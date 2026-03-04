@@ -1,16 +1,7 @@
 import { getContactsForBroadcast, type ContactEmail } from "@/lib/contact-queries";
 
-// ============================================
-// Contact Merge Tags (client-safe)
-// ============================================
-
-export const CONTACT_MERGE_TAGS = {
-  contact_name: { label: "Contact Name", example: "Jane Smith" },
-  contact_email: { label: "Contact Email", example: "jane@example.com" },
-  contact_phone: { label: "Contact Phone", example: "(555) 987-6543" },
-} as const;
-
-export type ContactMergeTagKey = keyof typeof CONTACT_MERGE_TAGS;
+// Re-export client-safe merge tag constants
+export { CONTACT_MERGE_TAGS, type ContactMergeTagKey } from "./contact-merge-tags";
 
 // ============================================
 // Targeting

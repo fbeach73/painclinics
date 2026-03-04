@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MERGE_TAGS, type MergeTagKey } from "@/lib/broadcast/merge-tags";
-import { CONTACT_MERGE_TAGS, type ContactMergeTagKey } from "@/lib/broadcast/contact-targeting";
+import { CONTACT_MERGE_TAGS, type ContactMergeTagKey } from "@/lib/broadcast/contact-merge-tags";
 
 interface MergeTagHelperProps {
   onInsert?: (tag: string) => void;
