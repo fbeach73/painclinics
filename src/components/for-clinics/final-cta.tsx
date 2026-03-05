@@ -4,9 +4,14 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/moving-border";
 
-export function FinalCTA() {
+interface FinalCTAProps {
+  heading?: string;
+  subtext?: string;
+}
+
+export function FinalCTA({ heading, subtext }: FinalCTAProps = {}) {
   return (
-    <section className="bg-slate-950 py-20">
+    <section className="bg-white dark:bg-slate-950 py-20">
       <div className="mx-auto max-w-4xl px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -18,18 +23,18 @@ export function FinalCTA() {
             <span className="text-sm font-semibold text-primary">
               50% OFF
             </span>
-            <span className="text-sm text-neutral-300">
+            <span className="text-sm text-gray-700 dark:text-neutral-300">
               {" "}
-              — January Early Adopter Special
+              — March Madness Promotion
             </span>
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
-            Ready to Get Found?
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            {heading || "Ready to Get Found?"}
           </h2>
-          <p className="mt-4 text-neutral-300 max-w-2xl mx-auto">
-            Join thousands of pain management clinics already benefiting from
-            increased visibility. Claim your listing today.
+          <p className="mt-4 text-gray-600 dark:text-neutral-300 max-w-2xl mx-auto">
+            {subtext ||
+              "Join thousands of pain management clinics already benefiting from increased visibility. Claim your listing today."}
           </p>
 
           <div className="mt-8 flex justify-center">
@@ -42,8 +47,8 @@ export function FinalCTA() {
             </Button>
           </div>
 
-          <p className="mt-6 text-sm text-neutral-400">
-            January early adopter pricing • Cancel anytime • No contracts
+          <p className="mt-6 text-sm text-gray-500 dark:text-neutral-400">
+            March promotion pricing • Cancel anytime • No contracts
           </p>
         </motion.div>
       </div>

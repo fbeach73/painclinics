@@ -42,6 +42,7 @@ const tiers: Tier[] = [
       { name: "Priority placement", included: false },
       { name: "Ad-free listing", included: false },
       { name: "Photos", included: "3" },
+      { name: "AI Clinic Tools", included: "2/mo" },
       { name: "Homepage feature", included: false },
       { name: "Priority support", included: false },
     ],
@@ -62,6 +63,7 @@ const tiers: Tier[] = [
       { name: "Priority placement", included: true },
       { name: "Ad-free listing", included: true },
       { name: "Photos", included: "5" },
+      { name: "AI Clinic Tools", included: "Unlimited*" },
       { name: "Homepage feature", included: false },
       { name: "Priority support", included: false },
     ],
@@ -83,6 +85,7 @@ const tiers: Tier[] = [
       { name: "Priority placement", included: "TOP" },
       { name: "Ad-free listing", included: true },
       { name: "Photos", included: "50" },
+      { name: "AI Clinic Tools", included: "Unlimited" },
       { name: "Homepage feature", included: true },
       { name: "Priority support", included: true },
     ],
@@ -92,7 +95,7 @@ const tiers: Tier[] = [
 
 function FeatureIcon({ value }: { value: FeatureValue }) {
   if (value === false) {
-    return <X className="h-4 w-4 text-neutral-500" />;
+    return <X className="h-4 w-4 text-gray-400 dark:text-neutral-500" />;
   }
   if (value === true) {
     return <Check className="h-4 w-4 text-green-500" />;
@@ -114,8 +117,8 @@ function PriceDisplay({
   if (price === 0) {
     return (
       <div className="flex items-baseline gap-1">
-        <span className="text-4xl font-bold text-white">$0</span>
-        <span className="text-neutral-400">/forever</span>
+        <span className="text-4xl font-bold text-gray-900 dark:text-white">$0</span>
+        <span className="text-gray-500 dark:text-neutral-400">/forever</span>
       </div>
     );
   }
@@ -123,18 +126,18 @@ function PriceDisplay({
   return (
     <div className="flex flex-col">
       {originalPrice && (
-        <span className="text-lg text-neutral-500 line-through">
+        <span className="text-lg text-gray-400 dark:text-neutral-500 line-through">
           ${originalPrice.toLocaleString()}{isAnnual ? "/year" : "/mo"}
         </span>
       )}
       <div className="flex items-baseline gap-1">
-        <span className="text-4xl font-bold text-white">
+        <span className="text-4xl font-bold text-gray-900 dark:text-white">
           ${price.toLocaleString()}
         </span>
-        <span className="text-neutral-400">{isAnnual ? "/year" : "/mo"}</span>
+        <span className="text-gray-500 dark:text-neutral-400">{isAnnual ? "/year" : "/mo"}</span>
       </div>
       {isAnnual && price > 0 && (
-        <span className="text-sm text-green-400 mt-1">
+        <span className="text-sm text-green-600 dark:text-green-400 mt-1">
           Save ${((originalPrice || price * 2) - price).toLocaleString()}/year
         </span>
       )}
@@ -162,7 +165,7 @@ export function PricingComparison() {
   }, [isAnnual]);
 
   return (
-    <section id="pricing" className="bg-slate-950 py-20 scroll-mt-20">
+    <section id="pricing" className="bg-white dark:bg-slate-950 py-20 scroll-mt-20">
       <div className="mx-auto max-w-6xl px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -171,10 +174,10 @@ export function PricingComparison() {
           viewport={{ once: true }}
           className="text-center mb-8"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
             Simple, Transparent Pricing
           </h2>
-          <p className="mt-4 text-neutral-400 max-w-2xl mx-auto">
+          <p className="mt-4 text-gray-600 dark:text-neutral-400 max-w-2xl mx-auto">
             Start free and upgrade when you&apos;re ready for more visibility.
           </p>
         </motion.div>
@@ -189,9 +192,9 @@ export function PricingComparison() {
         >
           <div className="bg-primary/10 border border-primary/20 rounded-full px-6 py-2 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm text-white">
+            <span className="text-sm text-gray-900 dark:text-white">
               <span className="font-semibold text-primary">50% OFF</span>
-              {" "}— January Early Adopter Special
+              {" "}— March Madness Promotion
             </span>
           </div>
         </motion.div>
@@ -207,7 +210,7 @@ export function PricingComparison() {
           <span
             className={cn(
               "text-sm font-medium transition-colors",
-              !isAnnual ? "text-white" : "text-neutral-500"
+              !isAnnual ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-neutral-500"
             )}
           >
             Monthly
@@ -220,12 +223,12 @@ export function PricingComparison() {
           <span
             className={cn(
               "text-sm font-medium transition-colors",
-              isAnnual ? "text-white" : "text-neutral-500"
+              isAnnual ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-neutral-500"
             )}
           >
             Annual
           </span>
-          <span className="ml-2 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400">
+          <span className="ml-2 rounded-full bg-green-100 dark:bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
             Save 17%
           </span>
         </motion.div>
@@ -243,7 +246,7 @@ export function PricingComparison() {
                 "relative rounded-2xl border p-6 flex flex-col",
                 tier.popular
                   ? "border-primary bg-primary/5"
-                  : "border-neutral-800 bg-neutral-900/50"
+                  : "border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50"
               )}
             >
               {/* Popular Badge */}
@@ -257,8 +260,8 @@ export function PricingComparison() {
 
               {/* Tier Header */}
               <div className="mb-6">
-                <h3 className="text-xl font-bold text-white">{tier.name}</h3>
-                <p className="text-sm text-neutral-400 mt-1">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
                   {tier.description}
                 </p>
               </div>
@@ -285,8 +288,8 @@ export function PricingComparison() {
                     <span
                       className={cn(
                         feature.included === false
-                          ? "text-neutral-500"
-                          : "text-neutral-300"
+                          ? "text-gray-400 dark:text-neutral-500"
+                          : "text-gray-700 dark:text-neutral-300"
                       )}
                     >
                       {feature.name}
@@ -303,7 +306,7 @@ export function PricingComparison() {
                   "w-full",
                   tier.popular
                     ? "bg-primary hover:bg-primary/90"
-                    : "border-neutral-700 hover:bg-neutral-800"
+                    : "border-gray-300 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-800"
                 )}
               >
                 <Link href="/pain-management">{tier.cta}</Link>
@@ -318,9 +321,12 @@ export function PricingComparison() {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
           viewport={{ once: true }}
-          className="text-center text-sm text-neutral-500 mt-8"
+          className="text-center text-sm text-gray-500 dark:text-neutral-500 mt-8 space-y-1"
         >
-          All plans include a verified badge. Cancel anytime, no contracts.
+          <span className="block">All plans include a verified badge. Cancel anytime, no contracts.</span>
+          <span className="block text-primary font-medium">
+            *AI Clinic Tools included with Basic for a limited time. Lock in now — normally a Premium-only feature.
+          </span>
         </motion.p>
       </div>
     </section>

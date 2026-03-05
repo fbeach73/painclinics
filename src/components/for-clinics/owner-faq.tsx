@@ -36,9 +36,16 @@ const faqItems = [
   },
 ];
 
-export function OwnerFAQ() {
+interface OwnerFAQProps {
+  additionalFaqs?: { question: string; answer: string }[];
+}
+
+export function OwnerFAQ({ additionalFaqs }: OwnerFAQProps = {}) {
+  const allFaqs = additionalFaqs
+    ? [...faqItems, ...additionalFaqs]
+    : faqItems;
   return (
-    <section className="bg-slate-900 py-20">
+    <section className="bg-gray-100 dark:bg-slate-900 py-20">
       <div className="mx-auto max-w-3xl px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -47,10 +54,10 @@ export function OwnerFAQ() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
             Frequently Asked Questions
           </h2>
-          <p className="mt-4 text-neutral-400">
+          <p className="mt-4 text-gray-600 dark:text-neutral-400">
             Everything you need to know about claiming your clinic listing.
           </p>
         </motion.div>
@@ -62,16 +69,16 @@ export function OwnerFAQ() {
           viewport={{ once: true }}
         >
           <Accordion type="single" collapsible className="w-full">
-            {faqItems.map((item, index) => (
+            {allFaqs.map((item, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="border-slate-700"
+                className="border-gray-200 dark:border-slate-700"
               >
-                <AccordionTrigger className="text-white hover:text-cyan-400 hover:no-underline text-left text-base">
+                <AccordionTrigger className="text-gray-900 dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400 hover:no-underline text-left text-base">
                   {item.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-neutral-400">
+                <AccordionContent className="text-gray-600 dark:text-neutral-400">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>
