@@ -1,11 +1,15 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { contacts } from "@/lib/schema";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { ContentFormat } from "@/data/education-conditions";
+
+const FREE_GENERATION_LIMIT = 5;
 
 const SYSTEM_PROMPT = `You are a board-certified pain management medical writer creating patient education content for pain management clinics in the United States.
 
@@ -122,13 +126,24 @@ Each post: 50-80 words. Tone: Warm, conversational, knowledgeable — like a doc
 
 export async function POST(request: Request) {
   try {
+    // Require authentication
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Sign in to use AI tools" },
+        { status: 401 }
+      );
+    }
+
+    const userEmail = session.user.email;
+    const userId = session.user.id;
+
     const body = await request.json();
-    const { condition, format, clinicName, clinicLocation, email } = body as {
+    const { condition, format, clinicName, clinicLocation } = body as {
       condition: string;
       format: ContentFormat;
       clinicName?: string;
       clinicLocation?: string;
-      email?: string;
     };
 
     if (!condition || !format) {
@@ -146,28 +161,58 @@ export async function POST(request: Request) {
       );
     }
 
-    // If email provided, upsert into contacts
-    if (email) {
-      const tags = ["tool-user", "patient-education"];
-      try {
-        await db
-          .insert(contacts)
-          .values({
-            email,
-            tags,
-            metadata: { source: "patient-education-tool", firstCondition: condition },
-          })
-          .onConflictDoUpdate({
-            target: contacts.email,
-            set: {
-              tags: sql`array(SELECT DISTINCT unnest(${contacts.tags} || ${sql.raw(`'{${tags.join(",")}}'::text[]`)}))`,
-              updatedAt: new Date(),
-            },
-          });
-      } catch {
-        // Don't fail the generation if contact save fails
-        console.error("Failed to save contact");
+    // Upsert contact with ai-tools tag and track usage count
+    const tags = ["ai-tools", "tool-user", "patient-education"];
+    let currentRunCount = 0;
+
+    try {
+      // Check existing contact for run count
+      const existing = await db
+        .select({ metadata: contacts.metadata })
+        .from(contacts)
+        .where(eq(contacts.email, userEmail))
+        .limit(1);
+
+      if (existing.length > 0 && existing[0]!.metadata) {
+        const meta = existing[0]!.metadata as Record<string, unknown>;
+        currentRunCount = typeof meta.aiToolRunCount === "number" ? meta.aiToolRunCount : 0;
       }
+
+      // Check free limit
+      if (currentRunCount >= FREE_GENERATION_LIMIT) {
+        return NextResponse.json(
+          { error: `You've used all ${FREE_GENERATION_LIMIT} free AI generations. Upgrade for unlimited access.`, remaining: 0 },
+          { status: 403 }
+        );
+      }
+
+      // Upsert contact with tags and increment run count
+      await db
+        .insert(contacts)
+        .values({
+          email: userEmail,
+          name: session.user.name || null,
+          userId,
+          tags,
+          metadata: { source: "ai-tools", firstCondition: condition, aiToolRunCount: currentRunCount + 1 },
+        })
+        .onConflictDoUpdate({
+          target: contacts.email,
+          set: {
+            name: session.user.name || sql`${contacts.name}`,
+            userId,
+            tags: sql`array(SELECT DISTINCT unnest(${contacts.tags} || ${sql.raw(`'{${tags.join(",")}}'::text[]`)}))`,
+            metadata: sql`jsonb_set(
+              COALESCE(${contacts.metadata}, '{}'::jsonb),
+              '{aiToolRunCount}',
+              to_jsonb(COALESCE((${contacts.metadata}->>'aiToolRunCount')::int, 0) + 1)
+            )`,
+            updatedAt: new Date(),
+          },
+        });
+    } catch (err) {
+      // Don't fail the generation if contact tracking fails
+      console.error("Failed to track AI tool usage:", err);
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -189,10 +234,13 @@ export async function POST(request: Request) {
       prompt,
     });
 
+    const remaining = FREE_GENERATION_LIMIT - (currentRunCount + 1);
+
     return NextResponse.json({
       content: result.text,
       condition,
       format,
+      remaining,
     });
   } catch (error) {
     console.error("Education generation error:", error);

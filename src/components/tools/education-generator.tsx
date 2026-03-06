@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,33 +22,17 @@ import {
   type ContentFormat,
 } from "@/data/education-conditions";
 import { EducationOutput } from "./education-output";
-import { EmailGate } from "./email-gate";
+import { SignInGate } from "./sign-in-gate";
+import { useSession } from "@/lib/auth-client";
 
-const FREE_GENERATION_LIMIT = 2;
-const STORAGE_KEY = "pc-edu-gen-count";
-const EMAIL_KEY = "pc-edu-email";
-
-function getGenerationCount(): number {
-  if (typeof window === "undefined") return 0;
-  return parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
-}
-
-function incrementGenerationCount(): number {
-  const count = getGenerationCount() + 1;
-  localStorage.setItem(STORAGE_KEY, String(count));
-  return count;
-}
-
-function getSavedEmail(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(EMAIL_KEY);
-}
+const FREE_GENERATION_LIMIT = 5;
 
 interface EducationGeneratorProps {
   defaultCategory?: string;
 }
 
 export function EducationGenerator({ defaultCategory }: EducationGeneratorProps) {
+  const { data: session } = useSession();
   const [selectedCondition, setSelectedCondition] = useState("");
   const [format, setFormat] = useState<ContentFormat>("website");
   const [clinicName, setClinicName] = useState("");
@@ -60,18 +44,18 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
     format: ContentFormat;
   } | null>(null);
   const [error, setError] = useState("");
-  const [showEmailGate, setShowEmailGate] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
+  const [showSignInGate, setShowSignInGate] = useState(false);
+  const [remainingRuns, setRemainingRuns] = useState<number | null>(null);
   const generatorRef = useRef<HTMLDivElement>(null);
 
   // Find the selected condition name for display
-  function getConditionName(slug: string): string {
+  const getConditionName = useCallback((slug: string): string => {
     for (const cat of educationCategories) {
       const cond = cat.conditions.find((c) => c.slug === slug);
       if (cond) return cond.name;
     }
     return slug;
-  }
+  }, []);
 
   async function handleGenerate() {
     if (!selectedCondition) {
@@ -79,12 +63,9 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
       return;
     }
 
-    const savedEmail = email || getSavedEmail();
-    const count = getGenerationCount();
-
-    // Check if email gate needed
-    if (count >= FREE_GENERATION_LIMIT && !savedEmail) {
-      setShowEmailGate(true);
+    // Require sign-in
+    if (!session?.user) {
+      setShowSignInGate(true);
       return;
     }
 
@@ -100,7 +81,6 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
           format,
           clinicName: clinicName || undefined,
           clinicLocation: clinicLocation || undefined,
-          email: savedEmail || undefined,
         }),
       });
 
@@ -115,20 +95,14 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
         condition: getConditionName(selectedCondition),
         format,
       });
-      incrementGenerationCount();
+      if (typeof data.remaining === "number") {
+        setRemainingRuns(data.remaining);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
-  }
-
-  function handleEmailSubmit(submittedEmail: string) {
-    setEmail(submittedEmail);
-    localStorage.setItem(EMAIL_KEY, submittedEmail);
-    setShowEmailGate(false);
-    // Auto-trigger generation after email submit
-    handleGenerate();
   }
 
   // Determine which categories to show. If defaultCategory, show it first/expanded
@@ -285,6 +259,11 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Generating...
               </>
+            ) : !session?.user ? (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Sign In to Generate
+              </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -293,11 +272,14 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
             )}
           </Button>
 
-          {!email && !getSavedEmail() && (
+          {session?.user && remainingRuns !== null && remainingRuns > 0 && (
             <p className="text-xs text-muted-foreground">
-              {FREE_GENERATION_LIMIT - getGenerationCount() > 0
-                ? `${FREE_GENERATION_LIMIT - getGenerationCount()} free generations remaining`
-                : "Enter your email to continue generating content"}
+              {remainingRuns} free {remainingRuns === 1 ? "generation" : "generations"} remaining
+            </p>
+          )}
+          {!session?.user && (
+            <p className="text-xs text-muted-foreground">
+              Sign in to get {FREE_GENERATION_LIMIT} free AI generations — no credit card required
             </p>
           )}
         </CardContent>
@@ -312,11 +294,10 @@ export function EducationGenerator({ defaultCategory }: EducationGeneratorProps)
         />
       )}
 
-      {/* Email Gate Modal */}
-      <EmailGate
-        open={showEmailGate}
-        onSubmit={handleEmailSubmit}
-        onOpenChange={setShowEmailGate}
+      {/* Sign-In Gate Modal */}
+      <SignInGate
+        open={showSignInGate}
+        onOpenChange={setShowSignInGate}
       />
     </div>
   );
