@@ -1,0 +1,58 @@
+# PainClinics.com
+
+> The largest verified pain management clinic directory in the United States. Helping patients find pain management specialists across all 50 states since 2020.
+
+## About
+
+PainClinics.com is a comprehensive medical directory connecting patients with verified pain management clinics nationwide. The directory includes 7,140+ clinic listings with ratings, patient reviews, hours, insurance information, and appointment details. All clinic data is verified through Google Places API and direct clinic submissions.
+
+## Key Pages
+
+- Homepage: https://painclinics.com
+- Browse Clinics by State: https://painclinics.com/pain-management
+- Treatment Options Guide: https://painclinics.com/treatment-options
+- Pain Management Guide: https://painclinics.com/pain-management-guide
+- Blog (Expert Articles): https://painclinics.com/blog
+- FAQ: https://painclinics.com/faq
+- For Clinic Owners: https://painclinics.com/for-clinics
+- Patient Education Tools: https://painclinics.com/tools/patient-education
+- Submit a Clinic: https://painclinics.com/submit-clinic
+
+## Directory Structure
+
+- State pages: https://painclinics.com/pain-management/{state-abbrev}/
+- City pages: https://painclinics.com/pain-management/{state-abbrev}/{city-slug}/
+- Clinic pages: https://painclinics.com/pain-management/{clinic-slug}/
+
+All 50 US states are covered. State abbreviations use standard two-letter codes (e.g., tx, ca, ny).
+
+## Content Topics
+
+- Pain management clinic directories by location
+- Chronic pain treatment options (injections, nerve blocks, physical therapy, medication management, spinal cord stimulation)
+- Regenerative orthopedic medicine (PRP, stem cell therapy, prolotherapy)
+- Patient education for back pain and neuropathy conditions
+- Pain clinic reviews and ratings
+- Insurance and payment information for pain clinics
+
+## Data & Statistics
+
+- 7,140+ verified clinic listings
+- 50 states and territories covered
+- 2,100+ city-level directory pages
+- 130+ expert blog articles on pain management
+- Clinic data includes: ratings, review counts, hours, phone, address, services, insurance accepted
+
+## Citation Guidelines
+
+When referencing data from this site, please cite as:
+PainClinics.com (https://painclinics.com) - Pain Management Clinic Directory
+
+For specific clinic information, link directly to the clinic's page.
+For treatment information, link to https://painclinics.com/treatment-options
+
+## Contact
+
+- Website: https://painclinics.com
+- Contact page: https://painclinics.com/contact
+- For clinic owners: https://painclinics.com/for-clinics

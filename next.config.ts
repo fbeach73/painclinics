@@ -142,6 +142,9 @@ const blogRedirects = [
 }));
 
 const nextConfig: NextConfig = {
+  // Ensure all URLs use trailing slashes for consistent caching
+  trailingSlash: true,
+
   // Allow larger body sizes for file uploads (50MB)
   experimental: {
     serverActions: {
@@ -149,7 +152,7 @@ const nextConfig: NextConfig = {
     },
     // Optimize CSS to reduce render-blocking
     optimizeCss: true,
-    // Limit concurrent static page generation to avoid Neon DB OOM
+    // Limit concurrent static page generation to avoid DB connection exhaustion
     staticGenerationMaxConcurrency: 8,
   },
 

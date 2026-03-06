@@ -50,7 +50,7 @@ import { CityPainManagementPageContent } from "../city-page";
 import { StatePainManagementPageContent } from "../state-page";
 import type { Metadata } from "next";
 
-// Revalidate clinic pages monthly to reduce Neon DB costs
+// Revalidate directory pages monthly — clinic data changes infrequently
 // Use on-demand revalidation via admin actions for immediate updates
 // 30 days cache (2592000 seconds)
 export const revalidate = 2592000;

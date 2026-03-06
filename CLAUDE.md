@@ -9,7 +9,7 @@ Pain Clinics Directory is a comprehensive medical directory site for finding pai
 ### Tech Stack
 
 - **Framework**: Next.js 16 with App Router, React 19, TypeScript
-- **Database**: PostgreSQL (Neon) with Drizzle ORM
+- **Database**: PostgreSQL (Supabase) with Drizzle ORM
 - **Authentication**: Better Auth with Google OAuth
 - **UI**: shadcn/ui components with Tailwind CSS 4
 - **Email**: Mailgun for transactional emails
@@ -75,7 +75,7 @@ src/
 Required (see `.env.example`):
 
 ```env
-POSTGRES_URL=              # Neon PostgreSQL connection
+POSTGRES_URL=              # Supabase PostgreSQL connection
 BETTER_AUTH_SECRET=        # Auth secret (32+ chars)
 GOOGLE_CLIENT_ID=          # OAuth client ID
 GOOGLE_CLIENT_SECRET=      # OAuth client secret
@@ -100,9 +100,9 @@ pnpm db:generate  # Generate migrations
 
 ## Guidelines for AI Assistants
 
-### Cost Awareness (Neon DB)
+### Database (Supabase)
 
-Before adding components that write to the database on every pageview or request, flag the Neon compute cost impact. The DB runs on Neon with scale-to-zero — frequent writes keep compute awake and cost $6-8/day. Prefer batching, conditional writes, or gating behind feature flags (e.g., only track analytics for paying subscribers).
+Database is hosted on Supabase with a fixed monthly fee (no per-query billing). No need to worry about compute costs from frequent reads/writes. Still prefer batching for performance reasons, but cost is not a concern.
 
 ### Critical Rules
 
@@ -118,10 +118,10 @@ Before adding components that write to the database on every pageview or request
    - Schema in `@/lib/schema.ts`
    - PostgreSQL syntax (not SQLite/MySQL)
 
-4. **Styling**:
+4. **Styling (Light + Dark theme is NON-NEGOTIABLE)**:
    - Use shadcn/ui components
    - Tailwind utility classes
-   - Support dark mode (`dark:` variants)
+   - **EVERY element must have `dark:` variants.** Never use bare color classes without a dark mode counterpart. Default theme is `light` but users can switch to dark.
 
 5. **SEO**:
    - Use structured data from `@/lib/structured-data.ts`
@@ -134,6 +134,12 @@ Before adding components that write to the database on every pageview or request
    - Admin routes require `role === "admin"`
 
 ### Common Tasks
+
+**Styling And Design (MANDATORY):**
+1. **EVERY page, component, and design MUST support both Light and Dark themes.** Default theme is `light`. Never use hardcoded colors (e.g., `text-white`, `bg-gray-900`) without a corresponding `dark:` variant. Always test both themes visually.
+2. Use `text-gray-900 dark:text-white` for primary text, `text-gray-600 dark:text-neutral-400` for secondary text, `bg-white dark:bg-slate-900` or `bg-gray-50 dark:bg-slate-950` for backgrounds. Match existing patterns in the codebase.
+3. Ensure you keep the color schemes the same as defined in Tailwind CSS files and existing components.
+4. Aim for consistency 100% of the time. When in doubt, reference `src/components/for-clinics/` or `src/app/advertise/` for the established pattern.
 
 **Adding a clinic page feature:**
 1. Update component in `src/components/clinics/`
