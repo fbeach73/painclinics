@@ -453,7 +453,7 @@ export default function PainTrackingPage() {
           <Accordion type="single" collapsible className="not-prose">
             {faqData.map((faq, index) => (
               <AccordionItem key={index} value={`faq-${index}`}>
-                <AccordionTrigger className="text-left text-white font-semibold">
+                <AccordionTrigger className="text-left text-gray-900 dark:text-white font-semibold">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
