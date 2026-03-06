@@ -3,11 +3,11 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Editorial Policy | Pain Clinics",
   description:
-    "Learn about Pain Clinics' editorial standards, information sources, verification process, and commitment to providing accurate pain management clinic information.",
+    "Learn about Pain Clinics' editorial standards, medical content review process, information sources, and commitment to providing accurate pain management clinic information.",
 };
 
 export default function EditorialPolicyPage() {
-  const lastUpdated = "December 18, 2025";
+  const lastUpdated = "March 5, 2026";
 
   return (
     <main id="main-content" className="container mx-auto py-8 md:py-12 px-4">
@@ -16,7 +16,7 @@ export default function EditorialPolicyPage() {
         <p className="lead text-foreground/70">Last updated: {lastUpdated}</p>
 
         <p>
-          At Pain Clinics, we are committed to providing accurate, reliable, and
+          Since 1998, Pain Clinics has been committed to providing accurate, reliable, and
           up-to-date information about pain management clinics across the United
           States. This editorial policy outlines our standards and processes for
           maintaining the quality of our directory and content.
@@ -149,6 +149,63 @@ export default function EditorialPolicyPage() {
             clinic information.
           </li>
         </ul>
+
+        <h2>Medical Content Review Process</h2>
+        <p>
+          All medical and health-related content published on Pain Clinics undergoes
+          a structured review process:
+        </p>
+        <ol>
+          <li>
+            <strong>Research &amp; Drafting:</strong> Content is researched using
+            peer-reviewed medical literature, clinical guidelines from organizations
+            such as the American Academy of Pain Medicine (AAPM), and established
+            medical references including NIH, Mayo Clinic, and Cleveland Clinic
+            resources.
+          </li>
+          <li>
+            <strong>Editorial Review:</strong> Our editorial team reviews all content
+            for accuracy, clarity, readability, and adherence to our editorial
+            standards. We target a 7th&ndash;8th grade reading level to ensure
+            accessibility.
+          </li>
+          <li>
+            <strong>Medical Review:</strong> Health-related content is reviewed by
+            our medical review team, which includes practicing pain management
+            professionals. Reviewed content is marked with a &ldquo;Medically
+            Reviewed&rdquo; badge and reviewer attribution.
+          </li>
+          <li>
+            <strong>Ongoing Updates:</strong> Published content is periodically
+            reviewed to ensure it reflects current medical understanding and clinical
+            guidelines. Articles display their last-reviewed date for transparency.
+          </li>
+        </ol>
+        <p>
+          We are actively expanding our medical advisory network by partnering with
+          board-certified pain management physicians listed in our directory. If you
+          are a pain management professional interested in contributing to our
+          editorial review process, please{" "}
+          <a href="/contact">contact us</a>.
+        </p>
+
+        <h2>Sources &amp; Citations</h2>
+        <p>
+          When presenting medical information, we reference established and
+          authoritative sources including:
+        </p>
+        <ul>
+          <li>National Institutes of Health (NIH) and PubMed research databases</li>
+          <li>American Academy of Pain Medicine (AAPM) guidelines</li>
+          <li>Mayo Clinic and Cleveland Clinic clinical references</li>
+          <li>Peer-reviewed journals in pain medicine and related specialties</li>
+          <li>Centers for Disease Control and Prevention (CDC) guidelines</li>
+        </ul>
+        <p>
+          Clinic data is verified through Google Places API, direct clinic
+          submissions, and periodic audits of publicly available healthcare
+          databases.
+        </p>
 
         <h2>Medical Content Disclaimer</h2>
         <p>

@@ -100,6 +100,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       name: "Pain Clinics",
       url: "https://www.painclinics.com",
     },
+    reviewedBy: {
+      "@type": "Organization",
+      name: "Pain Clinics Editorial Team",
+      url: "https://www.painclinics.com/editorial-policy",
+    },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `https://www.painclinics.com/blog/${post.slug}`,

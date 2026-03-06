@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { Metadata } from "next";
+import { MedicalReviewBadge } from "@/components/medical-review-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = {
@@ -321,6 +322,10 @@ export default function TreatmentOptionsPage() {
           specialists near you who can evaluate your condition and recommend
           appropriate treatments.
         </p>
+
+        <div className="not-prose mt-8">
+          <MedicalReviewBadge />
+        </div>
       </div>
     </main>
   );

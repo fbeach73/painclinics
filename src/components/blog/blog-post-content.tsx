@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, Clock, ArrowLeft, User } from "lucide-react";
 import { OptimizedHtmlContent } from "@/components/blog/optimized-html-content";
+import { MedicalReviewBadge } from "@/components/medical-review-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -106,6 +107,10 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
         html={post.content}
         className="prose max-w-none prose-img:rounded-lg prose-a:text-primary prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/90 prose-blockquote:border-primary prose-td:text-foreground prose-th:text-foreground prose-table:text-foreground"
       />
+
+      {/* Medical Review Badge */}
+      <Separator className="my-8" />
+      <MedicalReviewBadge />
 
       {/* Tags */}
       {tags.length > 0 && (

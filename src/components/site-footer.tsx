@@ -26,6 +26,7 @@ const companyLinks = [
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
   { label: "Submit a Clinic", href: "/submit-clinic" },
+  { label: "Editorial Policy", href: "/editorial-policy" },
   { label: "FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap-page" },
 ];
@@ -212,7 +213,7 @@ export async function SiteFooter() {
       <div className="border-t">
         <div className="container mx-auto px-4 py-6">
           <p className="text-sm text-muted-foreground text-center sm:text-left">
-            &copy; {currentYear} Pain Clinics. All rights reserved.
+            &copy; {currentYear} Pain Clinics. Est. 1998. All rights reserved.
           </p>
         </div>
       </div>

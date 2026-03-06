@@ -49,10 +49,10 @@ export default function AboutPage() {
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
           <p className="text-foreground mb-4">
-            Pain Clinics was founded with a simple but important mission: to help people suffering from
-            chronic pain find the specialized care they need. We believe that everyone deserves access to
-            quality pain management, and that finding the right specialist shouldn&apos;t be a painful
-            process itself.
+            Established in 1998, Pain Clinics was founded with a simple but important mission: to help
+            people suffering from chronic pain find the specialized care they need. We believe that
+            everyone deserves access to quality pain management, and that finding the right specialist
+            shouldn&apos;t be a painful process itself.
           </p>
           <p className="text-foreground">
             Chronic pain affects millions of Americans, impacting their quality of life, work, and
