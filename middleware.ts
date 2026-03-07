@@ -164,19 +164,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 0b. Add trailing slash to URLs missing one.
-  // Page routes: 308 redirect (SEO-visible, tells crawlers the canonical URL).
-  // API routes: internal rewrite (preserves POST body — 308 would strip it,
-  //             which broke Better Auth OAuth sign-in).
-  if (!pathname.endsWith("/") && !pathname.includes(".")) {
-    const url = request.nextUrl.clone();
-    url.pathname = pathname + "/";
-    if (isApiRoute) {
-      return NextResponse.rewrite(url);
-    }
-    return NextResponse.redirect(url, 308);
-  }
-
   // 1. Redirect /clinics/[slug] to /pain-management/[slug]
   if (pathname.startsWith("/clinics/") && pathname !== "/clinics/") {
     const slug = pathname.replace("/clinics/", "").replace(/\/$/, "");
