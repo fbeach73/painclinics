@@ -164,6 +164,18 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // 0b. Add trailing slash to non-API page routes (replaces Next.js trailingSlash
+  //     redirect which was breaking Better Auth POST requests via 308)
+  if (
+    !isApiRoute &&
+    !pathname.endsWith("/") &&
+    !pathname.includes(".")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname + "/";
+    return NextResponse.redirect(url, 308);
+  }
+
   // 1. Redirect /clinics/[slug] to /pain-management/[slug]
   if (pathname.startsWith("/clinics/") && pathname !== "/clinics/") {
     const slug = pathname.replace("/clinics/", "").replace(/\/$/, "");

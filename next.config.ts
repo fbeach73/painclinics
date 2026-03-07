@@ -144,6 +144,9 @@ const blogRedirects = [
 const nextConfig: NextConfig = {
   // Ensure all URLs use trailing slashes for consistent caching
   trailingSlash: true,
+  // Let middleware handle trailing slash redirects so API routes (e.g. Better Auth)
+  // don't get 308-redirected which strips POST bodies and breaks OAuth flows.
+  skipTrailingSlashRedirect: true,
 
   // Allow larger body sizes for file uploads (50MB)
   experimental: {
