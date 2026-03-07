@@ -142,8 +142,9 @@ const blogRedirects = [
 }));
 
 const nextConfig: NextConfig = {
-  // Trailing slashes handled in middleware to avoid 308 redirects that break
-  // Better Auth POST requests (OAuth sign-in). Do NOT re-add trailingSlash: true.
+  // Trailing slashes for SEO consistency. API routes are protected from 308
+  // redirects by a middleware rewrite (see middleware.ts).
+  trailingSlash: true,
   skipTrailingSlashRedirect: true,
 
   // Allow larger body sizes for file uploads (50MB)
