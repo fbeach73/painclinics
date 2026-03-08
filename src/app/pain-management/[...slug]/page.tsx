@@ -672,7 +672,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           </div>
 
           {/* Services + Ad Row */}
-          <div className={`grid gap-8 ${showAds ? "lg:grid-cols-[1fr_300px]" : ""} mb-8 min-w-0`}>
+          <div className={`grid gap-8 ${showAds ? "lg:grid-cols-[1fr_300px]" : ""} mb-8 min-w-0 items-start`}>
             {/* Ad - shows first on mobile, second on desktop */}
             {showAds && (
               <div className="order-first lg:order-last min-w-0">
