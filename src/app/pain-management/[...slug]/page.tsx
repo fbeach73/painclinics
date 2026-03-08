@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { ChevronRight, ExternalLink, MessageCircle, Phone } from "lucide-react";
+import { ChevronRight, ExternalLink, Phone } from "lucide-react";
 import { InPageAd, AdPlacement } from "@/components/ads/adsense";
 import { PageTracker } from "@/components/analytics/page-tracker";
 import { ClaimBenefitsBanner } from "@/components/clinic/claim-benefits-banner";
@@ -17,6 +17,8 @@ import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 
+import { AdSlot } from "@/components/ads/AdSlot";
+import { ClinicContactCta } from "@/components/clinics/clinic-contact-cta";
 import { LazySearchFeaturedSection } from "@/components/featured/lazy-search-featured-section";
 import { LazyEmbeddedMap } from "@/components/map/lazy-embedded-map";
 import { Button } from "@/components/ui/button";
@@ -746,6 +748,16 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                 </CardContent>
               </Card>
 
+              {/* Online Doctor CTA - Sidebar */}
+              {showAds && (
+                <AdSlot
+                  placement="clinic-sidebar-cta"
+                  path={`/pain-management/${slug.join("/")}`}
+                  showLabel={false}
+                  renderer="cta-card"
+                />
+              )}
+
               {/* Hours of Operation */}
               <ClinicHours hours={clinic.hours} timezone={clinic.timezone} />
 
@@ -827,16 +839,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                         Call to Schedule
                       </TrackableCallLink>
                     </Button>
-                    <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
-                      <a
-                        href="https://vaultmediainc10211905.o18.link/c?o=21483674&m=20197&a=628724&sub_aff_id=contact_btn&mo=Doctor_USA"
-                        target="_blank"
-                        rel="noopener noreferrer sponsored"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        Chat with a Doctor Online
-                      </a>
-                    </Button>
+                    <ClinicContactCta pagePath={`/pain-management/${slug.join("/")}`} />
                   </div>
                 </CardContent>
               </Card>

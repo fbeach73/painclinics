@@ -5,6 +5,8 @@ import { BannerAd } from "@/components/ads/creatives/BannerAd";
 import { HtmlAd } from "@/components/ads/creatives/HtmlAd";
 import { TextAd } from "@/components/ads/creatives/TextAd";
 import { NativeAd } from "@/components/ads/creatives/NativeAd";
+import { CtaCardAd } from "@/components/ads/creatives/CtaCardAd";
+import { CtaButtonAd } from "@/components/ads/creatives/CtaButtonAd";
 
 interface AdSlotProps {
   /** Placement name matching ad_placements.name (e.g. "clinic_sidebar") */
@@ -15,6 +17,8 @@ interface AdSlotProps {
   className?: string;
   /** Whether to show the "Advertisement" label (default true) */
   showLabel?: boolean;
+  /** Override the default creative renderer */
+  renderer?: "default" | "cta-card" | "cta-button";
 }
 
 export async function AdSlot({
@@ -22,6 +26,7 @@ export async function AdSlot({
   path,
   className,
   showLabel = true,
+  renderer = "default",
 }: AdSlotProps) {
   const cls = className ?? "";
   const hostedOnly = isHostedOnly(placement);
@@ -43,6 +48,18 @@ export async function AdSlot({
 
   // Render creative by type
   const { creative, clickUrl } = ad;
+
+  // Specialized renderers bypass the default type switch
+  if (renderer === "cta-card") {
+    return (
+      <CtaCardAd creative={creative} clickUrl={clickUrl} />
+    );
+  }
+  if (renderer === "cta-button") {
+    return (
+      <CtaButtonAd creative={creative} clickUrl={clickUrl} />
+    );
+  }
 
   return (
     <AdPlacement className={cls} showLabel={showLabel}>

@@ -71,6 +71,16 @@ export const PLACEMENT_SPECS: Record<string, PlacementSpec> = {
     hostedOnly: true,
     note: "Native only, no AdSense fallback. 3-up grid above footer on all public pages.",
   },
+  "clinic-sidebar-cta": {
+    allowedTypes: ["native"],
+    hostedOnly: true,
+    note: "Standalone CTA card in sidebar after Map. Native only, no AdSense fallback.",
+  },
+  "clinic-contact-cta": {
+    allowedTypes: ["native"],
+    hostedOnly: true,
+    note: "CTA button in Contact Information card. Native only, no AdSense fallback.",
+  },
 };
 
 /** Get allowed types for a placement (undefined = all). */
