@@ -671,26 +671,14 @@ export default async function PainManagementClinicPage({ params, searchParams: s
             </div>
           </div>
 
-          {/* Services + Ad Row */}
-          <div className={`grid gap-8 ${showAds ? "lg:grid-cols-[1fr_300px]" : ""} mb-8 min-w-0 items-start`}>
-            {/* Ad - shows first on mobile, second on desktop */}
-            {showAds && (
-              <div className="order-first lg:order-last min-w-0">
-                <AdPlacement><InPageAd slot="7243608610" /></AdPlacement>
-              </div>
-            )}
-            {/* Services - shows second on mobile, first on desktop */}
-            {clinic.services.length > 0 && (
-              <div className="order-last lg:order-first min-w-0">
-                <ClinicServicesLegacy services={clinic.services} />
-              </div>
-            )}
-          </div>
-
           {/* Main Content Grid */}
           <div className="grid gap-8 lg:grid-cols-3 min-w-0">
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8 min-w-0">
+              {/* Services Section */}
+              {clinic.services.length > 0 && (
+                <ClinicServicesLegacy services={clinic.services} />
+              )}
               {/* About Section - use enhanced if available, business description as fallback */}
               {(clinic.about || clinic.enhancedAbout || clinic.businessDescription) && (
                 <ClinicAbout
@@ -729,6 +717,11 @@ export default async function PainManagementClinicPage({ params, searchParams: s
 
             {/* Right Column - Sidebar */}
             <div className="space-y-6 min-w-0">
+              {/* Sidebar Ad - above location map */}
+              {showAds && (
+                <AdPlacement><InPageAd slot="7243608610" /></AdPlacement>
+              )}
+
               {/* Location Map */}
               <Card>
                 <CardHeader>
