@@ -7,7 +7,7 @@ import {
   Upload,
   Home,
   LayoutDashboard,
-  Settings,
+  ImageIcon,
   Database,
   BarChart3,
   Grid3X3,
@@ -48,7 +48,7 @@ const navItems = [
   { href: "/admin/emails", label: "Emails", icon: Mail },
   { href: "/admin/broadcasts", label: "Broadcasts", icon: Send },
   { href: "/admin/rotation", label: "Rotation", icon: RotateCw },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/media", label: "Media", icon: ImageIcon },
 ];
 
 const SIDEBAR_COLLAPSED_KEY = "admin-sidebar-collapsed";

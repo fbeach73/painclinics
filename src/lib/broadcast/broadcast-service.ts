@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, sql, and, isNotNull } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { sendBroadcastEmail, generateUnsubscribeToken, getUnsubscribeUrl } from "@/lib/email";
-import { user, emailUnsubscribes } from "@/lib/schema";
+import { sendBroadcastEmail, generateUnsubscribeToken } from "@/lib/email";
+import { user, emailUnsubscribes, clinics } from "@/lib/schema";
 import {
   getBroadcast,
   updateBroadcastStatus,
@@ -153,10 +153,16 @@ function buildFullAddress(clinic: ClinicEmail): string {
 }
 
 /**
- * Get the base URL for the application
+ * Production base URL — broadcasts should never link to localhost.
  */
+const BROADCAST_BASE_URL = "https://painclinics.com";
+
 function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
+  return BROADCAST_BASE_URL;
+}
+
+function getBroadcastUnsubscribeUrl(token: string): string {
+  return `${BROADCAST_BASE_URL}/unsubscribe/${token}`;
 }
 
 /**
@@ -303,17 +309,122 @@ export async function sendTestEmail(
       ? substituteContactMergeTags(broadcast.previewText, sampleContact)
       : undefined;
   } else {
-    // Use sample clinic data for clinic audiences
-    const sampleClinic = getSampleClinicData();
-    personalizedSubject = substituteMergeTags(broadcast.subject, sampleClinic);
-    personalizedContent = substituteMergeTags(broadcast.htmlContent, sampleClinic);
+    // Try to find a real clinic matching the test email for realistic preview
+    let clinicData: ClinicEmail | null = null;
+    try {
+      const match = await db
+        .select({
+          clinicId: clinics.id,
+          clinicName: clinics.title,
+          emails: clinics.emails,
+          ownerUserId: clinics.ownerUserId,
+          permalink: clinics.permalink,
+          city: clinics.city,
+          state: clinics.state,
+          stateAbbreviation: clinics.stateAbbreviation,
+          streetAddress: clinics.streetAddress,
+          postalCode: clinics.postalCode,
+          phone: clinics.phone,
+          website: clinics.website,
+          rating: clinics.rating,
+          reviewCount: clinics.reviewCount,
+          isFeatured: clinics.isFeatured,
+          featuredTier: clinics.featuredTier,
+          clinicHours: clinics.clinicHours,
+          imageUrl: clinics.imageUrl,
+          content: clinics.content,
+          enhancedAbout: clinics.newPostContent,
+        })
+        .from(clinics)
+        .where(
+          and(
+            eq(clinics.status, "published"),
+            isNotNull(clinics.emails),
+            sql`${testEmail} = ANY(${clinics.emails})`
+          )
+        )
+        .limit(1);
+
+      let c = match[0];
+
+      // Fallback: match by owner user email if not found in clinic emails array
+      if (!c) {
+        const ownerMatch = await db
+          .select({
+            clinicId: clinics.id,
+            clinicName: clinics.title,
+            emails: clinics.emails,
+            ownerUserId: clinics.ownerUserId,
+            permalink: clinics.permalink,
+            city: clinics.city,
+            state: clinics.state,
+            stateAbbreviation: clinics.stateAbbreviation,
+            streetAddress: clinics.streetAddress,
+            postalCode: clinics.postalCode,
+            phone: clinics.phone,
+            website: clinics.website,
+            rating: clinics.rating,
+            reviewCount: clinics.reviewCount,
+            isFeatured: clinics.isFeatured,
+            featuredTier: clinics.featuredTier,
+            clinicHours: clinics.clinicHours,
+            imageUrl: clinics.imageUrl,
+            content: clinics.content,
+            enhancedAbout: clinics.newPostContent,
+          })
+          .from(clinics)
+          .innerJoin(user, eq(clinics.ownerUserId, user.id))
+          .where(
+            and(
+              eq(clinics.status, "published"),
+              eq(user.email, testEmail)
+            )
+          )
+          .limit(1);
+
+        c = ownerMatch[0];
+      }
+
+      if (c) {
+        clinicData = {
+          clinicId: c.clinicId,
+          clinicName: c.clinicName,
+          email: testEmail,
+          bccEmails: null,
+          ownerUserId: c.ownerUserId,
+          permalink: c.permalink,
+          city: c.city,
+          state: c.state,
+          stateAbbreviation: c.stateAbbreviation,
+          streetAddress: c.streetAddress,
+          postalCode: c.postalCode,
+          phone: c.phone,
+          website: c.website,
+          rating: c.rating,
+          reviewCount: c.reviewCount,
+          isFeatured: c.isFeatured,
+          featuredTier: c.featuredTier,
+          clinicHours: c.clinicHours,
+          imageUrl: c.imageUrl,
+          content: c.content,
+          enhancedAbout: c.enhancedAbout,
+        };
+      }
+    } catch {
+      // Fall through to sample data
+    }
+
+    const testClinic = clinicData || getSampleClinicData();
+    const cityClinicCounts = clinicData ? await getCityClinicCounts() : undefined;
+    personalizedSubject = substituteMergeTags(broadcast.subject, testClinic, cityClinicCounts);
+    personalizedContent = substituteMergeTags(broadcast.htmlContent, testClinic, cityClinicCounts);
     personalizedPreview = broadcast.previewText
-      ? substituteMergeTags(broadcast.previewText, sampleClinic)
+      ? substituteMergeTags(broadcast.previewText, testClinic, cityClinicCounts)
       : undefined;
   }
 
   // Generate a test unsubscribe URL (won't actually work for unsubscribing)
-  const unsubscribeUrl = getUnsubscribeUrl("test-token");
+  const unsubscribeUrl = getBroadcastUnsubscribeUrl("test-token");
 
   const result = await sendBroadcastEmail({
     to: testEmail,
@@ -505,7 +616,7 @@ async function sendBroadcastToClinic(
     clinic.email,
     clinic.clinicId || null
   );
-  const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken);
+  const unsubscribeUrl = getBroadcastUnsubscribeUrl(unsubscribeToken);
 
   // Substitute merge tags with actual clinic data
   const personalizedSubject = substituteMergeTags(broadcast.subject, clinic, cityClinicCounts);
@@ -544,7 +655,7 @@ async function sendBroadcastToContact(
     contact.email,
     null
   );
-  const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken);
+  const unsubscribeUrl = getBroadcastUnsubscribeUrl(unsubscribeToken);
 
   // Substitute merge tags with actual contact data
   const personalizedSubject = substituteContactMergeTags(broadcast.subject, contact);

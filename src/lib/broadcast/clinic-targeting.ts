@@ -99,32 +99,9 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       break;
 
     case "manual":
-      // Return manual email list directly, skip database query
-      // Manual entries don't have clinic data, so merge tags will show placeholders
+      // Try to match manual emails to real clinics for merge tag personalization
       if (filters?.manualEmails && filters.manualEmails.length > 0) {
-        return filters.manualEmails.map((email) => ({
-          clinicId: "",
-          clinicName: "Your Clinic",
-          email,
-          bccEmails: null,
-          ownerUserId: null,
-          permalink: "",
-          city: "",
-          state: "",
-          stateAbbreviation: null,
-          streetAddress: null,
-          postalCode: "",
-          phone: null,
-          website: null,
-          rating: null,
-          reviewCount: null,
-          isFeatured: false,
-          featuredTier: null,
-          clinicHours: null,
-          imageUrl: null,
-          content: null,
-          enhancedAbout: null,
-        }));
+        return resolveManualEmails(filters.manualEmails);
       }
       return [];
   }
@@ -659,4 +636,157 @@ export async function getClaimedNonSubscriberCount(): Promise<number> {
   // Filter out active subscribers
   const count = result.filter((c) => !activeSubscriberIds.has(c.id)).length;
   return count;
+}
+
+/**
+ * Resolve manual email addresses to real clinic data when possible.
+ * Matches by: 1) clinic emails array, 2) owner user email.
+ * Falls back to placeholder data for unmatched emails.
+ */
+async function resolveManualEmails(emails: string[]): Promise<ClinicEmail[]> {
+  const results: ClinicEmail[] = [];
+
+  // Batch query: find clinics where any of the manual emails appear in the emails array
+  const emailMatchResult = await db
+    .select({
+      clinicId: clinics.id,
+      clinicName: clinics.title,
+      emails: clinics.emails,
+      ownerUserId: clinics.ownerUserId,
+      permalink: clinics.permalink,
+      city: clinics.city,
+      state: clinics.state,
+      stateAbbreviation: clinics.stateAbbreviation,
+      streetAddress: clinics.streetAddress,
+      postalCode: clinics.postalCode,
+      phone: clinics.phone,
+      website: clinics.website,
+      rating: clinics.rating,
+      reviewCount: clinics.reviewCount,
+      isFeatured: clinics.isFeatured,
+      featuredTier: clinics.featuredTier,
+      clinicHours: clinics.clinicHours,
+      imageUrl: clinics.imageUrl,
+      content: clinics.content,
+      enhancedAbout: clinics.newPostContent,
+    })
+    .from(clinics)
+    .where(
+      and(
+        eq(clinics.status, "published"),
+        sql`${clinics.emails} && ARRAY[${sql.join(emails.map((e) => sql`${e}`), sql`, `)}]::text[]`
+      )
+    );
+
+  // Build a map of email → clinic for quick lookup
+  const emailToClinic = new Map<string, (typeof emailMatchResult)[number]>();
+  for (const c of emailMatchResult) {
+    if (c.emails) {
+      for (const e of c.emails) {
+        if (e && emails.some((m) => m.toLowerCase() === e.toLowerCase())) {
+          emailToClinic.set(e.toLowerCase(), c);
+        }
+      }
+    }
+  }
+
+  // Find unmatched emails and try to match by owner user email
+  const unmatchedEmails = emails.filter((e) => !emailToClinic.has(e.toLowerCase()));
+  if (unmatchedEmails.length > 0) {
+    const ownerMatchResult = await db
+      .select({
+        clinicId: clinics.id,
+        clinicName: clinics.title,
+        emails: clinics.emails,
+        ownerUserId: clinics.ownerUserId,
+        permalink: clinics.permalink,
+        city: clinics.city,
+        state: clinics.state,
+        stateAbbreviation: clinics.stateAbbreviation,
+        streetAddress: clinics.streetAddress,
+        postalCode: clinics.postalCode,
+        phone: clinics.phone,
+        website: clinics.website,
+        rating: clinics.rating,
+        reviewCount: clinics.reviewCount,
+        isFeatured: clinics.isFeatured,
+        featuredTier: clinics.featuredTier,
+        clinicHours: clinics.clinicHours,
+        imageUrl: clinics.imageUrl,
+        content: clinics.content,
+        enhancedAbout: clinics.newPostContent,
+        ownerEmail: user.email,
+      })
+      .from(clinics)
+      .innerJoin(user, eq(clinics.ownerUserId, user.id))
+      .where(
+        and(
+          eq(clinics.status, "published"),
+          inArray(user.email, unmatchedEmails)
+        )
+      );
+
+    for (const c of ownerMatchResult) {
+      if (c.ownerEmail) {
+        emailToClinic.set(c.ownerEmail.toLowerCase(), c);
+      }
+    }
+  }
+
+  // Build results for all emails
+  for (const email of emails) {
+    const matched = emailToClinic.get(email.toLowerCase());
+    if (matched) {
+      results.push({
+        clinicId: matched.clinicId,
+        clinicName: matched.clinicName,
+        email,
+        bccEmails: null,
+        ownerUserId: matched.ownerUserId,
+        permalink: matched.permalink,
+        city: matched.city,
+        state: matched.state,
+        stateAbbreviation: matched.stateAbbreviation,
+        streetAddress: matched.streetAddress,
+        postalCode: matched.postalCode,
+        phone: matched.phone,
+        website: matched.website,
+        rating: matched.rating,
+        reviewCount: matched.reviewCount,
+        isFeatured: matched.isFeatured,
+        featuredTier: matched.featuredTier,
+        clinicHours: matched.clinicHours,
+        imageUrl: matched.imageUrl,
+        content: matched.content,
+        enhancedAbout: matched.enhancedAbout,
+      });
+    } else {
+      // No match — use placeholder
+      results.push({
+        clinicId: "",
+        clinicName: "Your Clinic",
+        email,
+        bccEmails: null,
+        ownerUserId: null,
+        permalink: "",
+        city: "",
+        state: "",
+        stateAbbreviation: null,
+        streetAddress: null,
+        postalCode: "",
+        phone: null,
+        website: null,
+        rating: null,
+        reviewCount: null,
+        isFeatured: false,
+        featuredTier: null,
+        clinicHours: null,
+        imageUrl: null,
+        content: null,
+        enhancedAbout: null,
+      });
+    }
+  }
+
+  return results;
 }
