@@ -49,8 +49,7 @@ export async function GET(request: NextRequest) {
         .onConflictDoNothing({ target: adClicks.clickId })
         .catch((err) => console.error("Failed to record ad click:", err));
     } else {
-      // Bot/fraud detected — still redirect (preserve UX) but mark as bot.
-      // We keep the record for analysis but exclude it from stats queries.
+      // Bot/fraud detected — record for analysis but do NOT redirect to affiliate.
       db.insert(adClicks)
         .values({
           clickId,
@@ -61,6 +60,9 @@ export async function GET(request: NextRequest) {
         })
         .onConflictDoNothing({ target: adClicks.clickId })
         .catch((err) => console.error("Failed to record bot click:", err));
+
+      // Send bots to homepage instead of affiliate destination
+      return NextResponse.redirect(new URL("/", request.url), { status: 302 });
     }
   }
 

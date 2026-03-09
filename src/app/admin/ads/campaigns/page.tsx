@@ -44,6 +44,7 @@ async function getCampaigns() {
           FROM ad_impressions i
           INNER JOIN ad_clicks k ON k.click_id = i.click_id
           WHERE i.campaign_id = ad_campaigns.id
+            AND (k.is_bot IS NULL OR k.is_bot = false)
         ), 0)
       `,
     })
