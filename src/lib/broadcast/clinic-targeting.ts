@@ -26,6 +26,10 @@ export interface ClinicEmail {
   reviewCount: number | null;
   isFeatured: boolean;
   featuredTier: "none" | "basic" | "premium" | null;
+  clinicHours: unknown | null;
+  imageUrl: string | null;
+  content: string | null;
+  enhancedAbout: string | null;
 }
 
 // Re-export merge tags from client-safe module
@@ -116,6 +120,10 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
           reviewCount: null,
           isFeatured: false,
           featuredTier: null,
+          clinicHours: null,
+          imageUrl: null,
+          content: null,
+          enhancedAbout: null,
         }));
       }
       return [];
@@ -140,6 +148,10 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       reviewCount: clinics.reviewCount,
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
+      clinicHours: clinics.clinicHours,
+      imageUrl: clinics.imageUrl,
+      content: clinics.content,
+      enhancedAbout: clinics.newPostContent,
     })
     .from(clinics)
     .where(and(...conditions));
@@ -165,6 +177,10 @@ export async function getTargetClinics(options: TargetingOptions): Promise<Clini
       reviewCount: c.reviewCount,
       isFeatured: c.isFeatured,
       featuredTier: c.featuredTier,
+      clinicHours: c.clinicHours,
+      imageUrl: c.imageUrl,
+      content: c.content,
+      enhancedAbout: c.enhancedAbout,
     }));
 
   // Exclude unsubscribed users/emails if requested
@@ -320,6 +336,10 @@ async function getSubscriberClinics(
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
       subscriptionTier: featuredSubscriptions.tier,
+      clinicHours: clinics.clinicHours,
+      imageUrl: clinics.imageUrl,
+      content: clinics.content,
+      enhancedAbout: clinics.newPostContent,
     })
     .from(featuredSubscriptions)
     .innerJoin(clinics, eq(featuredSubscriptions.clinicId, clinics.id))
@@ -354,6 +374,10 @@ async function getSubscriberClinics(
       reviewCount: c.reviewCount,
       isFeatured: c.isFeatured,
       featuredTier: c.featuredTier,
+      clinicHours: c.clinicHours,
+      imageUrl: c.imageUrl,
+      content: c.content,
+      enhancedAbout: c.enhancedAbout,
     }));
 
   // Exclude unsubscribed users/emails if requested
@@ -418,6 +442,10 @@ async function getFeaturedNonSubscriberClinics(
       reviewCount: clinics.reviewCount,
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
+      clinicHours: clinics.clinicHours,
+      imageUrl: clinics.imageUrl,
+      content: clinics.content,
+      enhancedAbout: clinics.newPostContent,
     })
     .from(clinics)
     .where(
@@ -453,6 +481,10 @@ async function getFeaturedNonSubscriberClinics(
       reviewCount: c.reviewCount,
       isFeatured: c.isFeatured,
       featuredTier: c.featuredTier,
+      clinicHours: c.clinicHours,
+      imageUrl: c.imageUrl,
+      content: c.content,
+      enhancedAbout: c.enhancedAbout,
     }));
 
   if (filters?.excludeUnsubscribed) {
@@ -521,6 +553,10 @@ async function getClaimedNonSubscriberClinics(
       reviewCount: clinics.reviewCount,
       isFeatured: clinics.isFeatured,
       featuredTier: clinics.featuredTier,
+      clinicHours: clinics.clinicHours,
+      imageUrl: clinics.imageUrl,
+      content: clinics.content,
+      enhancedAbout: clinics.newPostContent,
     })
     .from(clinics)
     .where(
@@ -559,6 +595,10 @@ async function getClaimedNonSubscriberClinics(
       reviewCount: c.reviewCount,
       isFeatured: c.isFeatured,
       featuredTier: c.featuredTier,
+      clinicHours: c.clinicHours,
+      imageUrl: c.imageUrl,
+      content: c.content,
+      enhancedAbout: c.enhancedAbout,
     }));
 
   // Exclude unsubscribed users/emails if requested

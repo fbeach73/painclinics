@@ -16,6 +16,11 @@ export const MERGE_TAGS = {
   website: { label: "Website", example: "https://example.com" },
   rating: { label: "Google Rating", example: "4.8" },
   review_count: { label: "Review Count", example: "127" },
+  rating_stars: { label: "Rating Stars", example: "★★★★☆ 4.2" },
+  review_summary: { label: "Review Summary", example: "127 Google reviews" },
+  missing_items: { label: "Missing Profile Items", example: "website, business hours, photos" },
+  profile_score: { label: "Profile Completeness", example: "65%" },
+  competitor_count: { label: "Competitors in City", example: "12" },
 } as const;
 
 export type MergeTagKey = keyof typeof MERGE_TAGS;

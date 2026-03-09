@@ -26,6 +26,38 @@ import type { ContactEmail } from "@/lib/contact-queries";
 const BATCH_SIZE = 50;
 const BATCH_DELAY_MS = 200; // ~250 emails/min, under 300/min limit
 
+// ============================================
+// City Clinic Count Cache
+// ============================================
+
+let cityClinicCountsCache: Map<string, number> | null = null;
+
+async function getCityClinicCounts(): Promise<Map<string, number>> {
+  if (cityClinicCountsCache) return cityClinicCountsCache;
+
+  const { db } = await import("@/lib/db");
+  const { clinics } = await import("@/lib/schema");
+  const { eq, sql, and } = await import("drizzle-orm");
+
+  const result = await db
+    .select({
+      city: clinics.city,
+      stateAbbreviation: clinics.stateAbbreviation,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(clinics)
+    .where(and(eq(clinics.status, "published")))
+    .groupBy(clinics.city, clinics.stateAbbreviation);
+
+  const counts = new Map<string, number>();
+  for (const row of result) {
+    const key = `${row.city}|${row.stateAbbreviation}`;
+    counts.set(key, row.count);
+  }
+  cityClinicCountsCache = counts;
+  return counts;
+}
+
 function isContactAudience(
   audience: string
 ): audience is "contacts_all" | "contacts_users" | "contacts_leads" {
@@ -130,7 +162,11 @@ function getBaseUrl(): string {
 /**
  * Substitute merge tags in content with actual clinic data
  */
-export function substituteMergeTags(content: string, clinic: ClinicEmail): string {
+export function substituteMergeTags(
+  content: string,
+  clinic: ClinicEmail,
+  cityClinicCounts?: Map<string, number>
+): string {
   const baseUrl = getBaseUrl();
   const clinicUrl = clinic.permalink
     ? `${baseUrl}/pain-management/${clinic.permalink}`
@@ -154,6 +190,38 @@ export function substituteMergeTags(content: string, clinic: ClinicEmail): strin
     "{{rating}}": clinic.rating?.toFixed(1) || "",
     "{{review_count}}": clinic.reviewCount?.toString() || "",
   };
+
+  // Computed audit merge tags
+  const ratingStars = clinic.rating
+    ? "★".repeat(Math.round(clinic.rating)) + "☆".repeat(5 - Math.round(clinic.rating)) + ` ${clinic.rating.toFixed(1)}`
+    : "No rating yet";
+
+  const reviewSummary = clinic.reviewCount && clinic.reviewCount > 0
+    ? `${clinic.reviewCount} Google review${clinic.reviewCount === 1 ? "" : "s"}`
+    : "No reviews yet";
+
+  const missingItems: string[] = [];
+  if (!clinic.website) missingItems.push("website");
+  if (!clinic.phone) missingItems.push("phone number");
+  if (!clinic.clinicHours) missingItems.push("business hours");
+  if (!clinic.imageUrl) missingItems.push("photos");
+  if (!clinic.content && !clinic.enhancedAbout) missingItems.push("business description");
+  if (!clinic.rating) missingItems.push("Google reviews");
+  const missingItemsStr = missingItems.length > 0 ? missingItems.join(", ") : "none — looks great!";
+
+  const totalFields = 6; // website, phone, hours, photos, description, reviews
+  const filledFields = totalFields - missingItems.length;
+  const profileScore = Math.round((filledFields / totalFields) * 100);
+
+  const cityKey = `${clinic.city}|${clinic.stateAbbreviation}`;
+  const competitorCount = cityClinicCounts?.get(cityKey) ?? 0;
+  const competitorCountMinusOne = Math.max(0, competitorCount - 1);
+
+  replacements["{{rating_stars}}"] = ratingStars;
+  replacements["{{review_summary}}"] = reviewSummary;
+  replacements["{{missing_items}}"] = missingItemsStr;
+  replacements["{{profile_score}}"] = `${profileScore}%`;
+  replacements["{{competitor_count}}"] = competitorCountMinusOne.toString();
 
   let result = content;
   for (const [tag, value] of Object.entries(replacements)) {
@@ -185,6 +253,10 @@ export function getSampleClinicData(): ClinicEmail {
     reviewCount: 127,
     isFeatured: false,
     featuredTier: null,
+    clinicHours: { Monday: "9:00 AM - 5:00 PM" },
+    imageUrl: "https://example.com/photo.jpg",
+    content: "Sample clinic content",
+    enhancedAbout: null,
   };
 }
 
@@ -364,6 +436,9 @@ export async function sendBroadcast(broadcastId: string): Promise<SendBroadcastR
 
     recipientCount = targetClinics.length;
 
+    // Fetch city clinic counts once for computed merge tags
+    const cityClinicCounts = await getCityClinicCounts();
+
     // 3. Update status to sending
     await updateBroadcastStatus(broadcastId, "sending", {
       startedAt: new Date(),
@@ -377,7 +452,7 @@ export async function sendBroadcast(broadcastId: string): Promise<SendBroadcastR
       await Promise.all(
         batch.map(async (clinic) => {
           try {
-            const success = await sendBroadcastToClinic(broadcast, clinic);
+            const success = await sendBroadcastToClinic(broadcast, clinic, cityClinicCounts);
             if (success) {
               sentCount++;
               await incrementSentCount(broadcastId);
@@ -405,6 +480,8 @@ export async function sendBroadcast(broadcastId: string): Promise<SendBroadcastR
     completedAt: new Date(),
   });
 
+  cityClinicCountsCache = null; // Clear cache after broadcast
+
   return {
     success: failedCount < recipientCount,
     broadcastId,
@@ -419,7 +496,8 @@ export async function sendBroadcast(broadcastId: string): Promise<SendBroadcastR
  */
 async function sendBroadcastToClinic(
   broadcast: Broadcast,
-  clinic: ClinicEmail
+  clinic: ClinicEmail,
+  cityClinicCounts?: Map<string, number>
 ): Promise<boolean> {
   // Get or create unsubscribe token (pass email and clinicId for non-user emails)
   const unsubscribeToken = await getOrCreateUnsubscribeToken(
@@ -430,10 +508,10 @@ async function sendBroadcastToClinic(
   const unsubscribeUrl = getUnsubscribeUrl(unsubscribeToken);
 
   // Substitute merge tags with actual clinic data
-  const personalizedSubject = substituteMergeTags(broadcast.subject, clinic);
-  const personalizedContent = substituteMergeTags(broadcast.htmlContent, clinic);
+  const personalizedSubject = substituteMergeTags(broadcast.subject, clinic, cityClinicCounts);
+  const personalizedContent = substituteMergeTags(broadcast.htmlContent, clinic, cityClinicCounts);
   const personalizedPreview = broadcast.previewText
-    ? substituteMergeTags(broadcast.previewText, clinic)
+    ? substituteMergeTags(broadcast.previewText, clinic, cityClinicCounts)
     : undefined;
 
   // Send email using the broadcast email helper

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, Save, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Eye, Save, Loader2, Trash2, Code, Type } from "lucide-react";
 import { toast } from "sonner";
 import { AutoSaveIndicator, type SaveStatus } from "@/components/admin/blog/auto-save-indicator";
 import { TiptapEditor } from "@/components/admin/blog/tiptap-editor";
@@ -89,6 +89,7 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
     city?: string;
     state?: string;
   }>>([]);
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
 
   // Update form data helper
   const updateFormData = useCallback(<K extends keyof BroadcastFormState>(
@@ -513,14 +514,45 @@ export function BroadcastForm({ broadcast }: BroadcastFormProps) {
               {/* Email content editor */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Email Content</Label>
+                  <div className="flex items-center gap-2">
+                    <Label>Email Content</Label>
+                    <Button
+                      type="button"
+                      variant={isHtmlMode ? "default" : "outline"}
+                      size="sm"
+                      className="h-7 px-2 text-xs gap-1"
+                      onClick={() => setIsHtmlMode(!isHtmlMode)}
+                    >
+                      {isHtmlMode ? (
+                        <>
+                          <Type className="h-3 w-3" />
+                          Visual
+                        </>
+                      ) : (
+                        <>
+                          <Code className="h-3 w-3" />
+                          HTML
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <MergeTagHelper isContactAudience={formData.targetAudience.startsWith("contacts_")} />
                 </div>
-                <TiptapEditor
-                  content={formData.htmlContent}
-                  onChange={(html) => updateFormData("htmlContent", html)}
-                  onImageUpload={handleImageUpload}
-                />
+                {isHtmlMode ? (
+                  <Textarea
+                    value={formData.htmlContent}
+                    onChange={(e) => updateFormData("htmlContent", e.target.value)}
+                    placeholder="Paste raw HTML here..."
+                    rows={20}
+                    className="font-mono text-sm"
+                  />
+                ) : (
+                  <TiptapEditor
+                    content={formData.htmlContent}
+                    onChange={(html) => updateFormData("htmlContent", html)}
+                    onImageUpload={handleImageUpload}
+                  />
+                )}
               </div>
             </div>
 
