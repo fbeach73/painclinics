@@ -111,8 +111,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Block non-production hostnames (Vercel preview URLs get crawled by bots)
+  // Allow Vercel cron jobs (they send a specific user-agent and /api/cron paths)
   const host = request.headers.get("host") ?? "";
-  if (host && !host.includes("painclinics.com") && !host.includes("localhost")) {
+  const isVercelCron = pathname.startsWith("/api/cron/");
+  if (host && !host.includes("painclinics.com") && !host.includes("localhost") && !isVercelCron) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
