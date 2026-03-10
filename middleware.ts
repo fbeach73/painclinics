@@ -53,9 +53,29 @@ const BLOCKED_BOT_PATTERNS = [
   /go-http-client/i,
 ];
 
+// Crawlers we allow on clean pages but block from filtered/paginated URLs
+const FILTER_BLOCKED_BOT_PATTERNS = [
+  /bot/i,
+  /crawl/i,
+  /spider/i,
+  /ddg\//i,
+  /slurp/i,
+  /facebookexternalhit/i,
+  /meta-externalagent/i,
+  /linkedinbot/i,
+  /twitterbot/i,
+  /applebot/i,
+  /bingbot/i,
+];
+
 function isBlockedBot(ua: string | null): boolean {
   if (!ua) return false;
   return BLOCKED_BOT_PATTERNS.some((pattern) => pattern.test(ua));
+}
+
+function isCrawler(ua: string | null): boolean {
+  if (!ua) return false;
+  return FILTER_BLOCKED_BOT_PATTERNS.some((pattern) => pattern.test(ua));
 }
 
 // Legacy /?clinics=slug → canonical /pain-management/slug-state-zip redirects
@@ -157,7 +177,15 @@ export function middleware(request: NextRequest) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
-  // 0. Block absurd pagination (bots crawling ?page=500+)
+  // 0. Block crawlers from filtered/paginated directory pages
+  // Clean canonical URLs are fine for indexing; query-param variants waste DB egress
+  const hasFilterParams = request.nextUrl.search.length > 0;
+  const isDirectoryPage = pathname.startsWith("/pain-management");
+  if (hasFilterParams && isDirectoryPage && isCrawler(ua)) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
+  // Block absurd pagination (bots crawling ?page=500+)
   const pageParam = request.nextUrl.searchParams.get("page");
   if (pageParam) {
     const pageNum = parseInt(pageParam, 10);
