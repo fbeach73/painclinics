@@ -17,23 +17,23 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "GPTBot",
-        allow: ["/"],
+        disallow: ["/"],
       },
       {
         userAgent: "ChatGPT-User",
-        allow: ["/"],
+        disallow: ["/"],
       },
       {
         userAgent: "ClaudeBot",
-        allow: ["/"],
+        disallow: ["/"],
       },
       {
         userAgent: "PerplexityBot",
-        allow: ["/"],
+        disallow: ["/"],
       },
       {
         userAgent: "Google-Extended",
-        allow: ["/"],
+        disallow: ["/"],
       },
       // Block aggressive SEO crawlers
       {

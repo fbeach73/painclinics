@@ -43,6 +43,14 @@ const BLOCKED_BOT_PATTERNS = [
   /yandexbot/i,
   /baidu/i,
   /scrapy/i,
+  /gptbot/i,
+  /chatgpt-user/i,
+  /claudebot/i,
+  /anthropic-ai/i,
+  /cohere-ai/i,
+  /meta-externalagent/i,
+  /facebookexternalhit/i,
+  /go-http-client/i,
 ];
 
 function isBlockedBot(ua: string | null): boolean {
@@ -149,7 +157,16 @@ export function middleware(request: NextRequest) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
-  // 0. Redirect legacy /?clinics=slug to canonical clinic URL
+  // 0. Block absurd pagination (bots crawling ?page=500+)
+  const pageParam = request.nextUrl.searchParams.get("page");
+  if (pageParam) {
+    const pageNum = parseInt(pageParam, 10);
+    if (isNaN(pageNum) || pageNum > 100 || pageNum < 1) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+  }
+
+  // 1. Redirect legacy /?clinics=slug to canonical clinic URL
   if (pathname === "/" || pathname === "") {
     const clinicsParam = request.nextUrl.searchParams.get("clinics");
     if (clinicsParam) {

@@ -29,8 +29,8 @@ import {
   getClinicByLegacySlug,
   getClinicByStrippedSlug,
   getClinicByTitleSlug,
-  getClinicsByState,
-  getClinicsByCity,
+  hasClinicsByState,
+  hasClinicsByCity,
 } from "@/lib/clinic-queries";
 import { getClinicInsuranceSlugs } from "@/lib/clinic-insurance-queries";
 import { getClinicServices } from "@/lib/clinic-services-queries";
@@ -323,8 +323,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
     const stateName = getStateName(stateAbbrev);
 
     // Quick check: any clinics in this state?
-    const checkClinics = await getClinicsByState(stateAbbrev);
-    if (checkClinics.length === 0) {
+    const hasClinics = await hasClinicsByState(stateAbbrev);
+    if (!hasClinics) {
       notFound();
     }
 
@@ -388,8 +388,8 @@ export default async function PainManagementClinicPage({ params, searchParams: s
       const cityName = citySlugToName(citySlug);
 
       // Quick check: any clinics in this city?
-      const checkClinics = await getClinicsByCity(cityName, stateAbbrev);
-      if (checkClinics.length === 0) {
+      const hasClinics = await hasClinicsByCity(cityName, stateAbbrev);
+      if (!hasClinics) {
         notFound();
       }
 

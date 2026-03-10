@@ -88,6 +88,21 @@ export async function getAllClinicPermalinks() {
 }
 
 /**
+ * Check if any published clinics exist in a state (lightweight COUNT query).
+ * Used for 404 checks on state pages — avoids SELECT * on all clinics.
+ */
+export async function hasClinicsByState(stateAbbrev: string): Promise<boolean> {
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(clinics)
+    .where(and(
+      sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`,
+      isPublishedSql
+    ));
+  return (result[0]?.count ?? 0) > 0;
+}
+
+/**
  * Fetch all clinics in a specific state, ordered by featured status, then city and title.
  * Handles case-insensitive state abbreviation lookup.
  * Featured clinics (premium first, then basic) appear before non-featured clinics.
@@ -144,6 +159,21 @@ export async function getClinicCountsByState() {
   return results.filter(
     (r) => r.stateAbbreviation && r.stateAbbreviation in US_STATES_REVERSE
   );
+}
+
+/**
+ * Check if any published clinics exist in a city+state (lightweight COUNT query).
+ * Used for 404 checks on city pages — avoids SELECT * on all clinics.
+ */
+export async function hasClinicsByCity(city: string, stateAbbrev: string): Promise<boolean> {
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(clinics)
+    .where(and(
+      sql`LOWER(${clinics.city}) = LOWER(${city}) AND UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})`,
+      isPublishedSql
+    ));
+  return (result[0]?.count ?? 0) > 0;
 }
 
 /**
