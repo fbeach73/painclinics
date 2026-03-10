@@ -170,32 +170,24 @@ export function middleware(request: NextRequest) {
   if (pathname === "/" || pathname === "") {
     const clinicsParam = request.nextUrl.searchParams.get("clinics");
     if (clinicsParam) {
-      const url = request.nextUrl.clone();
       const destination = LEGACY_CLINIC_REDIRECTS[clinicsParam];
-      if (destination) {
-        url.pathname = destination;
-      } else {
-        // Unknown legacy slug — send to search page
-        url.pathname = "/clinics";
-      }
-      url.search = "";
-      return NextResponse.redirect(url, 301);
+      const targetPath = destination || "/pain-management";
+      const baseUrl = request.nextUrl.origin || "https://painclinics.com";
+      return NextResponse.redirect(new URL(targetPath, baseUrl), 301);
     }
   }
 
   // 1. Redirect /clinics/[slug] to /pain-management/[slug]
   if (pathname.startsWith("/clinics/") && pathname !== "/clinics/") {
     const slug = pathname.replace("/clinics/", "").replace(/\/$/, "");
-    const url = request.nextUrl.clone();
-    url.pathname = `/pain-management/${slug}`;
-    return NextResponse.redirect(url, 301);
+    const baseUrl = request.nextUrl.origin || "https://painclinics.com";
+    return NextResponse.redirect(new URL(`/pain-management/${slug}`, baseUrl), 301);
   }
 
   // Handle /clinics without trailing slash
   if (pathname === "/clinics") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/pain-management";
-    return NextResponse.redirect(url, 301);
+    const baseUrl = request.nextUrl.origin || "https://painclinics.com";
+    return NextResponse.redirect(new URL("/pain-management", baseUrl), 301);
   }
 
   // 2. Case normalization for /pain-management/ paths (case-insensitive match)
@@ -205,9 +197,8 @@ export function middleware(request: NextRequest) {
 
     // Redirect if case doesn't match (must be lowercase)
     if (pathname !== lowerPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = lowerPath;
-      return NextResponse.redirect(url, 301);
+      const baseUrl = request.nextUrl.origin || "https://painclinics.com";
+      return NextResponse.redirect(new URL(lowerPath, baseUrl), 301);
     }
   }
 
