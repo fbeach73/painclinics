@@ -1698,3 +1698,45 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+// ============================================
+// Newsletter Broadcasts Table (External API)
+// ============================================
+
+export const newsletterBroadcasts = pgTable(
+  "newsletter_broadcasts",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    broadcastId: text("broadcast_id").notNull().unique(), // "bc_xxx" format
+    subject: text("subject").notNull(),
+    htmlContent: text("html_content").notNull(),
+    plainText: text("plain_text").notNull(),
+    previewText: text("preview_text").default(""),
+    listId: text("list_id").default("newsletter").notNull(),
+    tags: text("tags")
+      .array()
+      .default(sql`'{}'::text[]`)
+      .notNull(),
+    status: text("status").default("queued").notNull(), // queued, sending, delivered, cancelled, failed
+    recipientCount: integer("recipient_count").default(0),
+    deliveredCount: integer("delivered_count").default(0),
+    openedCount: integer("opened_count").default(0),
+    clickedCount: integer("clicked_count").default(0),
+    bouncedCount: integer("bounced_count").default(0),
+    unsubscribedCount: integer("unsubscribed_count").default(0),
+    scheduledAt: timestamp("scheduled_at"),
+    sentAt: timestamp("sent_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("newsletter_broadcast_id_idx").on(table.broadcastId),
+    index("newsletter_broadcast_status_idx").on(table.status),
+    index("newsletter_broadcast_created_at_idx").on(table.createdAt),
+  ]
+);
