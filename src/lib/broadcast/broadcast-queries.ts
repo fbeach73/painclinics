@@ -1,6 +1,6 @@
 import { count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { emailBroadcasts, emailLogs } from "@/lib/schema";
+import { emailBroadcasts, emailLogs, featuredRotationLog } from "@/lib/schema";
 
 // ============================================
 // Types
@@ -147,14 +147,18 @@ export async function updateBroadcast(
  */
 export async function deleteBroadcast(id: string): Promise<boolean> {
   const broadcast = await getBroadcast(id);
-  if (!broadcast || broadcast.status !== "draft") {
+  if (!broadcast) {
     return false;
   }
 
+  // Nullify FK references in rotation logs to avoid constraint violations
+  await db
+    .update(featuredRotationLog)
+    .set({ broadcastId: null })
+    .where(eq(featuredRotationLog.broadcastId, id));
+
   await db.delete(emailBroadcasts).where(eq(emailBroadcasts.id, id));
-  // Verify deletion by checking if record still exists
-  const stillExists = await getBroadcast(id);
-  return stillExists === null;
+  return true;
 }
 
 /**

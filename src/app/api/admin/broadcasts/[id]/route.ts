@@ -140,7 +140,7 @@ export async function PATCH(
 
 /**
  * DELETE /api/admin/broadcasts/[id]
- * Delete a draft broadcast
+ * Delete a broadcast (any status)
  */
 export async function DELETE(
   _request: NextRequest,
@@ -159,14 +159,6 @@ export async function DELETE(
       return NextResponse.json(
         { error: "Broadcast not found" },
         { status: 404 }
-      );
-    }
-
-    // Only allow deleting drafts
-    if (broadcast.status !== "draft") {
-      return NextResponse.json(
-        { error: "Only draft broadcasts can be deleted" },
-        { status: 400 }
       );
     }
 
