@@ -179,8 +179,13 @@ export async function generateMetadata({ params, searchParams: searchParamsPromi
   let clinic = await getClinicByPermalink(slugPath);
 
   // If not found and single segment, try legacy WordPress slug format
+  // Resolve via permalink to get full clinic data for metadata
   if (!clinic && slug.length === 1 && slug[0]) {
-    clinic = await getClinicByLegacySlug(slug[0]);
+    const legacyResult = await getClinicByLegacySlug(slug[0]);
+    if (legacyResult?.permalink) {
+      const resolvedSlug = legacyResult.permalink.replace(/^pain-management\//, "");
+      clinic = await getClinicByPermalink(resolvedSlug);
+    }
   }
 
   if (!clinic) {

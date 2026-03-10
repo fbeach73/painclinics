@@ -1,4 +1,6 @@
 import { sql, asc, desc, eq, or, ilike, and } from "drizzle-orm";
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { clinics } from "@/lib/schema";
 import { US_STATES, US_STATES_REVERSE } from "@/lib/us-states";
@@ -29,11 +31,67 @@ const featuredOrderSql = sql`
  * @param slug - The clinic slug (without the "pain-management/" prefix)
  * @returns The clinic record or null if not found
  */
-export async function getClinicByPermalink(slug: string) {
+/**
+ * Selective columns for clinic page rendering.
+ * Excludes large/unused blobs: allReviewsText, detailedReviews, popularTimes,
+ * detailedAddress, clinicImageMedia, qrCode, npi, googleListingLink,
+ * social media fields, importBatchId, featImage, phones, wpId, postType, clinicType, placeId.
+ */
+const clinicPageColumns = {
+  id: clinics.id,
+  title: clinics.title,
+  permalink: clinics.permalink,
+  streetAddress: clinics.streetAddress,
+  city: clinics.city,
+  state: clinics.state,
+  stateAbbreviation: clinics.stateAbbreviation,
+  postalCode: clinics.postalCode,
+  mapLatitude: clinics.mapLatitude,
+  mapLongitude: clinics.mapLongitude,
+  phone: clinics.phone,
+  website: clinics.website,
+  emails: clinics.emails,
+  reviewCount: clinics.reviewCount,
+  rating: clinics.rating,
+  reviewsPerScore: clinics.reviewsPerScore,
+  reviewKeywords: clinics.reviewKeywords,
+  featuredReviews: clinics.featuredReviews,
+  priceRange: clinics.priceRange,
+  businessDescription: clinics.businessDescription,
+  clinicHours: clinics.clinicHours,
+  closedOn: clinics.closedOn,
+  timezone: clinics.timezone,
+  content: clinics.content,
+  newPostContent: clinics.newPostContent,
+  imageUrl: clinics.imageUrl,
+  imageFeatured: clinics.imageFeatured,
+  clinicImageUrls: clinics.clinicImageUrls,
+  amenities: clinics.amenities,
+  normalizedAmenities: clinics.normalizedAmenities,
+  checkboxFeatures: clinics.checkboxFeatures,
+  paymentMethods: clinics.paymentMethods,
+  questions: clinics.questions,
+  importedAt: clinics.importedAt,
+  importUpdatedAt: clinics.importUpdatedAt,
+  status: clinics.status,
+  publishedAt: clinics.publishedAt,
+  createdAt: clinics.createdAt,
+  updatedAt: clinics.updatedAt,
+  ownerUserId: clinics.ownerUserId,
+  isVerified: clinics.isVerified,
+  claimedAt: clinics.claimedAt,
+  isFeatured: clinics.isFeatured,
+  featuredTier: clinics.featuredTier,
+  featuredUntil: clinics.featuredUntil,
+};
+
+export type ClinicPageRecord = Awaited<ReturnType<typeof _getClinicByPermalink>>;
+
+async function _getClinicByPermalink(slug: string) {
   const permalinkPath = `pain-management/${slug}`;
 
   const results = await db
-    .select()
+    .select(clinicPageColumns)
     .from(clinics)
     .where(and(
       sql`LOWER(${clinics.permalink}) = LOWER(${permalinkPath})`,
@@ -44,6 +102,9 @@ export async function getClinicByPermalink(slug: string) {
   return results[0] || null;
 }
 
+/** Request-scoped cache — deduplicates generateMetadata + page component calls */
+export const getClinicByPermalink = cache(_getClinicByPermalink);
+
 /**
  * Find a clinic by attempting to strip common duplicate suffixes (-2, -3, etc).
  * Used to handle legacy URLs where duplicate clinics had numeric suffixes.
@@ -51,7 +112,7 @@ export async function getClinicByPermalink(slug: string) {
  * @param slug - The clinic slug that may end with -N suffix
  * @returns The clinic record with the canonical permalink, or null if not found
  */
-export async function getClinicByStrippedSlug(slug: string): Promise<{ clinic: ClinicRecord; canonicalSlug: string } | null> {
+export async function getClinicByStrippedSlug(slug: string): Promise<{ clinic: NonNullable<ClinicPageRecord>; canonicalSlug: string } | null> {
   // Check if slug ends with -{number} pattern (e.g., -2, -3, -4)
   const match = slug.match(/^(.+)-(\d+)$/);
 
@@ -127,7 +188,7 @@ export async function getClinicsByState(stateAbbrev: string) {
  *
  * @returns Array of unique state abbreviations
  */
-export async function getAllStatesWithClinics() {
+async function _getAllStatesWithClinics() {
   const results = await db
     .selectDistinct({ stateAbbreviation: clinics.stateAbbreviation })
     .from(clinics)
@@ -138,13 +199,20 @@ export async function getAllStatesWithClinics() {
     .map((r) => r.stateAbbreviation!);
 }
 
+/** Cached for 24 hours — used by footer, homepage, sitemap, pain-management index */
+export const getAllStatesWithClinics = unstable_cache(
+  _getAllStatesWithClinics,
+  ["all-states-with-clinics"],
+  { revalidate: 86400, tags: ["clinic-locations"] }
+);
+
 /**
  * Get clinic count by state for summary statistics.
  * Filters out invalid state abbreviations (like 'XX').
  *
  * @returns Array of { stateAbbreviation, count } objects
  */
-export async function getClinicCountsByState() {
+async function _getClinicCountsByState() {
   const results = await db
     .select({
       stateAbbreviation: clinics.stateAbbreviation,
@@ -160,6 +228,13 @@ export async function getClinicCountsByState() {
     (r) => r.stateAbbreviation && r.stateAbbreviation in US_STATES_REVERSE
   );
 }
+
+/** Cached for 24 hours — used by footer, homepage, sitemap page */
+export const getClinicCountsByState = unstable_cache(
+  _getClinicCountsByState,
+  ["clinic-counts-by-state"],
+  { revalidate: 86400, tags: ["clinic-locations"] }
+);
 
 /**
  * Check if any published clinics exist in a city+state (lightweight COUNT query).
@@ -230,7 +305,7 @@ export async function getCitiesForState(stateAbbrev: string) {
  *
  * @returns Array of { city, stateAbbreviation, count } objects
  */
-export async function getAllCitiesWithClinics() {
+async function _getAllCitiesWithClinics() {
   return db
     .select({
       city: clinics.city,
@@ -242,6 +317,13 @@ export async function getAllCitiesWithClinics() {
     .groupBy(clinics.city, clinics.stateAbbreviation)
     .orderBy(asc(clinics.stateAbbreviation), asc(clinics.city));
 }
+
+/** Cached for 24 hours — used by footer, homepage, sitemap generation */
+export const getAllCitiesWithClinics = unstable_cache(
+  _getAllCitiesWithClinics,
+  ["all-cities-with-clinics"],
+  { revalidate: 86400, tags: ["clinic-locations"] }
+);
 
 /**
  * Get all city permalinks for sitemap generation.
@@ -725,6 +807,12 @@ export async function getSimilarClinicsByServices(options: {
  * @param legacySlug - The legacy WordPress slug
  * @returns The clinic record or null if not found
  */
+/** Slim columns for redirect-only lookups (legacy slug resolution) */
+const redirectColumns = {
+  id: clinics.id,
+  permalink: clinics.permalink,
+};
+
 export async function getClinicByLegacySlug(legacySlug: string) {
   // Parse legacy format: extract name, state (2 chars) and zipcode (4-5 digits) from end
   // Format: {name-slug}-{state}-{zipcode}
@@ -750,7 +838,7 @@ export async function getClinicByLegacySlug(legacySlug: string) {
 
   // Look up by state, postal code (with/without leading zero), and title match
   const results = await db
-    .select()
+    .select(redirectColumns)
     .from(clinics)
     .where(and(
       sql`UPPER(${clinics.stateAbbreviation}) = UPPER(${stateAbbrev})
@@ -807,7 +895,7 @@ export async function getClinicByTitleSlug(slug: string) {
 
     // Normalized title + zip match
     const results = await db
-      .select()
+      .select(redirectColumns)
       .from(clinics)
       .where(and(
         sql`${normalizedTitleMatch(titleFromSlug)}
@@ -820,7 +908,7 @@ export async function getClinicByTitleSlug(slug: string) {
 
     // Try without zip (title-only, normalized)
     const resultsNoZip = await db
-      .select()
+      .select(redirectColumns)
       .from(clinics)
       .where(and(normalizedTitleMatch(titleFromSlug), isPublishedSql))
       .limit(1);
@@ -838,7 +926,7 @@ export async function getClinicByTitleSlug(slug: string) {
 
       // Normalized title + state
       const results = await db
-        .select()
+        .select(redirectColumns)
         .from(clinics)
         .where(and(
           sql`${normalizedTitleMatch(titleFromSlug)}
@@ -856,7 +944,7 @@ export async function getClinicByTitleSlug(slug: string) {
         const cityName = slugToTitle(words.slice(-i).join("-"));
 
         const cityResults = await db
-          .select()
+          .select(redirectColumns)
           .from(clinics)
           .where(and(
             sql`${normalizedTitleMatch(shorterTitle)}
@@ -883,7 +971,7 @@ export async function getClinicByTitleSlug(slug: string) {
 
     // Normalized title + state + zip
     const results = await db
-      .select()
+      .select(redirectColumns)
       .from(clinics)
       .where(and(
         sql`${normalizedTitleMatch(titleFromSlug)}
@@ -900,7 +988,7 @@ export async function getClinicByTitleSlug(slug: string) {
   // e.g. "arrowhead-endoscopy-pain-management-center"
   const titleFromSlug = slugToTitle(slug);
   const results = await db
-    .select()
+    .select(redirectColumns)
     .from(clinics)
     .where(and(normalizedTitleMatch(titleFromSlug), isPublishedSql))
     .limit(1);
@@ -910,7 +998,7 @@ export async function getClinicByTitleSlug(slug: string) {
   // Strategy 5: Permalink contains the slug (broadest match)
   // e.g. old slug "capitol-pain-institute-austin-north" is substring of new permalink
   const results2 = await db
-    .select()
+    .select(redirectColumns)
     .from(clinics)
     .where(and(
       sql`LOWER(${clinics.permalink}) LIKE ${"%" + slug.toLowerCase() + "%"}`,

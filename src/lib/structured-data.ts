@@ -1,8 +1,8 @@
 import { stripHtmlTags } from "./html-utils";
 import type { FeaturedReview } from "./clinic-transformer";
-import type { clinics } from "./schema";
+import type { ClinicPageRecord } from "./clinic-queries";
 
-type DbClinic = typeof clinics.$inferSelect;
+type DbClinic = NonNullable<ClinicPageRecord>;
 
 /**
  * Generates Schema.org structured data (JSON-LD) for a clinic page.
@@ -395,10 +395,21 @@ export function generateMedicalWebPageSchema(data: {
   url: string;
   datePublished?: string;
   dateModified?: string;
-  about?: string[];
+  about?: string[] | Array<{ "@type": string; name: string }>;
+  specialty?: { "@type": string; name: string };
+  lastReviewed?: string;
   baseUrl?: string;
 }) {
-  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
+  const baseUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+
+  // Handle both string[] (legacy) and typed object[] formats for about
+  const aboutData = data.about && data.about.length > 0
+    ? data.about.map((topic) =>
+        typeof topic === "string"
+          ? { "@type": "MedicalCondition", name: topic }
+          : topic
+      )
+    : undefined;
 
   return {
     "@context": "https://schema.org",
@@ -408,12 +419,9 @@ export function generateMedicalWebPageSchema(data: {
     url: data.url,
     ...(data.datePublished && { datePublished: data.datePublished }),
     ...(data.dateModified && { dateModified: data.dateModified }),
-    ...(data.about && data.about.length > 0 && {
-      about: data.about.map((topic) => ({
-        "@type": "MedicalCondition",
-        name: topic,
-      })),
-    }),
+    ...(data.lastReviewed && { lastReviewed: data.lastReviewed }),
+    ...(aboutData && { about: aboutData }),
+    ...(data.specialty && { specialty: data.specialty }),
     publisher: {
       "@type": "Organization",
       name: "PainClinics.com",

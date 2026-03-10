@@ -12,15 +12,18 @@ import type {
 import type { ClinicService } from "@/types/service";
 import { extractPermalinkSlug, type ClinicHour } from "./clinic-transformer";
 import { parseTimeRange } from "./time-utils";
-import type { ClinicRecord } from "./clinic-queries";
+import type { ClinicPageRecord } from "./clinic-queries";
+
+/** The clinic record shape used for page rendering (selective columns or full) */
+type ClinicRecordForPage = NonNullable<ClinicPageRecord>;
 
 /**
  * Extended clinic record with junction table services and insurance.
  */
-export interface ClinicRecordWithServices extends ClinicRecord {
+export type ClinicRecordWithServices = ClinicRecordForPage & {
   clinicServices?: ClinicService[];
   insuranceSlugs?: InsuranceType[];
-}
+};
 
 /**
  * Transform a database clinic record to the Clinic type used by frontend components.
@@ -138,7 +141,7 @@ function mapClinicServicesToServiceTypes(clinicServices: ClinicService[]): Servi
  * @param clinic - The database clinic record
  * @returns Formatted address string
  */
-function formatAddress(clinic: ClinicRecord): string {
+function formatAddress(clinic: ClinicRecordForPage): string {
   const parts = [
     clinic.streetAddress,
     clinic.city,
@@ -205,7 +208,7 @@ export function transformClinicHours(hours: ClinicHour[] | null): OperatingHours
  * @param dbClinics - Array of database clinic records
  * @returns Array of Clinic objects
  */
-export function transformDbClinicsToType(dbClinics: ClinicRecord[]): Clinic[] {
+export function transformDbClinicsToType(dbClinics: ClinicRecordForPage[]): Clinic[] {
   return dbClinics.map(transformDbClinicToType);
 }
 

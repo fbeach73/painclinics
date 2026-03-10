@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { Logo } from "@/components/shadcnblocks/logo";
-import { getClinicCountsByState, getAllCitiesWithClinics } from "@/lib/clinic-queries";
-import { getStateName } from "@/lib/us-states";
 
 // Static link data
 const resourcesLinks = [
@@ -29,6 +27,21 @@ const companyLinks = [
   { label: "Editorial Policy", href: "/editorial-policy" },
   { label: "FAQ", href: "/faq" },
   { label: "Sitemap", href: "/sitemap-page" },
+];
+
+// Static location links — hardcoded top states/cities to eliminate DB queries.
+// Sitemap + XML sitemap handle crawler discoverability; these are for users.
+const locationLinks = [
+  { label: "Texas", href: "/pain-management/tx/" },
+  { label: "California", href: "/pain-management/ca/" },
+  { label: "Florida", href: "/pain-management/fl/" },
+  { label: "New York", href: "/pain-management/ny/" },
+  { label: "Ohio", href: "/pain-management/oh/" },
+  { label: "Pennsylvania", href: "/pain-management/pa/" },
+  { label: "Houston, TX", href: "/pain-management/tx/houston/" },
+  { label: "San Antonio, TX", href: "/pain-management/tx/san-antonio/" },
+  { label: "Los Angeles, CA", href: "/pain-management/ca/los-angeles/" },
+  { label: "New York, NY", href: "/pain-management/ny/new-york/" },
 ];
 
 // Popular search keywords for SEO
@@ -69,37 +82,7 @@ function FooterLinkColumn({ title, links }: FooterLinkColumnProps) {
   );
 }
 
-export async function SiteFooter() {
-  // Fetch dynamic location data
-  let topCities: Array<{ city: string; stateAbbreviation: string | null; count: number }> = [];
-  let topStates: Array<{ stateAbbreviation: string | null; count: number; stateName: string }> = [];
-
-  try {
-    const stateCounts = await getClinicCountsByState();
-    const cityCounts = await getAllCitiesWithClinics();
-
-    topStates = stateCounts
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6)
-      .map((s) => ({
-        ...s,
-        stateName: getStateName(s.stateAbbreviation || ""),
-      }));
-
-    topCities = cityCounts
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  } catch (error) {
-    console.warn("Footer: Database unavailable for location data");
-  }
-
-  // Generate location URLs
-  const getCityUrl = (city: string, state: string | null) =>
-    `/pain-management/${state?.toLowerCase()}/${city.toLowerCase().replace(/\s+/g, "-")}/`;
-
-  const getStateUrl = (state: string | null) =>
-    `/pain-management/${state?.toLowerCase()}/`;
-
+export function SiteFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -132,58 +115,8 @@ export async function SiteFooter() {
           {/* Column 4: Company */}
           <FooterLinkColumn title="Company" links={companyLinks} />
 
-          {/* Column 5: Popular Locations (Dynamic) */}
-          <div>
-            <h3 className="font-bold text-foreground mb-4">Popular Locations</h3>
-            {topStates.length > 0 || topCities.length > 0 ? (
-              <div className="space-y-4">
-                {topStates.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                      Top States
-                    </h4>
-                    <ul className="space-y-1">
-                      {topStates.slice(0, 4).map((state) => (
-                        <li key={state.stateAbbreviation}>
-                          <Link
-                            href={getStateUrl(state.stateAbbreviation)}
-                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {state.stateName}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {topCities.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                      Top Cities
-                    </h4>
-                    <ul className="space-y-1">
-                      {topCities.slice(0, 4).map((city) => (
-                        <li key={`${city.city}-${city.stateAbbreviation}`}>
-                          <Link
-                            href={getCityUrl(city.city, city.stateAbbreviation)}
-                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            {city.city}, {city.stateAbbreviation}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                <Link href="/clinics" className="hover:text-foreground transition-colors">
-                  Browse all locations
-                </Link>
-              </p>
-            )}
-          </div>
+          {/* Column 5: Popular Locations (Static) */}
+          <FooterLinkColumn title="Popular Locations" links={locationLinks} />
         </div>
       </div>
 

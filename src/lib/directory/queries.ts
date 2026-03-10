@@ -4,6 +4,7 @@
  */
 
 import { sql, eq } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "@/lib/db";
 import {
   clinics,
@@ -91,7 +92,28 @@ function buildOrderBy(sort: SortOption) {
  * @param filters - Active directory filters from URL params
  * @returns Paginated clinics list with aggregate stats
  */
+/**
+ * Request-scoped cached version of getFilteredClinics.
+ * Deduplicates the two calls per page (generateMetadata + page component).
+ * Uses JSON serialization for cache key since React cache() uses reference equality.
+ */
+const _getFilteredClinicsCached = cache(async (cacheKey: string): Promise<FilteredClinicsResult> => {
+  const { scope, filters } = JSON.parse(cacheKey) as {
+    scope: { stateAbbrev: string; city?: string };
+    filters: DirectoryFilters;
+  };
+  return _getFilteredClinicsImpl(scope, filters);
+});
+
 export async function getFilteredClinics(
+  scope: { stateAbbrev: string; city?: string },
+  filters: DirectoryFilters
+): Promise<FilteredClinicsResult> {
+  const cacheKey = JSON.stringify({ scope, filters });
+  return _getFilteredClinicsCached(cacheKey);
+}
+
+async function _getFilteredClinicsImpl(
   scope: { stateAbbrev: string; city?: string },
   filters: DirectoryFilters
 ): Promise<FilteredClinicsResult> {
