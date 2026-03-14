@@ -112,25 +112,25 @@ const IMAGE_PROMPT_PRESETS = [
   {
     label: "Inline: Treatment Types",
     getPrompt: () =>
-      "A clean, modern medical illustration showing pain management treatments: a physical therapist guiding a patient through stretches, an injection procedure, and a TENS unit. Soft clinical lighting, calming blue and white tones. No text overlays. Medical editorial style, 16:9 ratio.",
+      "A warm, realistic photograph showing a pain management treatment session. A physical therapist helps a middle-aged patient with a guided stretch in a bright, modern clinic room. Medical equipment visible in the background. Natural window lighting, shallow depth of field. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
     needsState: false,
   },
   {
     label: "Inline: Specialist Consultation",
     getPrompt: () =>
-      "A warm photograph of a pain management doctor in a white coat having a reassuring consultation with a patient in a modern clinic office. Natural lighting, professional but approachable. No text. Medical editorial photography style, 16:9 ratio.",
+      "A warm photograph of a pain management doctor in a white coat having a reassuring consultation with a patient in a modern clinic office. They are reviewing results on a tablet together. Natural lighting, professional but approachable. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
     needsState: false,
   },
   {
     label: "Inline: Insurance & Coverage",
     getPrompt: () =>
-      "A clean flat illustration of health insurance concepts: a medical claim form, a stethoscope, and a shield icon representing coverage. Soft blue and green tones, modern minimalist style. No text overlays. 16:9 ratio.",
+      "A realistic photograph of a patient and a clinic administrator reviewing insurance paperwork together at a reception desk in a modern medical office. Warm natural lighting, shallow depth of field on the documents. Professional and reassuring atmosphere. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
     needsState: false,
   },
   {
     label: "Inline: Finding a Clinic",
     getPrompt: () =>
-      "A warm photograph of a modern pain management clinic exterior with glass doors and a welcoming entrance. Soft natural daylight, clean landscaping, professional medical building. No text, no logos. Editorial photography style, 16:9 ratio.",
+      "A realistic photograph of the welcoming entrance of a modern pain management clinic. Clean single-story medical building with a covered entryway, potted plants, and natural stone accents. Morning light, no people. No text, no signage, no logos. Photorealistic architectural photography, 16:9 ratio.",
     needsState: false,
   },
 ] as const;
