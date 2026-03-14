@@ -12,6 +12,7 @@ import {
   Pencil,
   ImageIcon,
   Wand2,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,8 @@ import {
 import { TiptapEditor } from "@/components/admin/blog/tiptap-editor";
 import { FeaturedImageUpload } from "@/components/admin/blog/featured-image-upload";
 import { GuidePreview } from "@/components/admin/guides/guide-preview";
+import { GuideStatsSection } from "@/components/guides/guide-stats-section";
+import { hasStatsForState } from "@/data/guide-stats";
 
 const US_STATES = [
   { value: "", label: "None (general guide)" },
@@ -100,6 +103,38 @@ function getDefaultImagePrompt(stateAbbr: string): string {
   return `A beautiful panoramic landscape photograph of ${stateName} featuring iconic scenery and landmarks, with subtle warm healthcare and wellness elements woven in. Professional editorial photography style, soft natural lighting, 16:9 aspect ratio, suitable as a featured hero image for a medical directory website.`;
 }
 
+const IMAGE_PROMPT_PRESETS = [
+  {
+    label: "Featured: State Landscape",
+    getPrompt: (state: string) => getDefaultImagePrompt(state),
+    needsState: true,
+  },
+  {
+    label: "Inline: Treatment Types",
+    getPrompt: () =>
+      "A clean, modern medical illustration showing pain management treatments: a physical therapist guiding a patient through stretches, an injection procedure, and a TENS unit. Soft clinical lighting, calming blue and white tones. No text overlays. Medical editorial style, 16:9 ratio.",
+    needsState: false,
+  },
+  {
+    label: "Inline: Specialist Consultation",
+    getPrompt: () =>
+      "A warm photograph of a pain management doctor in a white coat having a reassuring consultation with a patient in a modern clinic office. Natural lighting, professional but approachable. No text. Medical editorial photography style, 16:9 ratio.",
+    needsState: false,
+  },
+  {
+    label: "Inline: Insurance & Coverage",
+    getPrompt: () =>
+      "A clean flat illustration of health insurance concepts: a medical claim form, a stethoscope, and a shield icon representing coverage. Soft blue and green tones, modern minimalist style. No text overlays. 16:9 ratio.",
+    needsState: false,
+  },
+  {
+    label: "Inline: Finding a Clinic",
+    getPrompt: () =>
+      "A warm photograph of a modern pain management clinic exterior with glass doors and a welcoming entrance. Soft natural daylight, clean landscaping, professional medical building. No text, no logos. Editorial photography style, 16:9 ratio.",
+    needsState: false,
+  },
+] as const;
+
 export function GuideForm({ initialData }: GuideFormProps) {
   const router = useRouter();
   const isEditing = !!initialData?.id;
@@ -138,6 +173,7 @@ export function GuideForm({ initialData }: GuideFormProps) {
 
   // AI Image generation
   const [imagePrompt, setImagePrompt] = useState("");
+  const [imageResolution, setImageResolution] = useState<"1K" | "2K" | "4K">("1K");
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [showImageGen, setShowImageGen] = useState(false);
 
@@ -209,7 +245,7 @@ export function GuideForm({ initialData }: GuideFormProps) {
       const res = await fetch("/api/admin/guides/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, resolution: imageResolution }),
       });
 
       if (!res.ok) {
@@ -344,6 +380,18 @@ export function GuideForm({ initialData }: GuideFormProps) {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Preview</h1>
           <div className="flex gap-2">
+            {slug && status === "published" && (
+              <Button
+                type="button"
+                variant="outline"
+                asChild
+              >
+                <a href={`/guides/${slug}`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Live
+                </a>
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -364,6 +412,12 @@ export function GuideForm({ initialData }: GuideFormProps) {
             featuredImageAlt={featuredImageAlt}
             faqs={faqs.filter((f) => f.question && f.answer)}
           />
+          {stateAbbreviation && stateAbbreviation !== "none" && hasStatsForState(stateAbbreviation) && (
+            <div className="mt-6 rounded-md border border-dashed border-primary/40 p-3">
+              <p className="text-xs text-muted-foreground mb-3">Stats section (auto-generated on live page):</p>
+              <GuideStatsSection stateAbbreviation={stateAbbreviation} />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -376,6 +430,18 @@ export function GuideForm({ initialData }: GuideFormProps) {
           {isEditing ? "Edit Guide" : "New Guide"}
         </h1>
         <div className="flex gap-2">
+          {slug && status === "published" && (
+            <Button
+              type="button"
+              variant="outline"
+              asChild
+            >
+              <a href={`/guides/${slug}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Live
+              </a>
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -541,7 +607,34 @@ export function GuideForm({ initialData }: GuideFormProps) {
           {showImageGen && (
             <div className="mt-4 space-y-3 rounded-md border border-dashed border-primary/40 bg-primary/5 p-4">
               <div className="space-y-2">
-                <Label htmlFor="imagePrompt" className="text-sm">Image Prompt</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="imagePrompt" className="text-sm">Image Prompt</Label>
+                  <Select
+                    value=""
+                    onValueChange={(v) => {
+                      const idx = parseInt(v);
+                      const preset = IMAGE_PROMPT_PRESETS[idx];
+                      if (preset) {
+                        setImagePrompt(
+                          preset.needsState && stateAbbreviation && stateAbbreviation !== "none"
+                            ? preset.getPrompt(stateAbbreviation)
+                            : preset.getPrompt("")
+                        );
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[220px] h-8 text-xs">
+                      <SelectValue placeholder="Load preset prompt..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {IMAGE_PROMPT_PRESETS.map((preset, i) => (
+                        <SelectItem key={i} value={String(i)} className="text-xs">
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Textarea
                   id="imagePrompt"
                   value={imagePrompt}
@@ -552,19 +645,34 @@ export function GuideForm({ initialData }: GuideFormProps) {
                 />
               </div>
 
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleGenerateImage}
-                disabled={isGeneratingImage || !imagePrompt.trim()}
-              >
-                {isGeneratingImage ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                )}
-                {isGeneratingImage ? "Generating..." : "Generate Image"}
-              </Button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground whitespace-nowrap">Resolution</Label>
+                  <Select value={imageResolution} onValueChange={(v: "1K" | "2K" | "4K") => setImageResolution(v)}>
+                    <SelectTrigger className="w-[80px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1K">1K</SelectItem>
+                      <SelectItem value="2K">2K</SelectItem>
+                      <SelectItem value="4K">4K</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage || !imagePrompt.trim()}
+                >
+                  {isGeneratingImage ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                  )}
+                  {isGeneratingImage ? "Generating..." : "Generate Image"}
+                </Button>
+              </div>
 
               {/* Generated image result */}
               {generatedImageUrl && (

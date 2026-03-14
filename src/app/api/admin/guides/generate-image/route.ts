@@ -8,7 +8,7 @@ import { upload } from "@/lib/storage";
  * POST /api/admin/guides/generate-image
  * Generate an image using Gemini 3 Pro Image (same model as nano-banana-pro)
  *
- * Body: { prompt: string }
+ * Body: { prompt: string, resolution?: "1K" | "2K" | "4K" }
  * Returns: { url: string }
  */
 export async function POST(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if ("error" in adminCheck) return adminErrorResponse(adminCheck);
 
   try {
-    const { prompt } = await request.json();
+    const { prompt, resolution = "1K" } = await request.json();
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
@@ -35,12 +35,14 @@ export async function POST(request: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Use generateContent with image modality (same approach as nano-banana-pro)
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-3-pro-image-preview",
       contents: prompt,
       config: {
         responseModalities: ["IMAGE", "TEXT"],
+        imageConfig: {
+          imageSize: resolution,
+        },
       },
     });
 

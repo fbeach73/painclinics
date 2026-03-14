@@ -10,6 +10,8 @@ import {
   generateFAQStructuredData,
   generateResourceBreadcrumbSchema,
 } from "@/lib/structured-data";
+import { hasStatsForState } from "@/data/guide-stats";
+import { GuideStatsSection } from "@/components/guides/guide-stats-section";
 
 const STATE_NAMES: Record<string, string> = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
@@ -161,16 +163,9 @@ export default async function GuidePage({ params }: GuidePageProps) {
               <p className="text-lg text-muted-foreground">{guide.excerpt}</p>
             )}
             <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-              {stateName && (
-                <Link
-                  href={`/pain-management/${guide.stateAbbreviation!.toLowerCase()}`}
-                  className="inline-flex items-center gap-1 text-primary hover:underline"
-                >
-                  Browse {stateName} Clinics
-                </Link>
-              )}
               {guide.publishedAt && (
                 <time dateTime={guide.publishedAt.toISOString()}>
+                  Updated{" "}
                   {guide.publishedAt.toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
@@ -178,8 +173,24 @@ export default async function GuidePage({ params }: GuidePageProps) {
                   })}
                 </time>
               )}
+              {stateName && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <Link
+                    href={`/pain-management/${guide.stateAbbreviation!.toLowerCase()}`}
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                  >
+                    Browse {stateName} Clinics →
+                  </Link>
+                </>
+              )}
             </div>
           </header>
+
+          {/* State pain statistics */}
+          {guide.stateAbbreviation && hasStatsForState(guide.stateAbbreviation) && (
+            <GuideStatsSection stateAbbreviation={guide.stateAbbreviation} />
+          )}
 
           {/* Content */}
           <article
