@@ -100,7 +100,7 @@ function slugify(text: string): string {
 function getDefaultImagePrompt(stateAbbr: string): string {
   const stateName = STATE_NAMES[stateAbbr];
   if (!stateName) return "";
-  return `A beautiful panoramic landscape photograph of ${stateName} featuring iconic scenery and landmarks, with subtle warm healthcare and wellness elements woven in. Professional editorial photography style, soft natural lighting, 16:9 aspect ratio, suitable as a featured hero image for a medical directory website.`;
+  return `A stunning aerial photograph of ${stateName}'s most iconic natural landscape at golden hour. Pure scenery — no buildings, no text, no signs, no people, no logos, no vehicles. Focus on the state's signature terrain: mountains, coastline, plains, or forests. Warm natural lighting, cinematic wide shot, 16:9 aspect ratio. National Geographic editorial photography style.`;
 }
 
 const IMAGE_PROMPT_PRESETS = [
