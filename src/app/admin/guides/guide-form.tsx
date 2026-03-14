@@ -100,7 +100,7 @@ function slugify(text: string): string {
 function getDefaultImagePrompt(stateAbbr: string): string {
   const stateName = STATE_NAMES[stateAbbr];
   if (!stateName) return "";
-  return `A stunning aerial photograph of ${stateName}'s most iconic natural landscape at golden hour. Pure scenery — no buildings, no text, no signs, no people, no logos, no vehicles. Focus on the state's signature terrain: mountains, coastline, plains, or forests. Warm natural lighting, cinematic wide shot, 16:9 aspect ratio. National Geographic editorial photography style.`;
+  return `A warm, cinematic aerial photograph of a modern pain management clinic in ${stateName} at golden hour. A clean stone-and-glass medical building in a setting that reflects ${stateName}'s signature landscape and terrain. Bold white text reading "GUIDE TO PAIN MANAGEMENT IN ${stateName.toUpperCase()}" is overlaid across the center of the image in a clean, modern sans-serif font. No other text, no logos. Photorealistic editorial photography, 16:9 aspect ratio.`;
 }
 
 const IMAGE_PROMPT_PRESETS = [
