@@ -43,20 +43,21 @@ const STATE_NAMES: Record<string, string> = {
 };
 
 const INLINE_IMAGE_PROMPTS: Record<string, string> = {
-  "Treatment Types": "A warm, realistic photograph showing a pain management treatment session. A physical therapist helps a middle-aged patient with a guided stretch in a bright, modern clinic room. Medical equipment visible in the background. Natural window lighting, shallow depth of field. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
+  "Treatment Types": "A realistic close-up photograph of a pain management procedure in progress: a doctor performing a fluoroscopy-guided spinal injection on a patient lying on a treatment table. Clinical blue drapes, modern medical equipment, bright overhead lighting. No faces visible, focus on the procedure. No text, no logos. Photorealistic medical photography, 16:9 ratio.",
   "Specialist Consultation": "A warm photograph of a pain management doctor in a white coat having a reassuring consultation with a patient in a modern clinic office. They are reviewing results on a tablet together. Natural lighting, professional but approachable. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
-  "Insurance Coverage": "A realistic photograph of a patient and a clinic administrator reviewing insurance paperwork together at a reception desk in a modern medical office. Warm natural lighting, shallow depth of field on the documents. Professional and reassuring atmosphere. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
   "Finding a Clinic": "A realistic photograph of the welcoming entrance of a modern pain management clinic. Clean single-story medical building with a covered entryway, potted plants, and natural stone accents. Morning light, no people. No text, no signage, no logos. Photorealistic architectural photography, 16:9 ratio.",
+  "Regulations": "A realistic overhead photograph of a doctor's desk with a prescription pad, a stethoscope, and state medical regulation documents fanned out. Warm wood desk surface, soft natural light from a window. No people, no faces. No text readable on documents. Photorealistic still life photography, 16:9 ratio.",
+  "Top Cities": "A stunning aerial photograph of a vibrant American city skyline at dusk with warm city lights emerging. Modern glass buildings and a river or coastline visible. No text, no logos, no signs. Cinematic wide shot, photorealistic editorial photography, 16:9 ratio.",
 };
 
-// H2 patterns to match for inline image insertion
+// H2 patterns to match for inline image insertion — ordered by priority
+// The script picks 2 with DIFFERENT prompt keys for visual variety
 const H2_INLINE_CANDIDATES = [
-  { pattern: /insurance|medicaid|medicare|coverage/i, prompt: "Insurance Coverage" },
   { pattern: /treatment|types|available/i, prompt: "Treatment Types" },
   { pattern: /find|choose|clinic/i, prompt: "Finding a Clinic" },
+  { pattern: /regulation|law|patient.*know/i, prompt: "Regulations" },
   { pattern: /specialist|primary care|when to see/i, prompt: "Specialist Consultation" },
-  { pattern: /regulation|law|patient.*know/i, prompt: "Specialist Consultation" },
-  { pattern: /cities|top cities/i, prompt: "Finding a Clinic" },
+  { pattern: /cities|top cities/i, prompt: "Top Cities" },
 ];
 
 // ---------------------------------------------------------------------------

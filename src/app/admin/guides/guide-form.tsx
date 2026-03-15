@@ -110,9 +110,9 @@ const IMAGE_PROMPT_PRESETS = [
     needsState: true,
   },
   {
-    label: "Inline: Treatment Types",
+    label: "Inline: Treatment / Procedure",
     getPrompt: () =>
-      "A warm, realistic photograph showing a pain management treatment session. A physical therapist helps a middle-aged patient with a guided stretch in a bright, modern clinic room. Medical equipment visible in the background. Natural window lighting, shallow depth of field. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
+      "A realistic close-up photograph of a pain management procedure in progress: a doctor performing a fluoroscopy-guided spinal injection on a patient lying on a treatment table. Clinical blue drapes, modern medical equipment, bright overhead lighting. No faces visible, focus on the procedure. No text, no logos. Photorealistic medical photography, 16:9 ratio.",
     needsState: false,
   },
   {
@@ -122,15 +122,21 @@ const IMAGE_PROMPT_PRESETS = [
     needsState: false,
   },
   {
-    label: "Inline: Insurance & Coverage",
+    label: "Inline: Regulations / Desk",
     getPrompt: () =>
-      "A realistic photograph of a patient and a clinic administrator reviewing insurance paperwork together at a reception desk in a modern medical office. Warm natural lighting, shallow depth of field on the documents. Professional and reassuring atmosphere. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
+      "A realistic overhead photograph of a doctor's desk with a prescription pad, a stethoscope, and state medical regulation documents fanned out. Warm wood desk surface, soft natural light from a window. No people, no faces. No text readable on documents. Photorealistic still life photography, 16:9 ratio.",
     needsState: false,
   },
   {
     label: "Inline: Finding a Clinic",
     getPrompt: () =>
       "A realistic photograph of the welcoming entrance of a modern pain management clinic. Clean single-story medical building with a covered entryway, potted plants, and natural stone accents. Morning light, no people. No text, no signage, no logos. Photorealistic architectural photography, 16:9 ratio.",
+    needsState: false,
+  },
+  {
+    label: "Inline: City Skyline",
+    getPrompt: () =>
+      "A stunning aerial photograph of a vibrant American city skyline at dusk with warm city lights emerging. Modern glass buildings and a river or coastline visible. No text, no logos, no signs. Cinematic wide shot, photorealistic editorial photography, 16:9 ratio.",
     needsState: false,
   },
 ] as const;
