@@ -12,6 +12,7 @@ import {
 } from "@/lib/structured-data";
 import { hasStatsForState } from "@/data/guide-stats";
 import { GuideStatsSection } from "@/components/guides/guide-stats-section";
+import { FloatingToc } from "@/components/blog";
 
 const STATE_NAMES: Record<string, string> = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
@@ -245,6 +246,9 @@ export default async function GuidePage({ params }: GuidePageProps) {
               </section>
             )}
         </div>
+
+        {/* Floating Table of Contents */}
+        <FloatingToc className="bottom-16" />
       </main>
     </>
   );

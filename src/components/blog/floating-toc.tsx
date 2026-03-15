@@ -55,9 +55,10 @@ function TocList({ items, activeId, onItemClick }: TocListProps) {
 
 interface FloatingTocProps {
   contentSelector?: string;
+  className?: string;
 }
 
-export function FloatingToc({ contentSelector = ".prose" }: FloatingTocProps) {
+export function FloatingToc({ contentSelector = ".prose", className }: FloatingTocProps) {
   const [tocItems, setTocItems] = React.useState<TocItem[]>([]);
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [isVisible, setIsVisible] = React.useState(true);
@@ -176,6 +177,7 @@ export function FloatingToc({ contentSelector = ".prose" }: FloatingTocProps) {
     <div
       className={cn(
         "fixed bottom-6 right-6 z-40 transition-all duration-300",
+        className,
         isVisible
           ? "translate-y-0 opacity-100"
           : "translate-y-16 opacity-0 pointer-events-none"
