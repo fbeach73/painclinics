@@ -106,6 +106,13 @@ export function SiteHeader() {
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/guides">
+                    Guides
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
                 <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid w-[300px] gap-1 p-2">
@@ -164,6 +171,9 @@ export function SiteHeader() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-3">
                 <Link href="/blog">Blog</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="py-3">
+                <Link href="/guides">Guides</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-3">

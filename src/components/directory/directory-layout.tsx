@@ -15,6 +15,7 @@ import { StatsBar } from "./stats-bar";
 import { ClinicListCard } from "./clinic-list-card";
 import { ContextualContent } from "./contextual-content";
 import { BrowseBySection } from "./browse-by-section";
+import { GuideLink } from "./guide-link";
 import { Pagination } from "./pagination";
 
 interface DirectoryLayoutProps {
@@ -221,6 +222,11 @@ export function DirectoryLayout({
             nearbyCities={nearbyCities}
           />
         </div>
+
+        {/* State guide link — only on state pages */}
+        {!citySlug && (
+          <GuideLink stateAbbrev={stateAbbrev} stateName={stateName} />
+        )}
 
         {/* Back to state link for city pages */}
         {cityName && (
