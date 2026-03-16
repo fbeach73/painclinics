@@ -93,6 +93,13 @@ export function SiteHeader() {
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <Link href="/guides">
+                    Guides
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                   <Link href="/treatment-options">
                     Treatments
                   </Link>
@@ -102,13 +109,6 @@ export function SiteHeader() {
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                   <Link href="/blog">
                     Blog
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                  <Link href="/guides">
-                    Guides
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -167,13 +167,13 @@ export function SiteHeader() {
                 <Link href="/clinics">Find Clinics</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-3">
+                <Link href="/guides">Guides</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="py-3">
                 <Link href="/treatment-options">Treatment Options</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-3">
                 <Link href="/blog">Blog</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="py-3">
-                <Link href="/guides">Guides</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-3">
