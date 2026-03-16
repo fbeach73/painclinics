@@ -1,0 +1,133 @@
+slug,views_90d,action,redirect_to,reason
+visual-analog-scale,345,KEEP,,Top performer - healthcare provider tool
+otc-medications-for-knee-pain,151,KEEP,,Strong traffic - practical patient content
+how-to-sit-to-avoid-knee-pain,85,KEEP,,Strong traffic - ergonomic content
+ergonomic-adjustments-for-knee-pain,80,KEEP,,Strong traffic - driving ergonomics
+mattress-sleep-position-knee-pain,63,KEEP,,Strong traffic - sleep/pain content
+types-of-pain,59,KEEP,,Core pain education hub
+knee-pain-in-older-adults,44,KEEP,,Strong traffic - age-specific
+knee-pain-relief-products,32,KEEP,,Product review content performs well
+when-to-see-a-doctor-for-knee-pain,31,KEEP,,High-intent patient content
+diet-and-knee-pain,29,KEEP,,Nutrition/pain angle
+knee-strengthening-exercises,27,KEEP,,Exercise content performs well
+fibromyalgia,24,KEEP,,Core condition - high authority topic
+understanding-knee-braces,19,KEEP,,Product/device content
+knee-pain-while-driving-2,19,KEEP,,Driving pain niche performer
+poor-posture-and-knee-pain,18,KEEP,,Posture/ergonomic content
+knee-pain-during-pregnancy,17,KEEP,,Unique demographic angle
+knee-pain-after-running,16,KEEP,,Sports/activity pain
+nonsurgical-procedures,14,KEEP,,Core pain management topic
+5-natural-ways-to-reduce-inflammation-during-cold-winter-months,14,KEEP,,Seasonal - natural remedies
+knee-pain-treatment-at-home,13,KEEP,,At-home care content
+failed-back-surgery,12,KEEP,,Core pain management - underserved topic
+interventional-pain-procedures,11,KEEP,,Core procedures education
+cycling-and-knee-pain,10,KEEP,,Activity-specific content
+knee-pain-in-cold-weather,10,KEEP,,Seasonal content
+heat-therapy-vs-cold-therapy-which-works-best-for-winter-pain,9,KEEP,,Comparison content - good format
+physical-therapy,8,KEEP,,Core treatment modality
+the-ultimate-guide-to-knee-pain,5,KEEP,,Hub page - /knee-pain redirects here
+arthritis-in-the-knee,5,KEEP,,Core condition content
+understanding-chronic-knee-pain,5,KEEP,,Chronic pain management angle
+injections-for-knee-pain-options,4,KEEP,,Procedure content - ties to treatment-options
+bursitis-of-the-knee,4,KEEP,,Specific condition content
+meniscus-tears-knee-pain,4,KEEP,,Specific condition content
+acl-injuries-and-knee-pain,4,KEEP,,Specific condition content
+using-cbd-for-neuropathic-pain-management,31,KILL,/treatment-options,CBD content - high views but hurts YMYL authority
+cbd-for-chronic-back-pain-relief-3,6,KILL,/blog,CBD - zero authority value
+cbd-for-chronic-back-pain-relief,4,KILL,/blog,CBD duplicate
+cbd-for-chronic-back-pain-relief-2024,1,KILL,/blog,CBD duplicate
+cbd-vs-traditional-pain-medications,3,KILL,/blog,CBD comparison - thin
+cbd-vs-traditional-pain-medications-2,3,KILL,/blog,CBD duplicate
+is-cbd-effective-for-arthritis-pain,4,KILL,/blog,CBD/arthritis - thin
+is-cbd-effective-for-arthritis-pain-2,4,KILL,/blog,CBD duplicate
+is-cbd-effective-for-arthritis-pain-3,2,KILL,/blog,CBD duplicate
+exploring-cbd-for-fibromyalgia-relief,0,KILL,/blog,CBD - zero traffic
+exploring-cbd-for-fibromyalgia-relief-2,2,KILL,/blog,CBD duplicate
+exploring-cbd-for-fibromyalgia-relief-3,2,KILL,/blog,CBD duplicate
+cbd-oil-benefits-for-migraines,0,KILL,/blog,CBD/migraine - zero traffic
+cbd-oil-benefits-for-migraines-2,0,KILL,/blog,CBD duplicate
+cbd-oil-benefits-for-migraines-3,2,KILL,/blog,CBD duplicate
+cbd-for-post-surgery-pain-recovery,1,KILL,/blog,CBD - near zero traffic
+cbd-for-post-surgery-pain-recovery-2,1,KILL,/blog,CBD duplicate
+cbd-for-post-surgery-pain-recovery-3,2,KILL,/blog,CBD duplicate
+using-cbd-for-neuropathic-pain-management-2,3,KILL,/blog,CBD duplicate
+using-cbd-for-neuropathic-pain-management-3,0,KILL,/blog,CBD duplicate
+cbd-education,0,KILL,/blog,CBD education - zero traffic
+cbd-in-recovery,2,KILL,/blog,CBD - near zero
+types-of-cbd-products,5,KILL,/blog,CBD product types - off topic
+benefits-of-cbd-for-menstrual-cramps,1,KILL,/blog,CBD/menstrual - completely off topic
+alcoholic-neuropathy,2,KILL,/treatment-options,Neuropathy - consolidate to treatment-options
+alcoholic-neuropathy-2,5,KILL,/treatment-options,Neuropathy duplicate
+autonomic-neuropathy,2,KILL,/treatment-options,Neuropathy - thin condition page
+autonomic-neuropathy-2,2,KILL,/treatment-options,Neuropathy duplicate
+chemotherapy-induced-neuropathy,1,KILL,/treatment-options,Neuropathy - thin
+chemotherapy-induced-neuropathy-2,3,KILL,/treatment-options,Neuropathy duplicate
+diabetic-neuropathy,2,KILL,/treatment-options,Neuropathy - thin
+diabetic-neuropathy-2,1,KILL,/treatment-options,Neuropathy duplicate
+entrapment-neuropathy,2,KILL,/treatment-options,Neuropathy - thin
+entrapment-neuropathy-2,0,KILL,/treatment-options,Neuropathy duplicate
+femoral-neuropathy,2,KILL,/treatment-options,Neuropathy - thin
+femoral-neuropathy-2,4,KILL,/treatment-options,Neuropathy duplicate
+focal-neuropathy,3,KILL,/treatment-options,Neuropathy - thin
+focal-neuropathy-2,1,KILL,/treatment-options,Neuropathy duplicate
+guillain-barre-syndrome,3,KILL,/treatment-options,Neuropathy - thin
+guillain-barre-syndrome-2,0,KILL,/treatment-options,Neuropathy duplicate
+hereditary-neuropathies,1,KILL,/treatment-options,Neuropathy - thin
+hereditary-neuropathies-2,1,KILL,/treatment-options,Neuropathy duplicate
+idiopathic-neuropathy,3,KILL,/treatment-options,Neuropathy - thin
+idiopathic-neuropathy-2,2,KILL,/treatment-options,Neuropathy duplicate
+peripheral-neuropathy,4,KILL,/treatment-options,Neuropathy - /neuropathy redirects here but thin
+peripheral-neuropathy-2,2,KILL,/treatment-options,Neuropathy duplicate
+postherpetic-neuralgia,5,KILL,/treatment-options,Neuropathy - thin
+postherpetic-neuralgia-2,0,KILL,/treatment-options,Neuropathy duplicate
+proximal-neuropathy,2,KILL,/treatment-options,Neuropathy - thin
+proximal-neuropathy-2,4,KILL,/treatment-options,Neuropathy duplicate
+radial-neuropathy,2,KILL,/treatment-options,Neuropathy - thin
+radial-neuropathy-2,1,KILL,/treatment-options,Neuropathy duplicate
+trigeminal-neuralgia,1,KILL,/treatment-options,Neuropathy - thin
+trigeminal-neuralgia-2,1,KILL,/treatment-options,Neuropathy duplicate
+ulnar-neuropathy,3,KILL,/treatment-options,Neuropathy - thin
+ulnar-neuropathy-2,2,KILL,/treatment-options,Neuropathy duplicate
+carpal-tunnel-syndrome-2,5,KILL,/treatment-options,Condition page - thin
+labor,2,KILL,/blog,Completely off topic - labor law
+clinical-trial-associate-jobs,2,KILL,/blog,Off topic - job listings
+clinical-trial-coordinator,8,KILL,/blog,Off topic - job description
+ppd-las-vegas,2,KILL,/blog,Off topic - event recap
+pain-center-of-west-virginia,6,KILL,/pain-management/wv,Clinic-specific post - redirect to state
+pain-management-clinics,1,KILL,/clinics,Generic thin content
+chronic-diseases,15,KILL,/blog,Off topic - general health not pain-specific
+youth-sports,6,KILL,/blog,Tangential - sports safety
+maintaining-your-health-as-you-age,2,KILL,/blog,Generic health - off topic
+injury,1,KILL,/blog,Generic thin content
+pethidine-pain-relief,1,KILL,/blog,Obscure drug - not patient-facing
+shoulder-joint,5,KILL,/treatment-options,Thin condition page
+abdominal-pain,2,KILL,/treatment-options,Thin condition page
+what-are-opioids,6,KILL,/blog,Opioid education - risky YMYL topic
+opioid-treatment,5,KILL,/blog,Opioid education - risky
+opioid-abuse,3,KILL,/blog,Opioid education - risky
+snris-neuropathic-pain-management,5,KILL,/treatment-options,Clinical study - not patient-friendly
+chronic-pain-types,6,KILL,/blog/types-of-pain,Redundant with types-of-pain
+chronic-pain-apps,6,KILL,/blog,Dated app review content
+back-pain,6,KILL,/treatment-options,Extremely thin - generic title
+reduce-back-pain,3,KILL,/treatment-options,Thin back pain content
+best-injections-for-back-pain-5-critical-decisions-to-make,0,KILL,/treatment-options/pain-management-injections,Redirect to injections treatment page
+painful-treatments,3,KILL,/blog,Thin - why treatments hurt
+rheumatoid-arthritis-symptoms-and-treatments,0,KILL,/treatment-options,Thin condition page
+migraine-headache-prequels,0,KILL,/blog,Off topic - migraine
+myofascial-pain-syndrome,6,KILL,/treatment-options,Borderline - thin content
+mastering-post-operative-pain,5,KILL,/blog,Generic post-op content
+post-op,4,KILL,/blog,Generic post-op duplicate
+obesity-and-knee-pain,4,KILL,/blog/diet-and-knee-pain,Consolidate to diet/knee post
+knee-pain-2,3,KILL,/blog/the-ultimate-guide-to-knee-pain,Thin - sudden knee pain
+knee-pain-while-driving,6,KILL,/blog/knee-pain-while-driving-2,Duplicate - redirect to better version
+prevent-knee-pain-during-long-drives,5,KILL,/blog/knee-pain-while-driving-2,Consolidate driving/knee content
+avoid-knee-pain-during-workouts,3,KILL,/blog/knee-strengthening-exercises,Consolidate exercise content
+top-exercises-to-strengthen-your-knees,3,KILL,/blog/knee-strengthening-exercises,Duplicate exercise content
+physical-therapy-exercises-for-knee-pain,5,KILL,/blog/knee-strengthening-exercises,Consolidate exercise content
+when-is-knee-surgery-necessary,3,KILL,/blog/the-ultimate-guide-to-knee-pain,Thin - surgery decision
+why-does-my-knee-hurt-common-causes,3,KILL,/blog/the-ultimate-guide-to-knee-pain,Redundant with ultimate guide
+how-to-stretch-to-avoid-knee-pain,1,KILL,/blog/knee-strengthening-exercises,Consolidate exercise content
+natural-remedies-for-knee-pain,2,KILL,/blog/knee-pain-treatment-at-home,Consolidate home treatment
+it-band-syndrome-knee-pain,2,KILL,/blog/the-ultimate-guide-to-knee-pain,Thin condition page
+patellar-tendonitis-explained,1,KILL,/blog/the-ultimate-guide-to-knee-pain,Thin condition page
+best-shoes-for-knee-pain-relief,6,KILL,/blog/knee-pain-relief-products,Consolidate to products review
