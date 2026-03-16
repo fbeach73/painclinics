@@ -52,7 +52,7 @@ export function InPageAd({
   }, []);
 
   return (
-    <div className={`w-full min-h-[250px] sm:min-h-[90px] ${className}`}>
+    <div className={`w-full min-h-[250px] sm:min-h-[90px] max-h-[320px] sm:max-h-[280px] overflow-clip ${className}`}>
       <ins
         className="adsbygoogle"
         style={{ display: "block", ...(isInArticle ? { textAlign: "center" as const } : {}) }}
@@ -85,7 +85,7 @@ export function AdPlacement({
   showLabel = true,
 }: AdPlacementProps) {
   return (
-    <div className={`my-4 contain-layout ${className}`}>
+    <div className={`my-4 contain-layout contain-paint overflow-clip ${className}`}>
       {showLabel && (
         <p className="hidden sm:block text-xs text-muted-foreground text-center mb-1">
           Advertisement
@@ -127,7 +127,7 @@ export function AdUnit({
   }, []);
 
   return (
-    <div className={`adsense-container ${className}`} style={style}>
+    <div className={`adsense-container overflow-clip ${className}`} style={style}>
       <ins
         className="adsbygoogle"
         style={{

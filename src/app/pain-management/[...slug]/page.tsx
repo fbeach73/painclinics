@@ -677,7 +677,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid gap-8 lg:grid-cols-3 min-w-0">
+          <div className="grid gap-8 lg:grid-cols-3 min-w-0" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 2000px' }}>
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8 min-w-0">
               {/* Services Section */}
@@ -845,7 +845,7 @@ export default async function PainManagementClinicPage({ params, searchParams: s
           </div>
 
           {/* Full-Width Sections */}
-          <div className="mt-8 space-y-8">
+          <div className="mt-8 space-y-8" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 800px' }}>
             {/* Claim Benefits Banner - shown for unclaimed clinics */}
             {showClaimBanner && (
               <ClaimBenefitsBanner

@@ -106,7 +106,9 @@ export default function RootLayout({
             <main id="main-content" className="flex-1">
               {children}
             </main>
-            <NativeAdPanelClient />
+            <div className="contain-layout contain-paint">
+              <NativeAdPanelClient />
+            </div>
             <SiteFooter />
           </div>
           <Toaster richColors position="top-right" />

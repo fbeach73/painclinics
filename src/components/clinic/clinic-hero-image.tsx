@@ -20,6 +20,7 @@ export function ClinicHeroImage({ src, alt, className, priority = false }: Clini
       src={src}
       alt={alt}
       fill
+      sizes="(min-width: 1024px) 50vw, 100vw"
       className={cn('object-cover', className)}
       priority={priority}
     />
