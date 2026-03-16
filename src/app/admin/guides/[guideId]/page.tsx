@@ -37,6 +37,8 @@ export default async function EditGuidePage({ params }: EditGuidePageProps) {
         status: guide.status,
         faqs: (guide.faqs as Array<{ question: string; answer: string }>) || [],
         aboutTopics: (guide.aboutTopics as string[]) || [],
+        featuredImageUrl: guide.featuredImageUrl || null,
+        featuredImageAlt: guide.featuredImageAlt || "",
       }}
     />
   );
