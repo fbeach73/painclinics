@@ -18,6 +18,7 @@ import {
   Undo,
   Redo,
   Minus,
+  Table,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -215,6 +216,18 @@ export function TiptapToolbar({ editor, onImageUpload }: TiptapToolbarProps) {
         aria-label="Horizontal Rule"
       >
         <Minus className="h-4 w-4" />
+      </Toggle>
+
+      {/* Table */}
+      <Toggle
+        size="sm"
+        pressed={editor.isActive("table")}
+        onPressedChange={() =>
+          editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+        }
+        aria-label="Insert Table"
+      >
+        <Table className="h-4 w-4" />
       </Toggle>
 
       <Separator orientation="vertical" className="mx-1 h-6" />
