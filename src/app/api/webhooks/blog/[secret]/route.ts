@@ -184,11 +184,25 @@ export async function POST(
       console.warn("SEO processing warnings:", seoResult.errors);
     }
 
+    // Safety check: if tables were lost during processing, use original HTML
+    // but still apply the overview blockquote formatting
+    const inputHadTables = payload.html.includes("<table");
+    const outputHasTables = seoResult.content.includes("<table");
+    let finalContent = seoResult.content;
+    if (inputHadTables && !outputHasTables) {
+      console.error(
+        `WEBHOOK WARNING: Table HTML was lost during processing for "${payload.title}". Using original HTML.`
+      );
+      // Fall back to the overview-formatted version (before SEO processing)
+      // which preserves table structure
+      finalContent = overviewResult.html;
+    }
+
     // Create draft blog post with enhanced content
     const postId = await createBlogPost({
       title: payload.title,
       slug,
-      content: seoResult.content,
+      content: finalContent,
       excerpt,
       ...(featuredImageUrl && { featuredImageUrl }),
       ...(seoResult.featuredImageAlt && {
