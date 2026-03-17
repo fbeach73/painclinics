@@ -188,6 +188,52 @@
   }
 }
 
+/* Prose table styles — ensure tables render with visible structure */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.prose thead {
+  border-bottom: 2px solid var(--border);
+}
+
+.prose th {
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.prose td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  vertical-align: top;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose table a {
+  color: var(--primary);
+}
+
+/* Responsive table — horizontal scroll on small screens */
+@media (max-width: 640px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /*
  * AdSense CLS Prevention (in-page ads only)
  * Scoped to avoid interfering with anchor/vignette/overlay auto-ads
