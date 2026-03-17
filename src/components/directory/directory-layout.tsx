@@ -58,8 +58,79 @@ export function DirectoryLayout({
     ? `/pain-management/${stateAbbrev.toLowerCase()}/${citySlug}/`
     : `/pain-management/${stateAbbrev.toLowerCase()}/`;
 
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
+  const canonicalUrl = `${baseUrl}${basePath}`;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": cityName
+      ? [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${baseUrl}/` },
+          { "@type": "ListItem", "position": 2, "name": "Clinics", "item": `${baseUrl}/clinics` },
+          { "@type": "ListItem", "position": 3, "name": stateName, "item": `${baseUrl}/pain-management/${stateAbbrev.toLowerCase()}/` },
+          { "@type": "ListItem", "position": 4, "name": cityName, "item": canonicalUrl },
+        ]
+      : [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${baseUrl}/` },
+          { "@type": "ListItem", "position": 2, "name": "Clinics", "item": `${baseUrl}/clinics` },
+          { "@type": "ListItem", "position": 3, "name": stateName, "item": canonicalUrl },
+        ],
+  };
+
+  const totalCount = result.stats.totalCount;
+  const topClinics = result.clinics.slice(0, 10);
+
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": `Pain Management Clinics in ${locationName}`,
+    "description": `Directory of ${totalCount} verified pain management clinics in ${locationName}`,
+    "url": canonicalUrl,
+    "numberOfItems": totalCount,
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": totalCount,
+      "itemListElement": topClinics.map((clinic, index) => {
+        const item: Record<string, unknown> = {
+          "@type": "MedicalBusiness",
+          "name": clinic.title,
+          "url": `${baseUrl}/pain-management/${clinic.permalink}`,
+          "address": {
+            "@type": "PostalAddress",
+            ...(clinic.streetAddress ? { "streetAddress": clinic.streetAddress } : {}),
+            "addressLocality": clinic.city,
+            "addressRegion": clinic.stateAbbreviation,
+            "postalCode": clinic.postalCode,
+          },
+        };
+        if (clinic.rating !== null && clinic.reviewCount !== null) {
+          item["aggregateRating"] = {
+            "@type": "AggregateRating",
+            "ratingValue": clinic.rating,
+            "reviewCount": clinic.reviewCount,
+          };
+        }
+        return {
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": item,
+        };
+      }),
+    },
+  };
+
   return (
     <main className="flex-1">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+      />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-6">

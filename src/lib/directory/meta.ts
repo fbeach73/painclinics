@@ -50,7 +50,7 @@ export function generateFilteredMeta(
       title = `${scope.filteredCount} Pain Clinics in ${locationName} | Filtered Results`;
     }
   } else {
-    title = `Pain Management Clinics in ${locationName} | ${scope.clinicCount} Verified Clinics`;
+    title = `Pain Management Clinics in ${locationName} | Find ${scope.clinicCount}+ Providers Near You`;
   }
 
   // Build description
@@ -59,8 +59,8 @@ export function generateFilteredMeta(
     description = `Browse ${scope.filteredCount} ${filterDescription} pain management clinics in ${locationName}. Compare ratings, read reviews, and find the right clinic for your needs.`;
   } else {
     description = scope.cityName
-      ? `Find top-rated pain management clinics in ${scope.cityName}, ${scope.stateName}. Browse ${scope.clinicCount} verified clinic${scope.clinicCount !== 1 ? "s" : ""}, read patient reviews, and schedule appointments.`
-      : `Find top-rated pain management clinics in ${scope.stateName}. Browse ${scope.clinicCount} verified clinics, read patient reviews, and schedule appointments for pain relief.`;
+      ? `Find ${scope.clinicCount}+ pain management clinics in ${scope.cityName}, ${scope.stateName}. Compare top-rated doctors, read reviews, and schedule appointments near you.`
+      : `Find ${scope.clinicCount}+ pain management doctors and clinics in ${scope.stateName}. Compare ratings, read patient reviews, and book appointments near you.`;
   }
 
   // Compute geo centroid (we don't have it here, but leave the structure)
