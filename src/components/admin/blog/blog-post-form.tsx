@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, Edit2, Save, Loader2, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { Eye, Edit2, Save, Loader2, Trash2, Wand2, ImageIcon } from "lucide-react";
 import {
   TiptapEditor,
   CategoryTagSelector,
@@ -29,7 +30,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+
+const BLOG_IMAGE_PRESETS = [
+  {
+    label: "Featured: Clinical / Medical",
+    prompt:
+      "A warm, cinematic photograph of a modern pain management clinic interior. Clean medical equipment, a consultation desk, and soft natural lighting. Professional and approachable. No faces, no text, no logos. Photorealistic editorial photography, 16:9 aspect ratio.",
+  },
+  {
+    label: "Inline: Treatment / Procedure",
+    prompt:
+      "A realistic close-up photograph of a pain management procedure in progress: a doctor performing a fluoroscopy-guided spinal injection on a patient lying on a treatment table. Clinical blue drapes, modern medical equipment, bright overhead lighting. No faces visible, focus on the procedure. No text, no logos. Photorealistic medical photography, 16:9 ratio.",
+  },
+  {
+    label: "Inline: Doctor Consultation",
+    prompt:
+      "A warm photograph of a pain management doctor in a white coat having a reassuring consultation with a patient in a modern clinic office. They are reviewing results on a tablet together. Natural lighting, professional but approachable. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
+  },
+  {
+    label: "Inline: Medical Equipment",
+    prompt:
+      "A realistic overhead photograph of a doctor's desk with a prescription pad, a stethoscope, and medical documents fanned out. Warm wood desk surface, soft natural light from a window. No people, no faces. No text readable on documents. Photorealistic still life photography, 16:9 ratio.",
+  },
+  {
+    label: "Inline: Patient Exercise / Rehab",
+    prompt:
+      "A bright photograph of a patient doing physical therapy exercises with a therapist in a modern rehabilitation clinic. Focus on the exercise movement, natural lighting, clean gym-like environment. No text, no logos. Photorealistic editorial photography, 16:9 ratio.",
+  },
+] as const;
 
 interface Category {
   id: string;
@@ -138,6 +174,14 @@ export function BlogPostForm({ post, categories: initialCategories, tags: initia
   // Track if form has been modified
   const [hasChanges, setHasChanges] = useState(false);
 
+  // AI Image generation state
+  const [showImageGen, setShowImageGen] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [imageResolution, setImageResolution] = useState<"1K" | "2K" | "4K">("1K");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [imageGenError, setImageGenError] = useState<string | null>(null);
+
   // Auto-save debounce timer
   useEffect(() => {
     if (!post?.id || !hasChanges) return;
@@ -244,6 +288,63 @@ export function BlogPostForm({ post, categories: initialCategories, tags: initia
     }));
     setHasChanges(true);
   }, []);
+
+  // AI Image generation
+  async function handleGenerateImage() {
+    const prompt = imagePrompt.trim();
+    if (!prompt) {
+      setImageGenError("Enter an image prompt first");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setImageGenError(null);
+    setGeneratedImageUrl(null);
+
+    try {
+      const res = await fetch("/api/admin/guides/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, resolution: imageResolution }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Image generation failed");
+      }
+
+      const data = await res.json();
+      setGeneratedImageUrl(data.url);
+    } catch (err) {
+      setImageGenError(err instanceof Error ? err.message : "Image generation failed");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  }
+
+  function handleSaveGeneratedAsFeatured() {
+    if (generatedImageUrl) {
+      setFormData((prev) => ({
+        ...prev,
+        featuredImageUrl: generatedImageUrl,
+        featuredImageAlt: formData.title || "Blog post image",
+      }));
+      setHasChanges(true);
+      setGeneratedImageUrl(null);
+      setShowImageGen(false);
+    }
+  }
+
+  function handleInsertGeneratedIntoContent() {
+    if (generatedImageUrl) {
+      setFormData((prev) => ({
+        ...prev,
+        content: prev.content + `<img src="${generatedImageUrl}" alt="AI generated image" />`,
+      }));
+      setHasChanges(true);
+      setGeneratedImageUrl(null);
+    }
+  }
 
   // Save post (create or update)
   const handleSave = useCallback(async (publishNow = false) => {
@@ -545,13 +646,126 @@ export function BlogPostForm({ post, categories: initialCategories, tags: initia
                 <CardHeader>
                   <CardTitle className="text-base">Featured Image</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <FeaturedImageUpload
                     imageUrl={formData.featuredImageUrl}
                     imageAlt={formData.featuredImageAlt}
                     onImageChange={handleFeaturedImageChange}
                     onUpload={handleImageUpload}
                   />
+
+                  {/* AI Image Generation */}
+                  <div className="border-t pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowImageGen(!showImageGen)}
+                    >
+                      <Wand2 className="h-4 w-4 mr-2" />
+                      {showImageGen ? "Hide AI Image Generator" : "Generate with AI"}
+                    </Button>
+
+                    {showImageGen && (
+                      <div className="mt-4 space-y-3 rounded-md border border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10 p-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="blogImagePrompt" className="text-sm">Image Prompt</Label>
+                            <Select
+                              value=""
+                              onValueChange={(v) => {
+                                const preset = BLOG_IMAGE_PRESETS[parseInt(v)];
+                                if (preset) setImagePrompt(preset.prompt);
+                              }}
+                            >
+                              <SelectTrigger className="w-[200px] h-8 text-xs">
+                                <SelectValue placeholder="Load preset..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {BLOG_IMAGE_PRESETS.map((preset, i) => (
+                                  <SelectItem key={i} value={String(i)} className="text-xs">
+                                    {preset.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Textarea
+                            id="blogImagePrompt"
+                            value={imagePrompt}
+                            onChange={(e) => setImagePrompt(e.target.value)}
+                            placeholder="Describe the image to generate..."
+                            rows={3}
+                            className="text-sm"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs text-muted-foreground whitespace-nowrap">Resolution</Label>
+                            <Select value={imageResolution} onValueChange={(v: "1K" | "2K" | "4K") => setImageResolution(v)}>
+                              <SelectTrigger className="w-[80px] h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1K">1K</SelectItem>
+                                <SelectItem value="2K">2K</SelectItem>
+                                <SelectItem value="4K">4K</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleGenerateImage}
+                            disabled={isGeneratingImage || !imagePrompt.trim()}
+                          >
+                            {isGeneratingImage ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                            )}
+                            {isGeneratingImage ? "Generating..." : "Generate"}
+                          </Button>
+                        </div>
+
+                        {imageGenError && (
+                          <p className="text-sm text-destructive">{imageGenError}</p>
+                        )}
+
+                        {generatedImageUrl && (
+                          <div className="space-y-3">
+                            <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+                              <Image
+                                src={generatedImageUrl}
+                                alt="AI generated image"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 400px) 100vw, 400px"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleSaveGeneratedAsFeatured}
+                              >
+                                Save as Featured
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={handleInsertGeneratedIntoContent}
+                              >
+                                Insert into Content
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
