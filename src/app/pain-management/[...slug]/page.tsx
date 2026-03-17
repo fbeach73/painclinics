@@ -17,7 +17,6 @@ import { ClinicInsurance } from "@/components/clinic/clinic-insurance";
 import { ClinicReviews } from "@/components/clinic/clinic-reviews";
 import { ClinicServicesLegacy } from "@/components/clinic/clinic-services";
 
-import { AdSlot } from "@/components/ads/AdSlot";
 import { ClinicContactCta } from "@/components/clinics/clinic-contact-cta";
 import { LazySearchFeaturedSection } from "@/components/featured/lazy-search-featured-section";
 import { LazyEmbeddedMap } from "@/components/map/lazy-embedded-map";
@@ -745,16 +744,6 @@ export default async function PainManagementClinicPage({ params, searchParams: s
                   />
                 </CardContent>
               </Card>
-
-              {/* Online Doctor CTA - Sidebar */}
-              {showAds && (
-                <AdSlot
-                  placement="clinic-sidebar-cta"
-                  path={`/pain-management/${slug.join("/")}`}
-                  showLabel={false}
-                  renderer="cta-card"
-                />
-              )}
 
               {/* Hours of Operation */}
               <ClinicHours hours={clinic.hours} timezone={clinic.timezone} />
