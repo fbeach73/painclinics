@@ -26,23 +26,32 @@ export default function PainDiaryTemplatePage() {
       {/* Print styles — scoped so only this page adds them */}
       <style>{`
         @media print {
-          /* Hide everything except the template */
-          body > * { display: none !important; }
-          #pain-diary-print-root { display: block !important; }
+          /* Hide site chrome — nav, footer, intro text */
+          header, footer, nav, .no-print { display: none !important; }
 
-          /* Reset page */
-          @page {
-            size: letter portrait;
-            margin: 0.55in 0.55in 0.45in 0.55in;
-          }
+          /* Hide everything that isn't the template */
+          body * { visibility: hidden; }
+          #pain-diary-print-root,
+          #pain-diary-print-root * { visibility: visible; }
 
+          /* Position template at top of page */
           #pain-diary-print-root {
-            display: block !important;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             font-family: Arial, Helvetica, sans-serif;
             font-size: 10pt;
             color: #000 !important;
             background: #fff !important;
+            padding: 0;
+            margin: 0;
+          }
+
+          /* Reset page */
+          @page {
+            size: letter portrait;
+            margin: 0.55in 0.55in 0.45in 0.55in;
           }
 
           /* Force white backgrounds and black text inside template */
@@ -62,12 +71,6 @@ export default function PainDiaryTemplatePage() {
           /* Prevent page breaks inside sections */
           #pain-diary-print-root .print-section {
             break-inside: avoid;
-          }
-        }
-
-        @media screen {
-          #pain-diary-print-root {
-            display: block;
           }
         }
       `}</style>
