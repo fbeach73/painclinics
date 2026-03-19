@@ -138,6 +138,17 @@ export function SiteHeader() {
                         </Link>
                       </NavigationMenuLink>
                     </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href="/consult"
+                          className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="text-sm font-medium">Pain Assessment</div>
+                          <p className="text-xs text-muted-foreground">AI-powered symptom checker &amp; specialist finder</p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
@@ -181,6 +192,9 @@ export function SiteHeader() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-3">
                 <Link href="/pain-relief-tool">Pain Relief Tool</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="py-3">
+                <Link href="/consult">Pain Assessment</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-3">

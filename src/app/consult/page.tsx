@@ -2,14 +2,14 @@ import { ConsultChat } from "./consult-chat";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free Online Pain Assessment | PainConsult AI — PainClinics.com",
+  title: "Online Pain Assessment | PainConsult AI — PainClinics.com",
   description:
-    "Get a free, evidence-based pain assessment from PainConsult AI. Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
+    "Get an evidence-based pain assessment from PainConsult AI. Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
   keywords: [
     "online pain assessment",
     "AI pain symptom checker",
     "find pain specialist",
-    "free pain assessment",
+    "pain assessment tool",
     "pain symptom checker",
     "PainConsult AI",
   ],
@@ -18,15 +18,15 @@ export const metadata: Metadata = {
     canonical: "/consult",
   },
   openGraph: {
-    title: "Free Online Pain Assessment | PainConsult AI — PainClinics.com",
+    title: "Online Pain Assessment | PainConsult AI — PainClinics.com",
     description:
-      "Get a free, evidence-based pain assessment from PainConsult AI. Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
+      "Get an evidence-based pain assessment from PainConsult AI. Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
     url: "/consult",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Free Online Pain Assessment | PainConsult AI",
+    title: "Online Pain Assessment | PainConsult AI",
     description:
       "Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
   },
@@ -38,7 +38,7 @@ export default function ConsultPage() {
     "@type": "WebApplication",
     name: "PainConsult AI",
     description:
-      "Free AI-powered pain assessment tool that helps you understand your symptoms, learn about potential causes and treatment options, and find pain management specialists near you.",
+      "AI-powered pain assessment tool that helps you understand your symptoms, learn about potential causes and treatment options, and find pain management specialists near you.",
     applicationCategory: "HealthApplication",
     operatingSystem: "Web",
     offers: {
@@ -104,9 +104,9 @@ export default function ConsultPage() {
   const howToJsonLd = {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: "How to Use PainConsult AI for a Free Online Pain Assessment",
+    name: "How to Use PainConsult AI for an Online Pain Assessment",
     description:
-      "Follow these steps to get your free, evidence-based pain assessment and find matching pain management specialists near you.",
+      "Follow these steps to get your evidence-based pain assessment and find matching pain management specialists near you.",
     totalTime: "PT5M",
     step: [
       {
