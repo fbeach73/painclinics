@@ -20,6 +20,7 @@ export interface ConsultSummaryProps {
     reviewCount: number | null;
   }> | undefined;
   unsubscribeUrl?: string | undefined;
+  deleteDataUrl?: string | undefined;
 }
 
 const BASE_URL = "https://painclinics.com";
@@ -33,6 +34,7 @@ export function ConsultSummary({
   assessmentSummary,
   clinics,
   unsubscribeUrl,
+  deleteDataUrl,
 }: ConsultSummaryProps) {
   const hasClinics = clinics && clinics.length > 0;
 
@@ -126,6 +128,15 @@ export function ConsultSummary({
         <br />
         The PainClinics.com Team
       </Text>
+
+      {deleteDataUrl && (
+        <Text style={deleteDataStyle}>
+          Want to delete your consultation data?{" "}
+          <Link href={deleteDataUrl} style={deleteDataLinkStyle}>
+            Delete my data
+          </Link>
+        </Text>
+      )}
     </EmailLayout>
   );
 }
@@ -200,6 +211,18 @@ const signatureStyle: React.CSSProperties = {
   color: "#374151",
   lineHeight: "1.6",
   marginTop: "24px",
+};
+
+const deleteDataStyle: React.CSSProperties = {
+  fontSize: "12px",
+  color: "#9ca3af",
+  textAlign: "center" as const,
+  marginTop: "16px",
+};
+
+const deleteDataLinkStyle: React.CSSProperties = {
+  color: "#9ca3af",
+  textDecoration: "underline",
 };
 
 export default ConsultSummary;

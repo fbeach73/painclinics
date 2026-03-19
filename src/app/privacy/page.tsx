@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
-  const lastUpdated = "December 18, 2025";
+  const lastUpdated = "March 19, 2026";
 
   return (
     <main id="main-content" className="container mx-auto py-8 md:py-12 px-4">
@@ -148,6 +148,72 @@ export default function PrivacyPolicyPage() {
         <p>
           You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy
           are effective when they are posted on this page.
+        </p>
+
+        <h2>PainConsult AI &mdash; Your Consultation Data</h2>
+        <p>
+          When you use PainConsult AI, our AI-powered pain assessment tool, we collect the following
+          information:
+        </p>
+
+        <h3>Information you provide during your consultation:</h3>
+        <ul>
+          <li>Pain location, duration, severity, and symptoms</li>
+          <li>Zip code (to find nearby clinics)</li>
+          <li>Email address (to send your consultation summary)</li>
+          <li>First and last name</li>
+          <li>Age (optional)</li>
+        </ul>
+
+        <h3>How we use this information:</h3>
+        <ul>
+          <li>To provide personalized pain guidance during your consultation</li>
+          <li>
+            To match you with nearby pain management clinics from our directory
+          </li>
+          <li>To send you a consultation summary via email</li>
+          <li>
+            To send follow-up emails with clinic recommendations (you can unsubscribe at any time)
+          </li>
+        </ul>
+
+        <h3>How we protect your data:</h3>
+        <ul>
+          <li>
+            All consultation data is stored in encrypted databases hosted on Supabase with AES-256
+            encryption at rest
+          </li>
+          <li>Data is transmitted over HTTPS/TLS encryption</li>
+          <li>
+            We do not share your personal health information with clinics, advertisers, or any third
+            parties
+          </li>
+          <li>
+            AI consultation responses are generated in real-time and not stored or used to train AI
+            models
+          </li>
+        </ul>
+
+        <h3>Your right to delete your data:</h3>
+        <p>
+          Every consultation summary email includes a &ldquo;Delete my data&rdquo; link. When you
+          request deletion:
+        </p>
+        <ul>
+          <li>
+            Your name, email address, zip code, age, and any other personally identifiable
+            information is permanently removed
+          </li>
+          <li>
+            Anonymized consultation data (condition type and date only) may be retained for service
+            improvement
+          </li>
+          <li>Clinic match records associated with your consultation are deleted</li>
+          <li>This action is permanent and cannot be undone</li>
+        </ul>
+        <p>
+          You can also request data deletion by contacting us at{" "}
+          <a href="mailto:privacy@painclinics.com">privacy@painclinics.com</a>.
         </p>
 
         <h2>Contact Us</h2>

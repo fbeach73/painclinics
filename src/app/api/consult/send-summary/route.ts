@@ -42,16 +42,29 @@ export async function POST(request: Request) {
     day: "numeric",
   });
 
+  // Look up the contact's unsubscribeToken so we can include unsub + delete links in the email
+  const contactRow = await db
+    .select({ unsubscribeToken: contacts.unsubscribeToken })
+    .from(contacts)
+    .where(eq(contacts.email, email.toLowerCase().trim()))
+    .limit(1)
+    .then((rows) => rows[0])
+    .catch(() => undefined);
+
   // Fire and forget — errors are swallowed so UX is never affected
-  sendConsultSummaryEmail(email, {
-    firstName,
-    condition,
-    consultDate,
-    zipCode,
-    age: age ?? undefined,
-    assessmentSummary,
-    clinics: clinics?.slice(0, 5),
-  }).catch(() => {});
+  sendConsultSummaryEmail(
+    email,
+    {
+      firstName,
+      condition,
+      consultDate,
+      zipCode,
+      age: age ?? undefined,
+      assessmentSummary,
+      clinics: clinics?.slice(0, 5),
+    },
+    { unsubscribeToken: contactRow?.unsubscribeToken ?? undefined }
+  ).catch(() => {});
 
   // Save lead-clinic matches (fire and forget)
   if (clinics && clinics.length > 0) {

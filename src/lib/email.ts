@@ -897,10 +897,14 @@ export async function sendConsultSummaryEmail(
   options?: { unsubscribeToken?: string | undefined }
 ): Promise<SendEmailResult> {
   const subject = "Your Pain Consultation Summary — PainClinics.com";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
   const propsWithUnsub: ConsultSummaryProps = {
     ...props,
     unsubscribeUrl: options?.unsubscribeToken
       ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+    deleteDataUrl: options?.unsubscribeToken
+      ? `${baseUrl}/delete-my-data/${options.unsubscribeToken}`
       : undefined,
   };
 
