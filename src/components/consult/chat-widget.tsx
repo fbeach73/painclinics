@@ -6,6 +6,19 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import Link from "next/link";
 import "./chat-widget.css";
 
+function getFingerprint(): string {
+  const c = [navigator.userAgent, navigator.language, screen.width, screen.height, new Date().getTimezoneOffset()];
+  return btoa(c.join("|")).slice(0, 32);
+}
+function trackConsultEvent(eventType: "consult_start" | "consult_message", path: string) {
+  fetch("/api/analytics/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ eventType, path, fingerprint: getFingerprint(), referrer: document.referrer || "" }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
 const BODY_LOCATIONS = [
   "Lower back",
   "Neck / Upper back",
@@ -310,6 +323,7 @@ export function ChatWidget() {
   function openPanel() {
     setIsClosing(false);
     setIsOpen(true);
+    trackConsultEvent("consult_start", "/widget");
     setTimeout(() => textareaRef.current?.focus(), 280);
   }
 
@@ -341,6 +355,7 @@ export function ChatWidget() {
     if (!el) return;
     const text = el.value.trim();
     if (!text || isStreaming) return;
+    trackConsultEvent("consult_message", "/widget");
     sendMessage({ text });
     el.value = "";
     el.style.height = "auto";
@@ -355,11 +370,13 @@ export function ChatWidget() {
 
   function handleChipClick(location: string) {
     setChipsUsed(true);
+    trackConsultEvent("consult_message", "/widget");
     sendMessage({ text: `My pain is in my ${location.toLowerCase()}.` });
   }
 
   function handleOptionClick(optionText: string) {
     if (isStreaming) return;
+    trackConsultEvent("consult_message", "/widget");
     sendMessage({ text: optionText });
     setMultiSelections(new Set());
   }
@@ -379,6 +396,7 @@ export function ChatWidget() {
 
   function handleMultiSubmit() {
     if (isStreaming || multiSelections.size === 0) return;
+    trackConsultEvent("consult_message", "/widget");
     const selected = Array.from(multiSelections);
     sendMessage({ text: selected.join(", ") });
     setMultiSelections(new Set());

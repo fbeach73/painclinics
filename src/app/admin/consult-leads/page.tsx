@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/lib/db";
-import { contacts, consultLeadMatches, clinics } from "@/lib/schema";
+import { contacts, consultLeadMatches, clinics, analyticsEvents } from "@/lib/schema";
 import { ConsultLeadsSearch } from "./consult-leads-search";
 import { ConsultLeadsPagination } from "./consult-leads-pagination";
 import { MatchStatusSelect } from "./match-status-select";
@@ -73,7 +73,7 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - 7);
 
-  const [leads, totalResult, todayResult, weekResult] = await Promise.all([
+  const [leads, totalResult, todayResult, weekResult, chatOpensResult, chatMessagesResult, avgDepthResult] = await Promise.all([
     db
       .select()
       .from(contacts)
@@ -97,12 +97,36 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
       .where(
         sql`'consult-user' = ANY(${contacts.tags}) AND ${contacts.createdAt} >= ${weekStart.toISOString()}`
       ),
+    // Chat analytics: total opens
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(analyticsEvents)
+      .where(eq(analyticsEvents.eventType, "consult_start")),
+    // Chat analytics: total messages sent by users
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(analyticsEvents)
+      .where(eq(analyticsEvents.eventType, "consult_message")),
+    // Chat analytics: avg messages per session
+    db
+      .select({ avg: sql<number>`COALESCE(ROUND(AVG(msg_count)::numeric, 1), 0)::float` })
+      .from(
+        sql`(
+          SELECT ${analyticsEvents.sessionHash}, COUNT(*) as msg_count
+          FROM ${analyticsEvents}
+          WHERE ${analyticsEvents.eventType} = 'consult_message'
+          GROUP BY ${analyticsEvents.sessionHash}
+        ) sub`
+      ),
   ]);
 
   const totalCount = totalResult[0]?.count ?? 0;
   const todayCount = todayResult[0]?.count ?? 0;
   const weekCount = weekResult[0]?.count ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
+  const chatOpens = chatOpensResult[0]?.count ?? 0;
+  const chatMessages = chatMessagesResult[0]?.count ?? 0;
+  const avgDepth = avgDepthResult[0]?.avg ?? 0;
 
   // Fetch matched clinics for this page of leads
   const leadIds = leads.map((l) => l.id);
@@ -171,7 +195,7 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      {/* Stats row */}
+      {/* Lead stats */}
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -195,6 +219,34 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
               {todayCount.toLocaleString()}
             </div>
             <p className="text-sm text-muted-foreground">Today</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Chat engagement stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {chatOpens.toLocaleString()}
+            </div>
+            <p className="text-sm text-muted-foreground">Chat opens</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {chatMessages.toLocaleString()}
+            </div>
+            <p className="text-sm text-muted-foreground">Total messages</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {avgDepth}
+            </div>
+            <p className="text-sm text-muted-foreground">Avg messages/session</p>
           </CardContent>
         </Card>
       </div>

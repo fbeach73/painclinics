@@ -6,6 +6,20 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import Link from "next/link";
 import "./consult.css";
 
+// Lightweight analytics tracking for consult events
+function getFingerprint(): string {
+  const c = [navigator.userAgent, navigator.language, screen.width, screen.height, new Date().getTimezoneOffset()];
+  return btoa(c.join("|")).slice(0, 32);
+}
+function trackConsultEvent(eventType: "consult_start" | "consult_message", path: string) {
+  fetch("/api/analytics/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ eventType, path, fingerprint: getFingerprint(), referrer: document.referrer || "" }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
 const BODY_LOCATIONS = [
   "Lower back",
   "Neck / Upper back",
@@ -269,6 +283,15 @@ export function ConsultChat() {
 
   const isStreaming = status === "streaming" || status === "submitted";
 
+  // Track consult_start on mount
+  const startTracked = useRef(false);
+  useEffect(() => {
+    if (!startTracked.current) {
+      startTracked.current = true;
+      trackConsultEvent("consult_start", "/consult");
+    }
+  }, []);
+
   // Scroll to typing dots when streaming, latest AI message when done,
   // or bottom when capture cards appear
   useEffect(() => {
@@ -314,6 +337,7 @@ export function ConsultChat() {
     if (!el) return;
     const text = el.value.trim();
     if (!text || isStreaming) return;
+    trackConsultEvent("consult_message", "/consult");
     sendMessage({ text });
     el.value = "";
     el.style.height = "auto";
@@ -328,11 +352,13 @@ export function ConsultChat() {
 
   function handleChipClick(location: string) {
     setChipsUsed(true);
+    trackConsultEvent("consult_message", "/consult");
     sendMessage({ text: `My pain is in my ${location.toLowerCase()}.` });
   }
 
   function handleOptionClick(optionText: string) {
     if (isStreaming) return;
+    trackConsultEvent("consult_message", "/consult");
     sendMessage({ text: optionText });
     setMultiSelections(new Set());
   }
@@ -352,6 +378,7 @@ export function ConsultChat() {
 
   function handleMultiSubmit() {
     if (isStreaming || multiSelections.size === 0) return;
+    trackConsultEvent("consult_message", "/consult");
     const selected = Array.from(multiSelections);
     sendMessage({ text: selected.join(", ") });
     setMultiSelections(new Set());

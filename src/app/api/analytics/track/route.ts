@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { analyticsEvents } from "@/lib/schema";
 
 interface TrackRequest {
-  eventType: "pageview" | "clinic_view" | "ab_test" | "phone_click" | "directions_click" | "website_click";
+  eventType: "pageview" | "clinic_view" | "ab_test" | "phone_click" | "directions_click" | "website_click" | "consult_start" | "consult_message";
   path: string;
   clinicId?: string;
   referrer?: string;
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     // Validate eventType
-    const validEventTypes = ["pageview", "clinic_view", "ab_test", "phone_click", "directions_click", "website_click"];
+    const validEventTypes = ["pageview", "clinic_view", "ab_test", "phone_click", "directions_click", "website_click", "consult_start", "consult_message"];
     if (!validEventTypes.includes(body.eventType)) {
       return NextResponse.json(
         { error: `Invalid eventType. Must be one of: ${validEventTypes.join(", ")}` },
