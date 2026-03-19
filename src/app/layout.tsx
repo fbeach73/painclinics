@@ -8,7 +8,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { DirectAnchorAd } from "@/components/ads/DirectAnchorAd";
+// DirectAnchorAd removed — was conflicting with Google's auto anchor on mobile
+// and causing viewport-covering ad stacking. Let Google handle anchor placement.
 import { NativeAdPanelClient } from "@/components/ads/NativeAdPanelClient";
 import { ChatWidgetLazy } from "@/components/consult/chat-widget-lazy";
 import { SiteChrome } from "@/components/layout/site-chrome";
@@ -117,7 +118,6 @@ export default function RootLayout({
             </div>
             <SiteFooter />
             <ChatWidgetLazy />
-            <DirectAnchorAd />
           </SiteChrome>
           <Toaster richColors position="top-right" />
           <PageTracker />
@@ -125,8 +125,8 @@ export default function RootLayout({
         <VercelAnalytics />
         {/* Deferred third-party scripts for better PageSpeed scores */}
         <DeferredGTM gtmId="GTM-ZGCKNRS" delayMs={2000} />
-        {/* AdSense loads on scroll (or after 3s fallback) to improve PageSpeed */}
-        <DeferredAdSense clientId="ca-pub-5028121986513144" strategy="scroll" />
+        {/* AdSense loads after 1.5s — fast enough for ad impressions, late enough to clear LCP */}
+        <DeferredAdSense clientId="ca-pub-5028121986513144" strategy="timer" delayMs={1500} />
       </body>
     </html>
   );
