@@ -4,6 +4,10 @@ import Mailgun from "mailgun.js";
 import {
   renderAdvertiseInquiryEmail,
   renderBroadcastEmail,
+  renderConsultFollowupDay3Email,
+  renderConsultFollowupDay7Email,
+  renderConsultPdfPlanEmail,
+  renderConsultSummaryEmail,
   renderClaimVerificationEmail,
   renderClaimApprovedEmail,
   renderClaimInviteEmail,
@@ -24,6 +28,10 @@ import {
   EMAIL_TEMPLATES,
   type AdvertiseInquiryProps,
   type BroadcastEmailProps,
+  type ConsultFollowupDay3Props,
+  type ConsultFollowupDay7Props,
+  type ConsultPdfPlanProps,
+  type ConsultSummaryProps,
   type ClaimVerificationProps,
   type ClaimApprovedProps,
   type ClaimInviteProps,
@@ -856,6 +864,105 @@ export async function sendSubmitClinicEmail(
     return { success: result.success, error: errorMessage };
   }
   return { success: result.success };
+}
+
+export async function sendConsultPdfPlanEmail(
+  to: string,
+  props: Pick<ConsultPdfPlanProps, "firstName" | "condition" | "planContent">,
+  options?: { unsubscribeToken?: string | undefined }
+): Promise<SendEmailResult> {
+  const subject = `Your Personalized Pain Management Plan — ${props.condition}`;
+  const fullProps: ConsultPdfPlanProps = {
+    ...props,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderConsultPdfPlanEmail(fullProps);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    from: HELLO_FROM_EMAIL,
+    templateName: EMAIL_TEMPLATES.CONSULT_PDF_PLAN,
+    metadata: { condition: props.condition },
+  });
+}
+
+export async function sendConsultSummaryEmail(
+  to: string,
+  props: ConsultSummaryProps,
+  options?: { unsubscribeToken?: string | undefined }
+): Promise<SendEmailResult> {
+  const subject = "Your Pain Consultation Summary — PainClinics.com";
+  const propsWithUnsub: ConsultSummaryProps = {
+    ...props,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderConsultSummaryEmail(propsWithUnsub);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    from: HELLO_FROM_EMAIL,
+    templateName: EMAIL_TEMPLATES.CONSULT_SUMMARY,
+  });
+}
+
+export async function sendConsultFollowupDay3Email(
+  to: string,
+  props: ConsultFollowupDay3Props,
+  options?: { unsubscribeToken?: string | undefined }
+): Promise<SendEmailResult> {
+  const subject = "How's your pain doing? — PainConsult AI";
+  const fullProps: ConsultFollowupDay3Props = {
+    ...props,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderConsultFollowupDay3Email(fullProps);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    from: HELLO_FROM_EMAIL,
+    templateName: EMAIL_TEMPLATES.CONSULT_FOLLOWUP_DAY3,
+    metadata: { condition: props.condition, zipCode: props.zipCode },
+  });
+}
+
+export async function sendConsultFollowupDay7Email(
+  to: string,
+  props: ConsultFollowupDay7Props,
+  options?: { unsubscribeToken?: string | undefined }
+): Promise<SendEmailResult> {
+  const subject = "Your personalized pain plan is ready — PainConsult AI";
+  const fullProps: ConsultFollowupDay7Props = {
+    ...props,
+    unsubscribeUrl: options?.unsubscribeToken
+      ? getUnsubscribeUrl(options.unsubscribeToken)
+      : undefined,
+  };
+
+  const html = await renderConsultFollowupDay7Email(fullProps);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    from: HELLO_FROM_EMAIL,
+    templateName: EMAIL_TEMPLATES.CONSULT_FOLLOWUP_DAY7,
+    metadata: { condition: props.condition, zipCode: props.zipCode },
+  });
 }
 
 // ============================================

@@ -1,5 +1,9 @@
 import { render } from "@react-email/components";
 import { AdvertiseInquiry } from "./advertise-inquiry";
+import { ConsultFollowupDay3, type ConsultFollowupDay3Props } from "./consult-followup-day3";
+import { ConsultFollowupDay7, type ConsultFollowupDay7Props } from "./consult-followup-day7";
+import { ConsultPdfPlan, type ConsultPdfPlanProps } from "./consult-pdf-plan";
+import { ConsultSummary, type ConsultSummaryProps } from "./consult-summary";
 import { BroadcastEmail, type BroadcastEmailProps } from "./broadcast-email";
 import { ClaimApproved } from "./claim-approved";
 import { ClaimInvite } from "./claim-invite";
@@ -23,6 +27,10 @@ import { Welcome } from "./welcome";
 // Re-export components for direct use if needed
 export {
   AdvertiseInquiry,
+  ConsultFollowupDay3,
+  ConsultFollowupDay7,
+  ConsultPdfPlan,
+  ConsultSummary,
   BroadcastEmail,
   ClaimVerification,
   ClaimApproved,
@@ -80,6 +88,14 @@ export type { SubscriptionAdminProps };
 export type { SubscriptionThankYouProps };
 
 export type { LeadFollowUpEmailProps };
+
+export type { ConsultPdfPlanProps };
+
+export type { ConsultFollowupDay3Props };
+
+export type { ConsultFollowupDay7Props };
+
+export type { ConsultSummaryProps };
 
 export interface FeaturedWelcomeProps {
   clinicName: string;
@@ -265,6 +281,22 @@ export async function renderSubscriptionThankYouEmail(props: SubscriptionThankYo
   return render(SubscriptionThankYou(props));
 }
 
+export async function renderConsultSummaryEmail(props: ConsultSummaryProps): Promise<string> {
+  return render(ConsultSummary(props));
+}
+
+export async function renderConsultPdfPlanEmail(props: ConsultPdfPlanProps): Promise<string> {
+  return render(ConsultPdfPlan(props));
+}
+
+export async function renderConsultFollowupDay3Email(props: ConsultFollowupDay3Props): Promise<string> {
+  return render(ConsultFollowupDay3(props));
+}
+
+export async function renderConsultFollowupDay7Email(props: ConsultFollowupDay7Props): Promise<string> {
+  return render(ConsultFollowupDay7(props));
+}
+
 // Template name constants for logging
 export const EMAIL_TEMPLATES = {
   ADVERTISE_INQUIRY: "advertise-inquiry",
@@ -288,6 +320,10 @@ export const EMAIL_TEMPLATES = {
   SUBSCRIPTION_CANCELED: "subscription-canceled",
   SUBSCRIPTION_THANK_YOU: "subscription-thank-you",
   WELCOME: "welcome",
+  CONSULT_SUMMARY: "consult-summary",
+  CONSULT_PDF_PLAN: "consult-pdf-plan",
+  CONSULT_FOLLOWUP_DAY3: "consult-followup-day3",
+  CONSULT_FOLLOWUP_DAY7: "consult-followup-day7",
 } as const;
 
 export type EmailTemplateName = (typeof EMAIL_TEMPLATES)[keyof typeof EMAIL_TEMPLATES];

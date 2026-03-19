@@ -1127,6 +1127,7 @@ export const clinicsRelations = relations(clinics, ({ one, many }) => ({
   clinicInsurance: many(clinicInsurance),
   analyticsEvents: many(analyticsEvents),
   rotationLogs: many(featuredRotationLog),
+  consultLeadMatches: many(consultLeadMatches),
 }));
 
 export const clinicClaimsRelations = relations(clinicClaims, ({ one }) => ({
@@ -1692,12 +1693,65 @@ export const contacts = pgTable(
   ]
 );
 
-export const contactsRelations = relations(contacts, ({ one }) => ({
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
   user: one(user, {
     fields: [contacts.userId],
     references: [user.id],
   }),
+  consultLeadMatches: many(consultLeadMatches),
 }));
+
+// ============================================
+// Consult Lead Matches Table
+// ============================================
+
+export const consultLeadMatches = pgTable(
+  "consult_lead_matches",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    contactId: text("contact_id")
+      .notNull()
+      .references(() => contacts.id, { onDelete: "cascade" }),
+    clinicId: text("clinic_id")
+      .notNull()
+      .references(() => clinics.id, { onDelete: "cascade" }),
+    condition: text("condition"),
+    zipCode: text("zip_code"),
+    status: text("status", {
+      enum: ["matched", "contacted", "booked", "converted"],
+    })
+      .default("matched")
+      .notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("consult_lead_matches_contact_idx").on(table.contactId),
+    index("consult_lead_matches_clinic_idx").on(table.clinicId),
+    index("consult_lead_matches_status_idx").on(table.status),
+    index("consult_lead_matches_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const consultLeadMatchesRelations = relations(
+  consultLeadMatches,
+  ({ one }) => ({
+    contact: one(contacts, {
+      fields: [consultLeadMatches.contactId],
+      references: [contacts.id],
+    }),
+    clinic: one(clinics, {
+      fields: [consultLeadMatches.clinicId],
+      references: [clinics.id],
+    }),
+  })
+);
 
 // ============================================
 // Newsletter Broadcasts Table (External API)

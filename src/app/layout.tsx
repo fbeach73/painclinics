@@ -10,6 +10,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { DirectAnchorAd } from "@/components/ads/DirectAnchorAd";
 import { NativeAdPanelClient } from "@/components/ads/NativeAdPanelClient";
+import { ChatWidgetLazy } from "@/components/consult/chat-widget-lazy";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -101,18 +103,23 @@ export default function RootLayout({
           defaultTheme="light"
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col">
+          <SiteChrome>
             <SiteHeader />
+          </SiteChrome>
+          <div className="flex min-h-screen flex-col">
             <main id="main-content" className="flex-1">
               {children}
             </main>
+          </div>
+          <SiteChrome>
             <div className="contain-layout contain-paint">
               <NativeAdPanelClient />
             </div>
             <SiteFooter />
-          </div>
+            <ChatWidgetLazy />
+            <DirectAnchorAd />
+          </SiteChrome>
           <Toaster richColors position="top-right" />
-          <DirectAnchorAd />
           <PageTracker />
         </ThemeProvider>
         <VercelAnalytics />

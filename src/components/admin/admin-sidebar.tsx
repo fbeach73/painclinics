@@ -23,9 +23,11 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
+  MessageSquareHeart,
   Megaphone,
   BookOpen,
   Contact2,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,6 +40,7 @@ const navItems = [
   { href: "/admin/guides", label: "Guides", icon: BookOpen },
   { href: "/admin/claims", label: "Claims", icon: Shield },
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
+  { href: "/admin/consult-leads", label: "Consult Leads", icon: MessageSquareHeart },
   { href: "/admin/contacts", label: "Contacts", icon: Contact2 },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/users", label: "User Activity", icon: UserCheck },
@@ -49,6 +52,7 @@ const navItems = [
   { href: "/admin/broadcasts", label: "Broadcasts", icon: Send },
   { href: "/admin/rotation", label: "Rotation", icon: RotateCw },
   { href: "/admin/media", label: "Media", icon: ImageIcon },
+  { href: "/admin/docs", label: "Docs", icon: FileText },
 ];
 
 const SIDEBAR_COLLAPSED_KEY = "admin-sidebar-collapsed";
