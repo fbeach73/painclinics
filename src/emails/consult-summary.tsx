@@ -69,7 +69,11 @@ export function ConsultSummary({
           style={assessmentStyle}
           dangerouslySetInnerHTML={{
             __html: assessmentSummary
+              .replace(/^### (.*$)/gm, '<h3 style="font-size:15px;font-weight:600;color:#111827;margin:16px 0 6px 0;">$1</h3>')
+              .replace(/^## (.*$)/gm, '<h2 style="font-size:17px;font-weight:600;color:#111827;margin:18px 0 8px 0;">$1</h2>')
+              .replace(/^# (.*$)/gm, '<h2 style="font-size:17px;font-weight:600;color:#111827;margin:18px 0 8px 0;">$1</h2>')
               .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+              .replace(/^[-–] (.*$)/gm, '• $1')
               .replace(/\n\n/g, "</p><p style=\"margin:0 0 12px 0;line-height:1.6;\">")
               .replace(/\n/g, "<br/>"),
           }}
