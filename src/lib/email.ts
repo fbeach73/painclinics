@@ -886,6 +886,7 @@ export async function sendConsultPdfPlanEmail(
     subject,
     html,
     from: HELLO_FROM_EMAIL,
+    bcc: "consult@painclinics.com",
     templateName: EMAIL_TEMPLATES.CONSULT_PDF_PLAN,
     metadata: { condition: props.condition },
   });
@@ -915,6 +916,7 @@ export async function sendConsultSummaryEmail(
     subject,
     html,
     from: HELLO_FROM_EMAIL,
+    bcc: "consult@painclinics.com",
     templateName: EMAIL_TEMPLATES.CONSULT_SUMMARY,
   });
 }
