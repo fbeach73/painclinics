@@ -241,4 +241,5 @@ export interface MappedClinicData {
   mapLongitude?: number;
   detailedAddress?: string;
   googleListingLink?: string;
+  clinicImageUrls?: string[];
 }

@@ -98,6 +98,28 @@ pnpm db:studio    # Open Drizzle Studio GUI
 pnpm db:generate  # Generate migrations
 ```
 
+### Standalone Scripts (scripts/)
+
+Scripts that import `@/lib/db` (or anything that reads `process.env` at import time) **must** load `.env.local` before those imports run. ES `import` statements are hoisted above all other code, so `dotenv.config()` at the top of a file does NOT run before static imports.
+
+**Pattern — use dynamic `await import()` inside an async function:**
+
+```typescript
+import { config } from "dotenv";
+config({ path: ".env.local" });
+
+async function main() {
+  // Dynamic imports run AFTER dotenv has loaded env vars
+  const { db } = await import("@/lib/db");
+  const { clinics } = await import("@/lib/schema");
+  // ... rest of script
+}
+
+main().then(() => process.exit(0));
+```
+
+**Do NOT use static imports** for `@/lib/db`, `@/lib/schema`, or any module that reads env vars at the top level — they will fail with `POSTGRES_URL environment variable is not set`.
+
 ## Guidelines for AI Assistants
 
 ### Database (Supabase)

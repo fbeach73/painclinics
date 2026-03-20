@@ -154,7 +154,9 @@ export function mapPlaceToClinic(
       case "location":
         mapLocationFields(place, result);
         break;
-      // Photos are handled separately due to additional API calls needed
+      case "photos":
+        mapPhotoFields(place, result);
+        break;
     }
   }
 
@@ -245,6 +247,19 @@ function mapContactFields(place: PlaceDetails, result: MappedClinicData): void {
 }
 
 /**
+ * Map photo-related fields
+ * Stores photo resource names (e.g. "places/ChIJ.../photos/ABC123") which can be
+ * resolved to fresh URLs via the sync service's resolvePhotoUrls() step.
+ * The field mapper only extracts names; URL resolution requires API calls done separately.
+ */
+function mapPhotoFields(place: PlaceDetails, result: MappedClinicData): void {
+  if (place.photos && place.photos.length > 0) {
+    // Store photo resource names — resolved to URLs in sync-service.ts
+    result.clinicImageUrls = place.photos.slice(0, 10).map((photo) => photo.name);
+  }
+}
+
+/**
  * Map location-related fields
  */
 function mapLocationFields(place: PlaceDetails, result: MappedClinicData): void {
@@ -329,6 +344,18 @@ export function detectChanges(
         field: "clinicHours",
         oldValue: current.clinicHours,
         newValue: incoming.clinicHours,
+      });
+    }
+  }
+
+  if (incoming.clinicImageUrls !== undefined) {
+    const oldUrls = JSON.stringify(current.clinicImageUrls || []);
+    const newUrls = JSON.stringify(incoming.clinicImageUrls);
+    if (oldUrls !== newUrls) {
+      changes.push({
+        field: "clinicImageUrls",
+        oldValue: current.clinicImageUrls,
+        newValue: incoming.clinicImageUrls,
       });
     }
   }

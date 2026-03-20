@@ -18,13 +18,24 @@ interface ClinicGalleryProps {
   className?: string;
 }
 
+const FALLBACK_IMAGE = '/images/clinic-placeholder.webp';
+
 export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  // Track which photo URLs have failed to load (expired Google Places URLs, 403s, etc.)
+  const [brokenUrls, setBrokenUrls] = useState<Set<string>>(() => new Set());
 
-  const FALLBACK_IMAGE = '/images/clinic-placeholder.webp';
+  // Filter out broken photos so they disappear from the grid
+  const validPhotos = photos.filter((url) => !brokenUrls.has(url));
+  const displayPhotos = validPhotos.length > 0 ? validPhotos : [FALLBACK_IMAGE];
 
-  // Use placeholder image if no photos provided
-  const displayPhotos = photos.length > 0 ? photos : [FALLBACK_IMAGE];
+  const handleImageError = (url: string) => {
+    setBrokenUrls((prev) => new Set(prev).add(url));
+    // If the broken image was selected in the lightbox, close it
+    if (selectedIndex !== null && displayPhotos[selectedIndex] === url) {
+      setSelectedIndex(null);
+    }
+  };
 
   const handlePrevious = () => {
     if (selectedIndex !== null) {
@@ -38,6 +49,11 @@ export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryPr
     }
   };
 
+  // Don't render the section at all if every photo is broken
+  if (validPhotos.length === 0 && photos.length > 0) {
+    return null;
+  }
+
   return (
     <>
       <Card className={className}>
@@ -48,7 +64,7 @@ export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryPr
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {displayPhotos.map((photo, index) => (
               <button
-                key={index}
+                key={photo}
                 onClick={() => setSelectedIndex(index)}
                 className={cn(
                   'relative aspect-square rounded-lg overflow-hidden',
@@ -63,6 +79,7 @@ export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryPr
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    onError={() => handleImageError(photo)}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -101,6 +118,7 @@ export function ClinicGallery({ photos, clinicName, className }: ClinicGalleryPr
                   fill
                   className="object-contain"
                   sizes="(max-width: 1200px) 100vw, 896px"
+                  onError={() => handleImageError(displayPhotos[selectedIndex]!)}
                 />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground">

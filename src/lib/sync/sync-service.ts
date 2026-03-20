@@ -41,6 +41,7 @@ const ALL_SYNC_FIELDS: SyncFieldType[] = [
   "hours",
   "contact",
   "location",
+  "photos",
 ];
 
 // ============================================
@@ -174,6 +175,28 @@ export async function syncClinic(
     // Map Place data to clinic schema
     const mappedData = mapPlaceToClinic(placeDetails, fields);
 
+    // Resolve photo resource names to actual image URLs
+    // mapPlaceToClinic stores photo names (e.g. "places/.../photos/ABC");
+    // we need to call the photo API to get fresh lh3.googleusercontent.com URLs
+    if (mappedData.clinicImageUrls && mappedData.clinicImageUrls.length > 0) {
+      const resolvedUrls: string[] = [];
+      for (const photoName of mappedData.clinicImageUrls) {
+        try {
+          const photoMedia = await limiter.execute(() =>
+            client.getPhotoUri(photoName, 1920)
+          );
+          resolvedUrls.push(photoMedia.photoUri);
+        } catch {
+          // Skip photos that fail to resolve (deleted, etc.)
+        }
+      }
+      if (resolvedUrls.length > 0) {
+        mappedData.clinicImageUrls = resolvedUrls;
+      } else {
+        delete mappedData.clinicImageUrls;
+      }
+    }
+
     // Detect changes - build currentData carefully to avoid undefined values
     const currentData: Partial<MappedClinicData> = {};
     if (clinic.rating !== null) currentData.rating = clinic.rating;
@@ -186,6 +209,7 @@ export async function syncClinic(
     currentData.mapLongitude = clinic.mapLongitude;
     if (clinic.detailedAddress !== null) currentData.detailedAddress = clinic.detailedAddress;
     if (clinic.googleListingLink !== null) currentData.googleListingLink = clinic.googleListingLink;
+    if (clinic.clinicImageUrls) currentData.clinicImageUrls = clinic.clinicImageUrls;
 
     const changes = detectChanges(currentData, mappedData);
 
@@ -202,6 +226,7 @@ export async function syncClinic(
       if (mappedData.mapLongitude !== undefined) updateData.mapLongitude = mappedData.mapLongitude;
       if (mappedData.detailedAddress !== undefined) updateData.detailedAddress = mappedData.detailedAddress;
       if (mappedData.googleListingLink !== undefined) updateData.googleListingLink = mappedData.googleListingLink;
+      if (mappedData.clinicImageUrls !== undefined) updateData.clinicImageUrls = mappedData.clinicImageUrls;
 
       await updateClinicFromSync(clinicId, updateData);
     }
@@ -467,6 +492,16 @@ export async function syncClinicLocation(
   return syncClinic(clinicId, { fields: ["location"] });
 }
 
+/**
+ * Sync only photo data for a clinic
+ * Refreshes clinic_image_urls with fresh Google Places photo URLs
+ */
+export async function syncClinicPhotos(
+  clinicId: string
+): Promise<SyncResult> {
+  return syncClinic(clinicId, { fields: ["photos"] });
+}
+
 // ============================================
 // Preview Functions
 // ============================================
@@ -523,6 +558,7 @@ export async function previewClinicSync(
     currentData.mapLongitude = clinic.mapLongitude;
     if (clinic.detailedAddress !== null) currentData.detailedAddress = clinic.detailedAddress;
     if (clinic.googleListingLink !== null) currentData.googleListingLink = clinic.googleListingLink;
+    if (clinic.clinicImageUrls) currentData.clinicImageUrls = clinic.clinicImageUrls;
 
     const changes = detectChanges(currentData, mappedData);
 

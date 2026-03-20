@@ -497,6 +497,7 @@ export async function updateClinicFromSync(
     mapLongitude?: number;
     detailedAddress?: string;
     googleListingLink?: string;
+    clinicImageUrls?: string[];
   }
 ): Promise<void> {
   await db.update(clinics).set(data).where(eq(clinics.id, clinicId));
@@ -521,6 +522,7 @@ export async function getClinicForSync(
   mapLongitude: number;
   detailedAddress: string | null;
   googleListingLink: string | null;
+  clinicImageUrls: string[] | null;
 } | null> {
   const [result] = await db
     .select({
@@ -537,6 +539,7 @@ export async function getClinicForSync(
       mapLongitude: clinics.mapLongitude,
       detailedAddress: clinics.detailedAddress,
       googleListingLink: clinics.googleListingLink,
+      clinicImageUrls: clinics.clinicImageUrls,
     })
     .from(clinics)
     .where(eq(clinics.id, clinicId))
