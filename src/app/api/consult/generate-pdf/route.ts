@@ -21,49 +21,50 @@ Patient Profile:
 - Location: ${body.zipCode}
 - Assessment: ${body.assessmentSummary || "No prior assessment provided"}
 
-Generate a detailed plan with these sections:
+Generate a plan with EXACTLY these 7 sections. Be thorough but concise — aim for 150-250 words per section. Do NOT over-expand any single section at the expense of others. ALL 7 sections must be complete.
 
 # 1. UNDERSTANDING YOUR CONDITION
-- What is likely causing your pain
-- How this condition typically progresses
-- What the medical evidence says
+- 2-3 most likely causes given patient profile
+- Typical progression with and without treatment
+- One brief evidence citation (NIH or Mayo Clinic)
 
 # 2. IMMEDIATE ACTION PLAN (Next 72 Hours)
-- Specific OTC medications with exact dosages and timing
-- Ice/heat protocols with durations
-- Activity modifications
-- Sleep position recommendations
+- OTC medication protocol with dosages and timing
+- Ice/heat protocol (when, how long, how often)
+- 5 key activity modifications (do's and don'ts)
+- Best sleep position for this condition
 
-# 3. WEEK-BY-WEEK RECOVERY PROTOCOL (4 Weeks)
-- **Week 1:** Focus areas, daily routine, what to expect
-- **Week 2:** Progression steps, new additions
-- **Week 3:** Building on progress
-- **Week 4:** Assessment and next steps
+# 3. WEEK-BY-WEEK RECOVERY PROTOCOL
+- **Week 1:** Pain control focus, 3-4 gentle exercises with brief descriptions
+- **Week 2:** Progressive mobilization, add 2-3 strengthening exercises
+- **Week 3:** Functional capacity building, return-to-activity guidelines
+- **Week 4:** Self-assessment checklist, when to escalate to specialist
 
 # 4. QUESTIONS FOR YOUR SPECIALIST
-- 10+ specific questions to ask at your first appointment
-- What tests to request
-- What information to bring
+- 10 specific questions to ask at your first appointment
+- 3 diagnostic tests to ask about
+- What to bring to the appointment
 
 # 5. RED FLAGS — When to Seek Emergency Care
-- Specific symptoms that require immediate attention
-- When to call 911 vs urgent care vs wait for appointment
+- 5-7 specific symptoms requiring immediate attention
+- ER vs urgent care vs scheduled appointment decision guide
 
 # 6. SPECIALIST GUIDE
-- What type of doctor to see first
-- What to expect at the first visit
-- How to prepare
-- Questions about insurance coverage
+- Which type of doctor to see first and why
+- What the first visit involves
+- Insurance and cost considerations
 
 # 7. SELF-CARE & LIFESTYLE
-- Evidence-based exercises (with descriptions)
-- Dietary considerations
-- Stress management techniques
-- Sleep optimization
+- 4 evidence-based exercises with brief descriptions
+- Anti-inflammatory dietary tips
+- Stress management techniques (2-3 specific practices)
+- Sleep optimization tips
 
-Write in a warm, knowledgeable tone. Be specific with dosages, timings, and protocols. Use markdown formatting with headers, bold text, and bullet points. Include citations to NIH/Mayo Clinic where relevant.
+FORMATTING: Use markdown with ## headers, **bold** for key terms, and bullet points. Write in a warm, knowledgeable tone.
 
-IMPORTANT: Include a disclaimer at the end: "This plan is for informational purposes only and does not constitute medical advice. Always consult with a healthcare provider before starting any new treatment protocol."`;
+CRITICAL: You MUST complete ALL 7 sections including the disclaimer at the very end. Do not over-expand early sections. Budget your response evenly across all sections.
+
+End with: "---\\n\\n*This plan is for informational purposes only and does not constitute medical advice. Always consult with a healthcare provider before starting any new treatment protocol.*"`;
 }
 
 export async function POST(request: NextRequest) {
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     const { text: planContent } = await generateText({
       model: openrouter(model),
       prompt: buildPlanPrompt(body),
-      maxOutputTokens: 4000,
+      maxOutputTokens: 8000,
     });
 
     await sendConsultPdfPlanEmail(email, {
