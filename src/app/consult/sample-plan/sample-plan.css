@@ -1,0 +1,847 @@
+/* ============================================================
+   Sample Pain Management Plan — Screen + Print Styles
+   PainClinics.com / PainConsult AI
+   ============================================================ */
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --sp-accent: #4f8ef7;
+  --sp-accent2: #7c5cbf;
+  --sp-warm: #e8a87c;
+  --sp-paper: #ffffff;
+  --sp-bg: #f4f6f9;
+  --sp-border: #dde1ea;
+  --sp-text: #1a1e2e;
+  --sp-muted: #5a6278;
+  --sp-subtle: #8892a4;
+  --sp-section-num: #ffffff;
+  --sp-lock-bg: linear-gradient(135deg, rgba(79, 142, 247, 0.07) 0%, rgba(124, 92, 191, 0.06) 100%);
+  --sp-lock-border: rgba(79, 142, 247, 0.22);
+  --sp-divider: #e4e8f0;
+  --sp-red: #c0392b;
+  --sp-green: #1e7e5a;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Page Shell ────────────────────────────────────────────── */
+.sp-page {
+  background: var(--sp-bg);
+  font-family: var(--font-dm-sans, "DM Sans"), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--sp-text);
+  min-height: 100vh;
+  padding: 40px 20px 80px;
+}
+
+/* ── Document wrapper — looks like a sheet of paper ───────── */
+.sp-doc {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--sp-paper);
+  border: 1px solid var(--sp-border);
+  border-radius: 4px;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.06),
+    0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 56px 64px 72px;
+}
+
+/* ── Doc Header (screen only) ──────────────────────────────── */
+.sp-doc-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--sp-divider);
+  margin-bottom: 32px;
+}
+
+.sp-doc-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sp-doc-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sp-doc-header-site {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--sp-text);
+  letter-spacing: -0.01em;
+}
+
+.sp-doc-header-subtitle {
+  font-size: 0.72rem;
+  color: var(--sp-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sp-doc-header-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--sp-accent), var(--sp-accent2), transparent);
+  opacity: 0.4;
+  margin-left: 8px;
+}
+
+/* ── Title Block ───────────────────────────────────────────── */
+.sp-title-block {
+  margin-bottom: 36px;
+}
+
+.sp-sample-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(232, 168, 124, 0.12);
+  border: 1px solid rgba(232, 168, 124, 0.4);
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #b5773a;
+  margin-bottom: 20px;
+}
+
+.sp-sample-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e8a87c;
+  flex-shrink: 0;
+}
+
+.sp-main-title {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--sp-text);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.sp-condition-label {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--sp-accent);
+  margin-bottom: 16px;
+}
+
+.sp-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sp-meta-item {
+  font-size: 0.78rem;
+  color: var(--sp-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sp-meta-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--sp-subtle);
+}
+
+.sp-title-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--sp-divider);
+  margin-top: 24px;
+}
+
+/* ── Section ───────────────────────────────────────────────── */
+.sp-section {
+  margin-bottom: 48px;
+}
+
+.sp-section + .sp-section {
+  padding-top: 0;
+}
+
+.sp-section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.sp-section-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sp-accent), var(--sp-accent2));
+  color: var(--sp-section-num);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.sp-section-title {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--sp-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-style: normal;
+}
+
+.sp-section-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--sp-divider);
+}
+
+/* ── Prose ─────────────────────────────────────────────────── */
+.sp-prose {
+  color: var(--sp-text);
+  font-size: 0.92rem;
+  line-height: 1.8;
+}
+
+.sp-prose p {
+  margin-bottom: 14px;
+}
+
+.sp-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.sp-prose strong {
+  font-weight: 500;
+  color: var(--sp-text);
+}
+
+.sp-prose em {
+  font-style: italic;
+  color: var(--sp-muted);
+  font-size: 0.88rem;
+}
+
+/* ── Subsection heading ────────────────────────────────────── */
+.sp-sub-heading {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--sp-text);
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+.sp-sub-heading:first-child {
+  margin-top: 0;
+}
+
+/* ── Label rows (field + content or locked) ────────────────── */
+.sp-field-row {
+  margin-bottom: 18px;
+}
+
+.sp-field-row:last-child {
+  margin-bottom: 0;
+}
+
+.sp-field-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sp-muted);
+  margin-bottom: 6px;
+}
+
+.sp-field-content {
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: var(--sp-text);
+}
+
+/* ── Visible bullet list ───────────────────────────────────── */
+.sp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sp-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--sp-text);
+}
+
+.sp-list li::before {
+  content: "•";
+  color: var(--sp-accent);
+  font-size: 1.1rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* Danger variant */
+.sp-list--danger li::before {
+  color: var(--sp-red);
+}
+
+/* ── Week card (visible) ───────────────────────────────────── */
+.sp-week-card {
+  border: 1px solid var(--sp-divider);
+  border-left: 3px solid var(--sp-accent);
+  border-radius: 0 6px 6px 0;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  background: #fafbfd;
+}
+
+.sp-week-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sp-accent);
+  margin-bottom: 8px;
+}
+
+.sp-week-exercises {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sp-week-exercises li {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--sp-text);
+  padding-left: 14px;
+  position: relative;
+}
+
+.sp-week-exercises li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--sp-accent);
+  font-size: 0.8rem;
+  top: 2px;
+}
+
+/* ── Locked / Redacted Block ───────────────────────────────── */
+.sp-locked {
+  background: var(--sp-lock-bg);
+  border: 1px dashed var(--sp-lock-border);
+  border-radius: 6px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sp-locked--inline {
+  margin-top: 0;
+}
+
+.sp-locked-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--sp-accent2);
+  opacity: 0.7;
+}
+
+.sp-locked-inner {
+  flex: 1;
+  min-width: 0;
+}
+
+.sp-locked-teaser {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--sp-muted);
+  line-height: 1.65;
+}
+
+.sp-locked-hint {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-accent);
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
+/* Variant for week locks */
+.sp-week-locked {
+  border: 1px dashed var(--sp-lock-border);
+  border-left: 3px solid var(--sp-accent2);
+  border-radius: 0 6px 6px 0;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  background: var(--sp-lock-bg);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sp-week-locked-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sp-accent2);
+  margin-bottom: 6px;
+}
+
+.sp-week-locked-teaser {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--sp-muted);
+  line-height: 1.6;
+}
+
+/* ── Evidence callout ──────────────────────────────────────── */
+.sp-evidence {
+  background: rgba(79, 142, 247, 0.05);
+  border-left: 3px solid var(--sp-accent);
+  border-radius: 0 4px 4px 0;
+  padding: 10px 14px;
+  margin-top: 16px;
+}
+
+.sp-evidence-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sp-accent);
+  margin-bottom: 4px;
+}
+
+.sp-evidence-text {
+  font-size: 0.84rem;
+  color: var(--sp-muted);
+  line-height: 1.65;
+  font-style: italic;
+}
+
+/* ── Teasers row (e.g. "10 questions / 3 tests") ──────────── */
+.sp-teaser-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.sp-teaser-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(124, 92, 191, 0.08);
+  border: 1px solid rgba(124, 92, 191, 0.2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  color: var(--sp-accent2);
+  font-weight: 500;
+}
+
+/* ── Red flags section ─────────────────────────────────────── */
+.sp-urgent-box {
+  border: 1px solid rgba(192, 57, 43, 0.25);
+  border-left: 3px solid var(--sp-red);
+  border-radius: 0 6px 6px 0;
+  padding: 18px 20px;
+  background: rgba(192, 57, 43, 0.03);
+}
+
+.sp-urgent-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sp-red);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── CTA Card (screen only) ────────────────────────────────── */
+.sp-cta-wrapper {
+  margin-top: 56px;
+  padding-top: 48px;
+  border-top: 2px solid var(--sp-divider);
+}
+
+.sp-cta-card {
+  background: linear-gradient(135deg, rgba(79, 142, 247, 0.06) 0%, rgba(124, 92, 191, 0.07) 100%);
+  border: 1px solid rgba(79, 142, 247, 0.2);
+  border-radius: 10px;
+  padding: 36px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.sp-cta-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sp-accent), var(--sp-accent2));
+}
+
+.sp-cta-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sp-accent);
+  margin-bottom: 12px;
+}
+
+.sp-cta-title {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--sp-text);
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+  line-height: 1.25;
+}
+
+.sp-cta-desc {
+  font-size: 0.88rem;
+  color: var(--sp-muted);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 24px;
+}
+
+.sp-cta-price {
+  font-family: var(--font-playfair, "Playfair Display"), serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--sp-text);
+  margin-bottom: 20px;
+}
+
+.sp-cta-price span {
+  font-size: 0.8rem;
+  font-family: var(--font-dm-sans, "DM Sans"), sans-serif;
+  color: var(--sp-muted);
+  margin-left: 6px;
+}
+
+.sp-cta-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--sp-accent) 0%, var(--sp-accent2) 100%);
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 14px 36px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: var(--font-dm-sans, "DM Sans"), sans-serif;
+  letter-spacing: 0.01em;
+  transition: opacity 0.2s;
+  box-shadow: 0 4px 16px rgba(79, 142, 247, 0.28);
+}
+
+.sp-cta-btn:hover {
+  opacity: 0.9;
+}
+
+.sp-cta-fine {
+  font-size: 0.75rem;
+  color: var(--sp-subtle);
+  margin-top: 14px;
+}
+
+/* ── Disclaimer footer ─────────────────────────────────────── */
+.sp-disclaimer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--sp-divider);
+  font-size: 0.72rem;
+  color: var(--sp-subtle);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ── Dark Mode ─────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sp-paper: #16192a;
+    --sp-bg: #0d0f1a;
+    --sp-border: #252840;
+    --sp-text: #e2e5f0;
+    --sp-muted: #7a82a0;
+    --sp-subtle: #5a6070;
+    --sp-divider: #252840;
+    --sp-lock-bg: linear-gradient(135deg, rgba(79, 142, 247, 0.08) 0%, rgba(124, 92, 191, 0.07) 100%);
+    --sp-lock-border: rgba(79, 142, 247, 0.2);
+  }
+
+  .sp-doc {
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.3),
+      0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .sp-week-card {
+    background: rgba(79, 142, 247, 0.04);
+  }
+
+  .sp-evidence {
+    background: rgba(79, 142, 247, 0.06);
+  }
+
+  .sp-urgent-box {
+    background: rgba(192, 57, 43, 0.06);
+  }
+
+  .sp-cta-card {
+    background: linear-gradient(135deg, rgba(79, 142, 247, 0.08) 0%, rgba(124, 92, 191, 0.09) 100%);
+  }
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .sp-doc {
+    padding: 32px 24px 48px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .sp-page {
+    padding: 0 0 60px;
+  }
+
+  .sp-main-title {
+    font-size: 1.6rem;
+  }
+
+  .sp-cta-card {
+    padding: 28px 24px;
+  }
+
+  .sp-cta-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+
+@media print {
+  /* Reset page */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: white !important;
+    font-size: 12px;
+  }
+
+  .sp-page {
+    background: white !important;
+    padding: 0;
+    min-height: auto;
+  }
+
+  .sp-doc {
+    max-width: 100%;
+    margin: 0;
+    padding: 0 0 24px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: white !important;
+  }
+
+  /* Hide screen-only elements */
+  .sp-cta-wrapper,
+  .sp-sample-badge {
+    display: none !important;
+  }
+
+  /* Print header — appears on every page */
+  .sp-print-header {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0 12px;
+    border-bottom: 2px solid #333;
+    margin-bottom: 20px;
+  }
+
+  .sp-print-header-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sp-print-header-site {
+    font-family: "Playfair Display", serif;
+    font-size: 11pt;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .sp-print-header-subtitle {
+    font-size: 7.5pt;
+    color: #555;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Hide screen header, show print header */
+  .sp-doc-header {
+    display: none;
+  }
+
+  /* Force black text */
+  .sp-main-title,
+  .sp-section-title,
+  .sp-sub-heading {
+    color: #111 !important;
+  }
+
+  .sp-condition-label {
+    color: #2a5bb5 !important;
+  }
+
+  .sp-prose,
+  .sp-field-content,
+  .sp-list li,
+  .sp-week-exercises li {
+    color: #222 !important;
+  }
+
+  .sp-muted,
+  .sp-evidence-text,
+  .sp-locked-teaser,
+  .sp-week-locked-teaser {
+    color: #555 !important;
+  }
+
+  /* Section numbers — keep gradient approximation */
+  .sp-section-num {
+    background: #2a5bb5 !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Page breaks */
+  .sp-section {
+    page-break-inside: avoid;
+  }
+
+  .sp-section--break {
+    page-break-before: always;
+  }
+
+  /* Locked blocks in print */
+  .sp-locked,
+  .sp-week-locked {
+    background: #f5f5f5 !important;
+    border: 1px dashed #aaa !important;
+    border-radius: 4px;
+  }
+
+  .sp-locked-teaser::after,
+  .sp-week-locked-teaser::after {
+    content: " (Full content in your personalized plan.)";
+    font-weight: 500;
+    color: #2a5bb5;
+    font-style: normal;
+  }
+
+  .sp-locked-hint {
+    display: none;
+  }
+
+  .sp-locked-icon {
+    display: none;
+  }
+
+  /* Evidence & urgent boxes */
+  .sp-evidence {
+    background: #f0f4ff !important;
+    border-left-color: #2a5bb5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sp-urgent-box {
+    background: #fff5f5 !important;
+    border-left-color: #b02020 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sp-week-card {
+    background: #f8faff !important;
+    border-left-color: #2a5bb5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Footer disclaimer */
+  .sp-disclaimer {
+    font-size: 7pt;
+    color: #666 !important;
+    border-top: 1px solid #ccc;
+    page-break-before: avoid;
+  }
+}
