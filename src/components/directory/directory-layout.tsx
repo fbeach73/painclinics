@@ -105,11 +105,13 @@ export function DirectoryLayout({
             "postalCode": clinic.postalCode,
           },
         };
-        if (clinic.rating !== null && clinic.reviewCount !== null) {
+        if (clinic.rating && clinic.rating > 0 && clinic.reviewCount && clinic.reviewCount > 0) {
           item["aggregateRating"] = {
             "@type": "AggregateRating",
             "ratingValue": clinic.rating,
             "reviewCount": clinic.reviewCount,
+            "bestRating": 5,
+            "worstRating": 1,
           };
         }
         return {
