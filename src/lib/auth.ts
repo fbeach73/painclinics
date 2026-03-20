@@ -1,7 +1,7 @@
 import { stripe } from "@better-auth/stripe"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import Stripe from "stripe"
 import { db } from "./db"
 import { upsertContact } from "./contact-queries"
@@ -94,6 +94,52 @@ const stripePlugin =
                   stripeSubscription,
                   plan: { name: planName, priceId },
                 })
+                isHandled = true
+              }
+
+              // Handle consult PDF one-time purchases
+              if (session.mode === "payment" && session.metadata?.type === "consult-pdf") {
+                const email = (session.metadata?.email ?? session.customer_email ?? "").toLowerCase().trim()
+                const contactRow = await db
+                  .select({ id: schema.contacts.id })
+                  .from(schema.contacts)
+                  .where(eq(schema.contacts.email, email))
+                  .limit(1)
+                  .then((rows) => rows[0])
+                  .catch(() => undefined)
+
+                await db
+                  .insert(schema.consultPurchases)
+                  .values({
+                    contactId: contactRow?.id ?? null,
+                    email,
+                    firstName: session.metadata?.firstName ?? null,
+                    condition: session.metadata?.condition ?? null,
+                    zipCode: session.metadata?.zipCode ?? null,
+                    age: session.metadata?.age ?? null,
+                    amountCents: session.amount_total ?? 1999,
+                    currency: session.currency ?? "usd",
+                    stripeSessionId: session.id,
+                    stripePaymentIntentId: typeof session.payment_intent === "string"
+                      ? session.payment_intent
+                      : (session.payment_intent?.id ?? null),
+                  })
+                  .onConflictDoNothing()
+
+                // Tag contact as purchaser
+                if (contactRow?.id) {
+                  await db
+                    .update(schema.contacts)
+                    .set({
+                      tags: sql`array_append(${schema.contacts.tags}, 'consult-purchaser')`,
+                    })
+                    .where(
+                      sql`${schema.contacts.id} = ${contactRow.id} AND NOT ('consult-purchaser' = ANY(${schema.contacts.tags}))`
+                    )
+                    .catch(() => {})
+                }
+
+                console.log(`[Stripe Webhook] Consult PDF purchase recorded: ${email}`)
                 isHandled = true
               }
             } else if (event.type === "invoice.paid") {
