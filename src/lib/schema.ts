@@ -1699,6 +1699,7 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
     references: [user.id],
   }),
   consultLeadMatches: many(consultLeadMatches),
+  consultPurchases: many(consultPurchases),
 }));
 
 // ============================================
@@ -1752,6 +1753,46 @@ export const consultLeadMatchesRelations = relations(
     }),
   })
 );
+
+// ============================================
+// Consult PDF Purchases Table
+// ============================================
+
+export const consultPurchases = pgTable(
+  "consult_purchases",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    contactId: text("contact_id")
+      .references(() => contacts.id, { onDelete: "set null" }),
+    email: text("email").notNull(),
+    firstName: text("first_name"),
+    condition: text("condition"),
+    zipCode: text("zip_code"),
+    age: text("age"),
+    amountCents: integer("amount_cents").notNull(), // 1999 = $19.99
+    currency: text("currency").default("usd").notNull(),
+    stripeSessionId: text("stripe_session_id").unique(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    pdfGenerated: boolean("pdf_generated").default(false).notNull(),
+    pdfGeneratedAt: timestamp("pdf_generated_at"),
+    emailDelivered: boolean("email_delivered").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("consult_purchases_email_idx").on(table.email),
+    index("consult_purchases_stripe_session_idx").on(table.stripeSessionId),
+    index("consult_purchases_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const consultPurchasesRelations = relations(consultPurchases, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [consultPurchases.contactId],
+    references: [contacts.id],
+  }),
+}));
 
 // ============================================
 // Newsletter Broadcasts Table (External API)

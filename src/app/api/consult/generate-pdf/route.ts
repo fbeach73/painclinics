@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import { sendConsultPdfPlanEmail } from "@/lib/email";
+import { db } from "@/lib/db";
+import { consultPurchases } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 interface GeneratePdfBody {
   email: string;
@@ -103,6 +106,13 @@ export async function POST(request: NextRequest) {
       condition,
       planContent,
     });
+
+    // Mark email as delivered for any matching purchase record
+    await db
+      .update(consultPurchases)
+      .set({ emailDelivered: true })
+      .where(eq(consultPurchases.email, email))
+      .catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch (error) {

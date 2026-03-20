@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/lib/db";
-import { contacts, consultLeadMatches, clinics, analyticsEvents } from "@/lib/schema";
+import { contacts, consultLeadMatches, clinics, analyticsEvents, consultPurchases } from "@/lib/schema";
 import { ConsultLeadsSearch } from "./consult-leads-search";
 import { ConsultLeadsPagination } from "./consult-leads-pagination";
 import { MatchStatusSelect } from "./match-status-select";
@@ -73,7 +73,7 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - 7);
 
-  const [leads, totalResult, todayResult, weekResult, chatOpensResult, chatMessagesResult, avgDepthResult] = await Promise.all([
+  const [leads, totalResult, todayResult, weekResult, chatOpensResult, chatMessagesResult, avgDepthResult, purchaseTotalResult, purchaseRevenueResult, purchaseWeekResult] = await Promise.all([
     db
       .select()
       .from(contacts)
@@ -118,6 +118,19 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
           GROUP BY ${analyticsEvents.sessionHash}
         ) sub`
       ),
+    // PDF purchase stats: total count
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(consultPurchases),
+    // PDF purchase stats: total revenue
+    db
+      .select({ total: sql<number>`COALESCE(SUM(${consultPurchases.amountCents}), 0)::int` })
+      .from(consultPurchases),
+    // PDF purchase stats: this week
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(consultPurchases)
+      .where(sql`${consultPurchases.createdAt} >= ${weekStart.toISOString()}`),
   ]);
 
   const totalCount = totalResult[0]?.count ?? 0;
@@ -127,6 +140,9 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
   const chatOpens = chatOpensResult[0]?.count ?? 0;
   const chatMessages = chatMessagesResult[0]?.count ?? 0;
   const avgDepth = avgDepthResult[0]?.avg ?? 0;
+  const purchaseTotal = purchaseTotalResult[0]?.count ?? 0;
+  const purchaseRevenueCents = purchaseRevenueResult[0]?.total ?? 0;
+  const purchaseWeekCount = purchaseWeekResult[0]?.count ?? 0;
 
   // Fetch matched clinics for this page of leads
   const leadIds = leads.map((l) => l.id);
@@ -178,6 +194,33 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
       clinicPermalink: row.clinicPermalink,
     });
     matchesByContact.set(row.contactId, existing);
+  }
+
+  // Fetch purchases for leads on this page
+  const leadEmails = leads.map((l) => l.email).filter(Boolean);
+  const purchasesByEmail = new Map<string, { amount: number; date: Date }>();
+  if (leadEmails.length > 0) {
+    try {
+      const purchaseRows = await db
+        .select({
+          email: consultPurchases.email,
+          amountCents: consultPurchases.amountCents,
+          createdAt: consultPurchases.createdAt,
+        })
+        .from(consultPurchases)
+        .where(inArray(consultPurchases.email, leadEmails));
+      for (const row of purchaseRows) {
+        // Keep first (earliest) purchase per email
+        if (!purchasesByEmail.has(row.email)) {
+          purchasesByEmail.set(row.email, {
+            amount: row.amountCents,
+            date: row.createdAt,
+          });
+        }
+      }
+    } catch {
+      // Table may not exist yet — proceed without purchase data
+    }
   }
 
   const baseUrlParams = new URLSearchParams();
@@ -251,6 +294,34 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
         </Card>
       </div>
 
+      {/* PDF purchase stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {purchaseTotal.toLocaleString()}
+            </div>
+            <p className="text-sm text-muted-foreground">PDF Sales</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              ${(purchaseRevenueCents / 100).toFixed(2)}
+            </div>
+            <p className="text-sm text-muted-foreground">Revenue</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {purchaseWeekCount.toLocaleString()}
+            </div>
+            <p className="text-sm text-muted-foreground">This week</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
@@ -288,6 +359,7 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
                       <TableHead>Zip</TableHead>
                       <TableHead>Age</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead>Purchased</TableHead>
                       <TableHead>Matched Clinics</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -335,6 +407,19 @@ export default async function ConsultLeadsPage({ searchParams }: PageProps) {
                             {consultDate
                               ? formatDate(consultDate)
                               : formatDate(lead.createdAt.toISOString())}
+                          </TableCell>
+                          <TableCell>
+                            {(() => {
+                              const purchase = purchasesByEmail.get(lead.email);
+                              if (purchase) {
+                                return (
+                                  <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900 border-0">
+                                    PDF ✓ ${(purchase.amount / 100).toFixed(0)}
+                                  </Badge>
+                                );
+                              }
+                              return <span className="text-muted-foreground">—</span>;
+                            })()}
                           </TableCell>
                           <TableCell>
                             {matches.length === 0 ? (
