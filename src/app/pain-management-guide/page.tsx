@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { Metadata } from "next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ConsultCTA } from "@/components/consult/consult-cta";
 
 export const metadata: Metadata = {
   title: "Pain Management Guide | Pain Clinics",
@@ -17,7 +18,7 @@ export default function PainManagementGuidePage() {
           Understanding your options for managing chronic and acute pain.
         </p>
 
-        <Alert variant="destructive" className="not-prose my-6">
+        <Alert variant="warning" className="not-prose my-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             This guide is for informational purposes only and does not
@@ -244,6 +245,50 @@ export default function PainManagementGuidePage() {
           <li>Pain accompanied by numbness, tingling, or weakness</li>
           <li>Chronic pain that affects your mood, sleep, or quality of life</li>
         </ul>
+
+        <h2>Explore Treatment Guides</h2>
+        <p>
+          Dive deeper into specific treatment approaches with our detailed
+          guides:
+        </p>
+        <ul>
+          <li>
+            <a href="/treatment-options/interventional-pain-management">
+              Interventional Pain Management
+            </a>{" "}
+            — Nerve blocks, spinal cord stimulation, epidural injections, and
+            radiofrequency ablation
+          </li>
+          <li>
+            <a href="/treatment-options/pain-management-injections">
+              Pain Management Injections
+            </a>{" "}
+            — Types of injections, what each treats, and what to expect
+          </li>
+          <li>
+            <a href="/treatment-options/chronic-pain-management">
+              Chronic Pain Management
+            </a>{" "}
+            — The multidisciplinary approach to long-term pain care
+          </li>
+          <li>
+            <a href="/treatment-options/regenerative-orthopedic-medicine">
+              Regenerative Orthopedic Medicine
+            </a>{" "}
+            — PRP therapy, stem cell treatments, and prolotherapy
+          </li>
+          <li>
+            <a href="/treatment-options">
+              All Treatment Options
+            </a>{" "}
+            — Complete overview of medication, procedures, physical therapy,
+            and complementary therapies
+          </li>
+        </ul>
+
+        <div className="not-prose my-8">
+          <ConsultCTA variant="section" />
+        </div>
 
         <h2>Find a Pain Clinic Near You</h2>
         <p>

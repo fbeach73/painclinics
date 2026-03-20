@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PainConsult AI — SEO Content Push Tracker</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-2: #334155;
+      --border: #475569;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-dim: #1e3a5f;
+      --green: #22c55e;
+      --green-dim: #14532d;
+      --yellow: #eab308;
+      --yellow-dim: #422006;
+      --red: #ef4444;
+      --red-dim: #450a0a;
+      --purple: #a855f7;
+      --purple-dim: #3b0764;
+      --orange: #f97316;
+      --orange-dim: #431407;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      text-align: center;
+    }
+    .stat-card .number {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-card.green .number { color: var(--green); }
+    .stat-card.blue .number { color: var(--accent); }
+    .stat-card.yellow .number { color: var(--yellow); }
+    .stat-card.purple .number { color: var(--purple); }
+    .stat-card.orange .number { color: var(--orange); }
+
+    .phase {
+      margin-bottom: 2.5rem;
+    }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .phase-badge.p1 { background: var(--green-dim); color: var(--green); }
+    .phase-badge.p2 { background: var(--accent-dim); color: var(--accent); }
+    .phase-badge.p3 { background: var(--purple-dim); color: var(--purple); }
+    .phase-badge.p4 { background: var(--orange-dim); color: var(--orange); }
+    .phase-badge.p5 { background: var(--yellow-dim); color: var(--yellow); }
+    .phase-title { font-size: 1.25rem; font-weight: 700; }
+    .phase-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
+    thead th {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--surface-2);
+      vertical-align: top;
+    }
+    tbody tr:hover { background: var(--surface); }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .badge.done { background: var(--green-dim); color: var(--green); }
+    .badge.pending { background: var(--yellow-dim); color: var(--yellow); }
+    .badge.manual { background: var(--purple-dim); color: var(--purple); }
+    .badge.p1 { background: var(--red-dim); color: var(--red); }
+    .badge.p2 { background: var(--orange-dim); color: var(--orange); }
+    .badge.p3 { background: var(--yellow-dim); color: var(--yellow); }
+
+    code {
+      background: var(--surface-2);
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.8rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--accent);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .file-path { color: var(--text-muted); font-size: 0.8rem; }
+    .target-queries {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-style: italic;
+      margin-top: 0.2rem;
+    }
+
+    .linking-map {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+    .linking-map .arrow { color: var(--text-muted); margin: 0 0.25rem; }
+    .linking-map .source { color: var(--green); font-weight: 600; }
+    .linking-map .target { color: var(--accent); }
+    .linking-map .note { color: var(--text-muted); font-size: 0.78rem; }
+
+    .cmd-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      color: var(--green);
+      overflow-x: auto;
+    }
+    .cmd-block .comment { color: var(--text-muted); }
+
+    .section-divider {
+      border: 0;
+      border-top: 1px solid var(--surface-2);
+      margin: 2rem 0;
+    }
+
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      padding: 0.35rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      font-size: 0.875rem;
+    }
+    .checklist li::before {
+      content: '[ ]';
+      position: absolute;
+      left: 0;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+    .checklist li.checked::before {
+      content: '[x]';
+      color: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>PainConsult AI — SEO Content Push</h1>
+  <p class="subtitle">Implementation tracker &middot; Started 2026-03-18 &middot; 5 phases</p>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-card green">
+      <div class="number">22</div>
+      <div class="label">Pages Built</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="number">8</div>
+      <div class="label">Existing Pages Updated</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="number">24</div>
+      <div class="label">Blog Posts (Script Ready)</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="number">14</div>
+      <div class="label">Sitemap URLs Added</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="number">3</div>
+      <div class="label">JSON-LD Schemas on /consult</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 1 -->
+  <!-- ============================================================ -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge p1">P1</span>
+      <span class="phase-title">Infrastructure &amp; Quick Wins</span>
+    </div>
+    <p class="phase-desc">Structured data, sitemap, ConsultCTA component, internal linking on existing pages.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Task</th>
+          <th>File(s)</th>
+          <th style="width:80px">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1.1</td>
+          <td>
+            <strong>Structured data on <code>/consult</code></strong><br>
+            WebApplication + FAQPage (5 Q&amp;As) + HowTo (5 steps)
+          </td>
+          <td><code>src/app/consult/page.tsx</code></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>1.2</td>
+          <td>
+            <strong>Improved <code>/consult</code> metadata</strong><br>
+            Keywords, canonical, OpenGraph, Twitter card
+          </td>
+          <td><code>src/app/consult/page.tsx</code></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>1.3</td>
+          <td>
+            <strong>Add <code>/consult</code> + all new pages to sitemap</strong><br>
+            13 new URLs with priority/changeFreq
+          </td>
+          <td><code>src/app/sitemap.ts</code></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>1.4</td>
+          <td>
+            <strong>ConsultCTA component</strong><br>
+            Server component, <code>inline</code> + <code>section</code> variants, dark mode
+          </td>
+          <td><code>src/components/consult/consult-cta.tsx</code></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>1.5</td>
+          <td>
+            <strong>ConsultCTA on existing pages</strong><br>
+            <code>section</code> variant before "Find a Specialist" on treatment pages;
+            <code>inline</code> variant on all blog posts
+          </td>
+          <td>
+            <span class="file-path">
+              treatment-options/ (index + 4 sub-pages)<br>
+              pain-management-guide/page.tsx<br>
+              pain-tracking/page.tsx<br>
+              components/blog/blog-post-content.tsx
+            </span>
+          </td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 2 -->
+  <!-- ============================================================ -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge p2">P2</span>
+      <span class="phase-title">High-Impact Static Pages</span>
+    </div>
+    <p class="phase-desc">4 new SEO landing pages with MedicalWebPage + BreadcrumbList + FAQPage JSON-LD, MedicalReviewBadge, medical disclaimer, dark mode.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Page &amp; Target Queries</th>
+          <th>File</th>
+          <th style="width:60px">Pri</th>
+          <th style="width:80px">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2.1</td>
+          <td>
+            <strong><a href="/online-pain-assessment">/online-pain-assessment</a></strong><br>
+            "What Is an Online Pain Assessment?"
+            <div class="target-queries">"online pain assessment", "pain symptom checker", "AI pain assessment"</div>
+          </td>
+          <td><code>src/app/online-pain-assessment/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>2.2</td>
+          <td>
+            <strong><a href="/is-my-pain-serious">/is-my-pain-serious</a></strong><br>
+            "Is My Pain Serious? When to See a Doctor"
+            <div class="target-queries">"is my back pain serious", "when to see doctor for pain", "pain red flags"</div>
+          </td>
+          <td><code>src/app/is-my-pain-serious/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>2.3</td>
+          <td>
+            <strong><a href="/what-type-of-pain-doctor">/what-type-of-pain-doctor</a></strong><br>
+            "What Type of Pain Doctor Do I Need?"
+            <div class="target-queries">"what type of doctor for back pain", "pain management vs orthopedic"</div>
+          </td>
+          <td><code>src/app/what-type-of-pain-doctor/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>2.4</td>
+          <td>
+            <strong><a href="/prepare-for-pain-appointment">/prepare-for-pain-appointment</a></strong><br>
+            "How to Prepare for Your First Pain Management Appointment"
+            <div class="target-queries">"first pain management appointment", "what to bring to pain clinic"</div>
+          </td>
+          <td><code>src/app/prepare-for-pain-appointment/page.tsx</code></td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 3 -->
+  <!-- ============================================================ -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge p3">P3</span>
+      <span class="phase-title">Body Part Symptom Pages</span>
+    </div>
+    <p class="phase-desc">Hub page + 7 individual body-part pages matching PainConsult's BODY_LOCATIONS. MedicalWebPage + FAQPage JSON-LD, cross-linked.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Page &amp; Target Queries</th>
+          <th>File</th>
+          <th style="width:60px">Pri</th>
+          <th style="width:80px">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>3.0</td>
+          <td>
+            <strong><a href="/pain-symptoms">/pain-symptoms</a></strong> (hub page)<br>
+            Links to all 7 body part pages
+          </td>
+          <td><code>src/app/pain-symptoms/page.tsx</code></td>
+          <td>&mdash;</td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.1</td>
+          <td>
+            <strong><a href="/pain-symptoms/lower-back">/pain-symptoms/lower-back</a></strong>
+            <div class="target-queries">"lower back pain symptoms", "lower back pain causes", "sciatica symptoms"</div>
+          </td>
+          <td><code>src/app/pain-symptoms/lower-back/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.2</td>
+          <td>
+            <strong><a href="/pain-symptoms/knee">/pain-symptoms/knee</a></strong>
+            <div class="target-queries">"knee pain symptoms", "knee pain causes", "knee pain by age"</div>
+          </td>
+          <td><code>src/app/pain-symptoms/knee/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.3</td>
+          <td>
+            <strong><a href="/pain-symptoms/neck">/pain-symptoms/neck</a></strong>
+            <div class="target-queries">"neck pain symptoms", "cervical pain", "pinched nerve in neck"</div>
+          </td>
+          <td><code>src/app/pain-symptoms/neck/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.4</td>
+          <td>
+            <strong><a href="/pain-symptoms/hip">/pain-symptoms/hip</a></strong>
+            <div class="target-queries">"hip pain symptoms", "hip pain causes", "hip arthritis symptoms"</div>
+          </td>
+          <td><code>src/app/pain-symptoms/hip/page.tsx</code></td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.5</td>
+          <td>
+            <strong><a href="/pain-symptoms/shoulder">/pain-symptoms/shoulder</a></strong>
+            <div class="target-queries">"shoulder pain symptoms", "rotator cuff symptoms", "frozen shoulder"</div>
+          </td>
+          <td><code>src/app/pain-symptoms/shoulder/page.tsx</code></td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.6</td>
+          <td>
+            <strong><a href="/pain-symptoms/headache-migraine">/pain-symptoms/headache-migraine</a></strong>
+            <div class="target-queries">"headache symptoms", "migraine symptoms", "when to worry about headaches"</div>
+          </td>
+          <td><code>src/app/pain-symptoms/headache-migraine/page.tsx</code></td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.7</td>
+          <td>
+            <strong><a href="/pain-symptoms/nerve-pain">/pain-symptoms/nerve-pain</a></strong>
+            <div class="target-queries">"nerve pain vs muscle pain" (90/mo, KD 13), "pinched nerve vs pulled muscle" (720/mo, KD 0), "what does nerve pain feel like" (2,400/mo)</div>
+          </td>
+          <td><code>src/app/pain-symptoms/nerve-pain/page.tsx</code></td>
+          <td><span class="badge p2">P2</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+        <tr>
+          <td>3.8</td>
+          <td>
+            <strong><a href="/pain-symptoms/upper-back">/pain-symptoms/upper-back</a></strong>
+            <div class="target-queries">"upper back pain" (33,100/mo, KD 50), "pain between shoulder blades" (6,600/mo), "upper back pain causes" (3,600/mo)</div>
+          </td>
+          <td><code>src/app/pain-symptoms/upper-back/page.tsx</code></td>
+          <td><span class="badge p1">P1</span></td>
+          <td><span class="badge done">Done</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 4 -->
+  <!-- ============================================================ -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge p4">P4</span>
+      <span class="phase-title">Blog Content Clusters (AI-Generated)</span>
+    </div>
+    <p class="phase-desc">24 blog posts generated via Claude Sonnet through OpenRouter. Script inserts as drafts for review before publishing.</p>
+
+    <div class="cmd-block">
+      <span class="comment"># Preview all posts (no DB writes)</span><br>
+      npx tsx scripts/generate-consult-blog-posts.ts --dry-run<br><br>
+      <span class="comment"># Generate Priority 1 posts only</span><br>
+      npx tsx scripts/generate-consult-blog-posts.ts --priority 1<br><br>
+      <span class="comment"># Generate a single cluster</span><br>
+      npx tsx scripts/generate-consult-blog-posts.ts --cluster understanding-pain<br><br>
+      <span class="comment"># Generate all 24 posts</span><br>
+      npx tsx scripts/generate-consult-blog-posts.ts
+    </div>
+
+    <h3 style="font-size:0.95rem; margin: 1.25rem 0 0.5rem; color: var(--green);">Cluster A: "Understanding Your Pain" (10 posts)</h3>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">CTA: "Still not sure what's causing your pain? Try PainConsult AI for a free assessment."</p>
+    <table>
+      <thead><tr><th style="width:30px">#</th><th>Title</th><th style="width:60px">Pri</th><th style="width:80px">Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>What Causes Lower Back Pain? 7 Common Reasons</td><td><span class="badge p1">P1</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>2</td><td>Sciatica vs. Piriformis Syndrome: How to Tell the Difference</td><td><span class="badge p1">P1</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>3</td><td>Why Does My Knee Hurt? A Guide by Age Group</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>4</td><td>Understanding Neuropathy: Types, Causes, and When to Seek Help</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>5</td><td>Chronic Neck Pain: Causes Beyond "Bad Posture"</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>6</td><td>Hip Pain That Wakes You Up at Night: What It Could Mean</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>7</td><td>Burning Pain vs. Aching Pain: What the Type of Pain Tells You</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>8</td><td>Shoulder Pain Without Injury: 5 Surprising Causes</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>9</td><td>Fibromyalgia vs. Myofascial Pain Syndrome: Key Differences</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>10</td><td>Why Does Pain Move Around My Body?</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:0.95rem; margin: 1.25rem 0 0.5rem; color: var(--red);">Cluster B: "Do I Need a Doctor?" (5 posts)</h3>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">CTA: "Get an evidence-based assessment in minutes &mdash; no appointment needed."</p>
+    <table>
+      <thead><tr><th style="width:30px">#</th><th>Title</th><th style="width:60px">Pri</th><th style="width:80px">Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>5 Signs Your Back Pain Needs Professional Help</td><td><span class="badge p1">P1</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>2</td><td>Numbness and Tingling: When It's Normal vs. When to Worry</td><td><span class="badge p1">P1</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>3</td><td>When Headaches Are More Than Just Headaches</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>4</td><td>Is My Joint Pain Arthritis? How to Know Before Your Appointment</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>5</td><td>Post-Surgery Pain That Won't Go Away: What to Do Next</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:0.95rem; margin: 1.25rem 0 0.5rem; color: var(--orange);">Cluster C: "Appointment Preparation" (4 posts)</h3>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">CTA: "Get a personalized appointment prep document with questions for your doctor" &rarr; PDF upsell</p>
+    <table>
+      <thead><tr><th style="width:30px">#</th><th>Title</th><th style="width:60px">Pri</th><th style="width:80px">Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>How to Describe Your Pain to a Doctor (So They Actually Understand)</td><td><span class="badge p1">P1</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>2</td><td>10 Questions to Ask Your Pain Management Doctor at Your First Visit</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>3</td><td>What to Expect at a Pain Clinic: A Complete First Visit Guide</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>4</td><td>Pain Diary 101: What to Track Before Your Appointment</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:0.95rem; margin: 1.25rem 0 0.5rem; color: var(--accent);">Cluster D: "Treatment Comparison" (5 posts)</h3>
+    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">CTA: "Not sure which treatment is right for you? PainConsult AI can help narrow it down."</p>
+    <table>
+      <thead><tr><th style="width:30px">#</th><th>Title</th><th style="width:60px">Pri</th><th style="width:80px">Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Non-Opioid Pain Management: A Complete Guide to Alternatives</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>2</td><td>Physical Therapy vs. Injections for Back Pain: Which Is Right?</td><td><span class="badge p2">P2</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>3</td><td>PRP vs. Cortisone Injections: What the Research Shows</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>4</td><td>Nerve Blocks vs. Medication for Chronic Pain: Pros and Cons</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+        <tr><td>5</td><td>When to Consider Spinal Cord Stimulation</td><td><span class="badge p3">P3</span></td><td><span class="badge pending">Draft</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 5 -->
+  <!-- ============================================================ -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge p5">P5</span>
+      <span class="phase-title">SEMrush Keyword Research (Manual)</span>
+    </div>
+    <p class="phase-desc">Pull these keyword clusters from SEMrush, sorted by volume + keyword difficulty. Use findings to refine page titles and add secondary keywords.</p>
+
+    <table>
+      <thead><tr><th style="width:100px">Priority</th><th>Keyword Clusters to Pull</th><th style="width:80px">Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge p1">Primary</span></td>
+          <td>
+            "online pain assessment" / "pain symptom checker" / "AI pain assessment"<br>
+            "what type of doctor for [body part] pain"<br>
+            "is my [body part] pain serious" / "when to see doctor for [body part] pain"<br>
+            "first pain management appointment" / "what to expect at pain clinic"
+          </td>
+          <td><span class="badge manual">Manual</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">Secondary</span></td>
+          <td>
+            "[condition] causes" &mdash; sciatica, neuropathy, fibromyalgia, herniated disc<br>
+            "[condition] vs [condition]" comparison queries<br>
+            "questions to ask pain doctor" / "how to describe pain to doctor"<br>
+            "non-opioid pain management" / "alternatives to opioids"
+          </td>
+          <td><span class="badge manual">Manual</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p3">Long-tail</span></td>
+          <td>
+            "how do I know if my back pain is muscular or spinal"<br>
+            "what does nerve pain feel like vs muscle pain"<br>
+            "why does my pain get worse at night"<br>
+            "can pain management doctors prescribe medication"
+          </td>
+          <td><span class="badge manual">Manual</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge p1">Quick Wins</span></td>
+          <td>
+            Search Console queries in positions 5&ndash;20 with symptom/triage intent &mdash; fastest wins since domain already has authority
+          </td>
+          <td><span class="badge manual">Manual</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ============================================================ -->
+  <!-- INTERNAL LINKING MAP -->
+  <!-- ============================================================ -->
+  <h2 style="font-size:1.25rem; margin-bottom:1rem;">Internal Linking Map</h2>
+  <div class="linking-map">
+    <span class="source">/online-pain-assessment</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span><br>
+    <span class="source">/is-my-pain-serious</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span><br>
+    <span class="source">/what-type-of-pain-doctor</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span><br>
+    <span class="source">/prepare-for-pain-appointment</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> + <span class="target">PDF upsell</span><br>
+    <span class="source">/pain-symptoms/*</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> + <span class="target">related treatment pages</span><br>
+    <span class="source">Blog Cluster A</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> + <span class="target">/pain-symptoms/*</span><br>
+    <span class="source">Blog Cluster B</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> + <span class="target">/is-my-pain-serious</span><br>
+    <span class="source">Blog Cluster C</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> + <span class="target">PDF upsell</span> + <span class="target">/pain-tracking</span><br>
+    <span class="source">Blog Cluster D</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> + <span class="target">/treatment-options/*</span><br>
+    <span class="source">Existing treatment pages</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> <span class="note">(via ConsultCTA section)</span><br>
+    <span class="source">Existing 1000+ blog posts</span> <span class="arrow">&rarr;</span> <span class="target">/consult</span> <span class="note">(via ConsultCTA inline in template)</span>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ============================================================ -->
+  <!-- SEMRUSH KEYWORD OPTIMIZATIONS -->
+  <!-- ============================================================ -->
+  <h2 style="font-size:1.25rem; margin-bottom:1rem;">SEMrush Keyword Optimizations (Phase 5 Results)</h2>
+  <p class="phase-desc">Title tags, meta descriptions, FAQs, and keywords updated based on SEMrush data pull (2026-03-19).</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Page</th>
+        <th>Change</th>
+        <th>Primary Keyword Target</th>
+        <th>Vol/mo</th>
+        <th>KD</th>
+        <th style="width:80px">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/prepare-for-pain-appointment</code></td>
+        <td>Retitled from "How to Prepare" &rarr; <strong>"How to Describe Pain to Your Doctor"</strong></td>
+        <td>how to describe pain to doctor</td>
+        <td>90</td>
+        <td>9</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/knee</code></td>
+        <td>Retitled around "without injury"; added 4 FAQ Qs (sciatica→knee, sudden pain, hip→knee)</td>
+        <td>what causes sudden knee pain without injury</td>
+        <td>1,000</td>
+        <td>14</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/nerve-pain</code></td>
+        <td>Retitled to "Nerve Pain vs Muscle Pain"; added pinched nerve vs pulled muscle FAQ</td>
+        <td>pinched nerve vs pulled muscle</td>
+        <td>720</td>
+        <td>0</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/headache-migraine</code></td>
+        <td>Retitled to include "Base of Skull"; added cervicogenic + occipital FAQs</td>
+        <td>pain in back of head at base of skull</td>
+        <td>6,600</td>
+        <td>26</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/hip</code></td>
+        <td>Retitled to include "Knee Connection"; added hip→knee FAQ</td>
+        <td>can hip pain cause knee pain</td>
+        <td>390</td>
+        <td>13</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/upper-back</code></td>
+        <td><strong>NEW PAGE</strong> — biggest gap at 33K/mo</td>
+        <td>upper back pain</td>
+        <td>33,100</td>
+        <td>50</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms</code> (hub)</td>
+        <td>Retitled to "Pain Symptom Checker"; added upper-back link</td>
+        <td>pain symptom checker</td>
+        <td>70</td>
+        <td>55</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/lower-back</code></td>
+        <td>Added SEMrush keywords: red flags, muscle spasm, sciatica variants</td>
+        <td>lower back pain red flag symptoms</td>
+        <td>40</td>
+        <td>38</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td><code>/pain-symptoms/shoulder</code></td>
+        <td>Added SEMrush keywords: shoulder + neck pain, pain without injury</td>
+        <td>shoulder and neck pain</td>
+        <td>2,900</td>
+        <td>17</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+      <tr>
+        <td>Blog script (4 posts)</td>
+        <td>Retitled: piriformis vs sciatica, knee without injury, neuropathy feet, nerve vs muscle</td>
+        <td>piriformis syndrome vs sciatica</td>
+        <td>1,600</td>
+        <td>10</td>
+        <td><span class="badge done">Done</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:0.95rem; margin: 1.25rem 0 0.5rem; color: var(--yellow);">Future Opportunities (from gap analysis)</h3>
+  <table>
+    <thead><tr><th>Keyword</th><th>Vol</th><th>KD</th><th>Suggested Action</th></tr></thead>
+    <tbody>
+      <tr><td>piriformis syndrome treatment</td><td>6,600</td><td>30</td><td>New /treatment-options/piriformis-syndrome page</td></tr>
+      <tr><td>how I cured my degenerative disc disease</td><td>4,400</td><td>16</td><td>Blog post (very low KD)</td></tr>
+      <tr><td>sciatica vs herniated disc</td><td>320+260</td><td>4</td><td>Blog post (essentially free ranking)</td></tr>
+      <tr><td>si joint pain vs sciatica</td><td>260</td><td>10</td><td>Blog post</td></tr>
+      <tr><td>can plantar fasciitis cause knee pain</td><td>1,300</td><td>10</td><td>Blog post</td></tr>
+      <tr><td>failed back surgery syndrome</td><td>2,400</td><td>41</td><td>Treatment page or blog</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="section-divider">
+
+  <!-- ============================================================ -->
+  <!-- VERIFICATION CHECKLIST -->
+  <!-- ============================================================ -->
+  <h2 style="font-size:1.25rem; margin-bottom:1rem;">Verification Checklist</h2>
+  <ul class="checklist">
+    <li class="checked"><code>pnpm typecheck</code> passes clean</li>
+    <li class="checked"><code>pnpm lint</code> &mdash; no new errors (2 pre-existing in unrelated files)</li>
+    <li class="checked"><code>/consult</code> appears in sitemap output</li>
+    <li class="checked">ConsultCTA renders on all blog posts (template-level)</li>
+    <li class="checked">ConsultCTA renders on all 5 treatment-options pages</li>
+    <li class="checked">All 13 new page files created with correct patterns</li>
+    <li>Validate structured data with <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a></li>
+    <li>Test all new pages in both light and dark mode</li>
+    <li>Verify all internal links resolve (no 404s)</li>
+    <li>Run blog generation script: <code>npx tsx scripts/generate-consult-blog-posts.ts --dry-run</code></li>
+    <li>Review and publish blog drafts in admin</li>
+    <li>Pull SEMrush keyword data (Phase 5)</li>
+  </ul>
+
+  <hr class="section-divider">
+
+  <!-- ============================================================ -->
+  <!-- TECHNICAL NOTES -->
+  <!-- ============================================================ -->
+  <h2 style="font-size:1.25rem; margin-bottom:1rem;">Technical Notes</h2>
+  <ul style="font-size:0.875rem; color:var(--text-muted); padding-left:1.25rem; line-height:2;">
+    <li>All new pages live under the <strong>main site layout</strong> (NOT the consult layout which has its own <code>&lt;html&gt;</code>)</li>
+    <li>Every page follows the treatment-options pattern: server component, <code>max-w-4xl</code> prose layout, MedicalWebPage + FAQ JSON-LD</li>
+    <li>Every element has <code>dark:</code> variants per project rules</li>
+    <li>Blog posts generated via <code>scripts/generate-consult-blog-posts.ts</code> &rarr; inserted as <strong>drafts</strong></li>
+    <li>ConsultCTA injected into blog post template (ALL posts, not filtered)</li>
+    <li><code>/pain-symptoms</code> pages are static files (not database-backed)</li>
+    <li>Script file: <code>scripts/generate-consult-blog-posts.ts</code></li>
+  </ul>
+
+  <p style="color:var(--text-muted); font-size:0.75rem; margin-top:3rem; text-align:center;">
+    Generated 2026-03-18 &middot; PainClinics.com SEO Content Push
+  </p>
+
+</body>
+</html>

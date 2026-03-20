@@ -6,6 +6,7 @@ import { MedicalReviewBadge } from "@/components/medical-review-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ConsultCTA } from "@/components/consult/consult-cta";
 import type { BlogPostWithRelations } from "@/lib/blog/types";
 
 interface BlogPostContentProps {
@@ -107,6 +108,11 @@ export function BlogPostContent({ post }: BlogPostContentProps) {
         html={post.content}
         className="prose max-w-none prose-img:rounded-lg prose-a:text-primary prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-blockquote:text-foreground/90 prose-blockquote:border-primary prose-td:text-foreground prose-th:text-foreground prose-table:text-foreground"
       />
+
+      {/* PainConsult AI CTA */}
+      <div className="my-8">
+        <ConsultCTA variant="inline" />
+      </div>
 
       {/* Medical Review Badge */}
       <Separator className="my-8" />

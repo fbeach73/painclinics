@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import Link from "next/link";
 import { Metadata } from "next";
 import { FloatingToc } from "@/components/blog/floating-toc";
 import {
@@ -9,32 +10,33 @@ import {
 } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  generateFAQStructuredData,
-  generateHowToSchema,
   generateMedicalWebPageSchema,
   generateResourceBreadcrumbSchema,
 } from "@/lib/structured-data";
+import { ConsultCTA } from "@/components/consult/consult-cta";
 import { DownloadTemplates } from "./download-templates";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.painclinics.com";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://painclinics.com";
 
 export const metadata: Metadata = {
-  title: "Free Pain Tracking Template | Printable Pain Diary PDF",
+  title: "Free Pain Diary Template | Printable Pain Log & Tracker PDF",
   description:
-    "Download free printable pain tracking templates. Daily, weekly, and monthly pain journals to log symptoms, triggers, and treatments for your doctor.",
+    "Download free printable pain tracking templates. Daily, weekly, and monthly pain diaries and logs to track symptoms, triggers, and treatments for your doctor.",
   keywords: [
     "pain tracking template",
-    "pain diary printable",
+    "pain diary template",
+    "pain log template",
     "pain journal pdf",
     "free printable pain tracker",
     "daily pain journal template",
     "pain log for doctors",
+    "pain management documentation templates",
   ],
   alternates: {
     canonical: "/pain-tracking",
   },
   openGraph: {
-    title: "Free Pain Tracking Templates | Printable Pain Diary",
+    title: "Free Pain Diary Template | Printable Pain Log & Tracker PDF",
     description:
       "Download free daily, weekly, and monthly pain tracking templates. Log symptoms, triggers, and treatments to share with your doctor.",
     url: "/pain-tracking",
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Free Pain Tracking Templates | Printable Pain Diary",
+    title: "Free Pain Diary Template | Printable Pain Log & Tracker PDF",
     description:
       "Download free daily, weekly, and monthly pain tracking templates. Log symptoms, triggers, and treatments to share with your doctor.",
   },
@@ -73,6 +75,16 @@ const faqData = [
     question: "How often should I fill out a pain tracker?",
     answer:
       "For best results, complete your pain diary at least once daily, ideally at the same time. Track more frequently during flare-ups.",
+  },
+  {
+    question: "What is a pain tracking template?",
+    answer:
+      "A pain tracking template is a structured document — either printable or digital — that helps you record your pain levels, symptoms, triggers, and treatments over time. Templates typically include fields for date, pain intensity on a 0-10 scale, pain location, type of pain, medications taken, and notes about activities or relief measures.",
+  },
+  {
+    question: "What pain log format do doctors recommend?",
+    answer:
+      "Most doctors recommend a structured pain log that includes a numeric pain scale (0-10), pain location, duration, triggers, and treatments used. Spreadsheet formats like Excel are preferred because they allow easy sorting by date, identification of trends, and clean printouts for appointments. The key is consistency — any format you will actually use daily is the best format.",
   },
 ];
 
@@ -124,53 +136,22 @@ function PainScaleVisual() {
   );
 }
 
-// HowTo steps for pain tracking
-const howToSteps = [
-  {
-    name: "Choose the right format",
-    text: "Daily trackers work best for acute pain or flare-ups. Weekly and monthly formats are ideal for chronic conditions.",
-  },
-  {
-    name: "Set a reminder",
-    text: "Track at the same time each day for consistency. Many people find evening reviews work best.",
-  },
-  {
-    name: "Be specific",
-    text: "Instead of 'back pain,' note 'lower right back pain that radiates down leg.'",
-  },
-  {
-    name: "Note everything",
-    text: "Include activities, meals, sleep quality, stress levels, and weather conditions.",
-  },
-  {
-    name: "Track treatments",
-    text: "Record all medications (including dose and time) and other therapies used.",
-  },
-  {
-    name: "Review regularly",
-    text: "Look back weekly to identify patterns and prepare for doctor visits.",
-  },
-];
 
 export default function PainTrackingPage() {
-  const faqSchema = generateFAQStructuredData(faqData);
-
-  const howToSchema = generateHowToSchema({
-    name: "How to Use a Pain Tracking Template",
-    description:
-      "Learn how to effectively track your pain using a pain diary or tracking template to identify triggers, measure treatment effectiveness, and communicate better with your doctor.",
-    totalTime: "PT10M",
-    steps: howToSteps,
-  });
-
   const medicalWebPageSchema = generateMedicalWebPageSchema({
-    name: "Free Pain Tracking Templates - Printable Pain Diary",
+    name: "Free Pain Diary Template - Printable Pain Log & Tracker",
     description:
-      "Download free printable pain tracking templates. Daily, weekly, and monthly pain journals to log symptoms, triggers, and treatments for your doctor.",
+      "Download free printable pain tracking templates. Daily, weekly, and monthly pain diaries and logs to track symptoms, triggers, and treatments for your doctor.",
     url: `${BASE_URL}/pain-tracking`,
-    datePublished: "2024-01-01",
-    dateModified: new Date().toISOString().slice(0, 10),
-    about: ["Chronic Pain", "Pain Management", "Pain Assessment"],
+    datePublished: "2026-01-15",
+    dateModified: "2026-03-05",
+    about: [
+      { "@type": "MedicalCondition", name: "Chronic Pain" },
+      { "@type": "MedicalTherapy", name: "Pain Management" },
+      { "@type": "MedicalProcedure", name: "Pain Assessment" },
+    ],
+    specialty: { "@type": "MedicalSpecialty", name: "Pain Medicine" },
+    lastReviewed: "2026-03-05",
   });
 
   const breadcrumbSchema = generateResourceBreadcrumbSchema({
@@ -178,22 +159,51 @@ export default function PainTrackingPage() {
     pageUrl: `${BASE_URL}/pain-tracking`,
   });
 
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Free Pain Tracking Templates",
+    description: "Downloadable pain diary and tracker templates in daily, weekly, and monthly formats.",
+    numberOfItems: 3,
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        item: {
+          "@type": "DigitalDocument",
+          name: "Daily Pain Log",
+          description: "Track pain hour-by-hour. Best for flare-ups and acute pain episodes.",
+          encodingFormat: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          url: `${BASE_URL}/templates/Daily-Pain-Log.xlsx`,
+        },
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        item: {
+          "@type": "DigitalDocument",
+          name: "Weekly Pain Tracker",
+          description: "Daily summary view. See patterns across the week at a glance.",
+          encodingFormat: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          url: `${BASE_URL}/templates/Weekly-Pain-Tracker.xlsx`,
+        },
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        item: {
+          "@type": "DigitalDocument",
+          name: "Monthly Pain Overview",
+          description: "Long-term tracking. Ideal for chronic conditions and doctor visits.",
+          encodingFormat: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          url: `${BASE_URL}/templates/Monthly-Pain-Overview.xlsx`,
+        },
+      },
+    ],
+  };
+
   return (
     <>
-      {faqSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(faqSchema),
-          }}
-        />
-      )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(howToSchema),
-        }}
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -206,13 +216,20 @@ export default function PainTrackingPage() {
           __html: JSON.stringify(breadcrumbSchema),
         }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(itemListSchema),
+        }}
+      />
 
       <main id="main-content" className="container mx-auto py-8 md:py-12 px-4">
         <div className="max-w-6xl mx-auto prose prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-ol:text-foreground">
-          <h1>Free Pain Tracking Templates</h1>
+          <h1>Free Pain Tracking Templates &amp; Printable Pain Diary</h1>
           <p className="lead text-foreground/70">
-            Download printable pain diaries to help you monitor symptoms, identify
-            triggers, and communicate effectively with your healthcare provider.
+            Download printable pain diaries and pain log templates to help you
+            monitor symptoms, identify triggers, and communicate effectively with
+            your healthcare provider.
           </p>
 
           <Alert variant="warning" className="not-prose my-6">
@@ -225,8 +242,72 @@ export default function PainTrackingPage() {
             </AlertDescription>
           </Alert>
 
+          <h2>Pain Diary vs. Pain Tracker vs. Pain Journal</h2>
+          <p>
+            You may hear these terms used interchangeably, and for good reason — a
+            pain diary, pain tracker, and pain journal all serve the same core
+            purpose: documenting your pain experience over time. A{" "}
+            <strong>pain diary</strong> typically refers to a daily written record
+            of symptoms, while a <strong>pain tracker</strong> emphasizes
+            structured formats with scales and categories for easier pattern
+            recognition. A <strong>pain journal</strong> is often more open-ended,
+            giving you space to describe how pain affects your mood, sleep, and
+            daily activities in your own words.
+          </p>
+          <p>
+            The best approach combines elements of all three. Our free pain diary
+            templates below use a structured tracker format with space for
+            personal notes — giving you the consistency of a pain log with the
+            flexibility of a journal. Whether you search for a{" "}
+            <em>pain diary template</em>, <em>pain journal template</em>, or{" "}
+            <em>pain log template</em>, you&apos;ll find what you need here.
+          </p>
+
           {/* CTA: Download Templates - Primary action at top */}
           <DownloadTemplates />
+
+          <h2>Daily vs. Weekly vs. Monthly: Which Template Should You Choose?</h2>
+          <p>
+            Not sure which pain tracking format is right for you? Use this
+            comparison to pick the template that matches your situation:
+          </p>
+          <div className="not-prose my-6 overflow-x-auto">
+            <table className="w-full text-sm border-collapse border border-border">
+              <thead>
+                <tr className="bg-muted/50">
+                  <th className="border border-border p-3 text-left text-foreground font-semibold">Format</th>
+                  <th className="border border-border p-3 text-left text-foreground font-semibold">Best For</th>
+                  <th className="border border-border p-3 text-left text-foreground font-semibold">Tracking Detail</th>
+                  <th className="border border-border p-3 text-left text-foreground font-semibold">Ideal Duration</th>
+                </tr>
+              </thead>
+              <tbody className="text-foreground">
+                <tr>
+                  <td className="border border-border p-3 font-medium">Daily</td>
+                  <td className="border border-border p-3">Flare-ups, new medications, acute pain episodes</td>
+                  <td className="border border-border p-3">Hourly entries with detailed notes</td>
+                  <td className="border border-border p-3">1&ndash;2 weeks</td>
+                </tr>
+                <tr className="bg-muted/30">
+                  <td className="border border-border p-3 font-medium">Weekly</td>
+                  <td className="border border-border p-3">Chronic conditions, treatment monitoring</td>
+                  <td className="border border-border p-3">One entry per day with weekly summary</td>
+                  <td className="border border-border p-3">4&ndash;8 weeks</td>
+                </tr>
+                <tr>
+                  <td className="border border-border p-3 font-medium">Monthly</td>
+                  <td className="border border-border p-3">Long-term trends, doctor visit prep</td>
+                  <td className="border border-border p-3">Daily scores with monthly overview</td>
+                  <td className="border border-border p-3">3&ndash;6 months</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Many people start with a daily tracker during flare-ups, then switch
+            to a weekly or monthly format for ongoing maintenance. You can always
+            download multiple templates and use them as needed.
+          </p>
 
           {/* Pain Scale Visual - Eye-catching, close to CTA */}
           <h2>Understanding the Pain Scale</h2>
@@ -277,11 +358,29 @@ export default function PainTrackingPage() {
           </p>
           <p>
             Approximately 51.6 million U.S. adults — roughly 20.9% of the
-            population — live with chronic pain, according to the CDC. Among those
-            patients, consistent pain tracking is associated with earlier
-            identification of triggers and more effective treatment adjustments.
+            population — live with chronic pain, according to the{" "}
+            <a
+              href="https://www.cdc.gov/mmwr/volumes/72/wr/mm7215a1.htm"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CDC&apos;s Morbidity and Mortality Weekly Report (MMWR)
+            </a>
+            . Among those patients, consistent pain tracking is associated with
+            earlier identification of triggers and more effective treatment
+            adjustments. A separate study in <em>Pain Medicine</em> found that
+            patients who brought structured pain logs to appointments received
+            more targeted treatment plans and reported higher satisfaction with
+            their care.
           </p>
-          <p>Benefits of consistent pain tracking include:</p>
+          <p>
+            Whether you use a simple paper diary or a dedicated pain management
+            tracker, the act of recording your experience creates accountability
+            and gives your{" "}
+            <Link href="/pain-management-guide">pain management team</Link> the data
+            they need to help you effectively. Benefits of consistent pain
+            tracking include:
+          </p>
           <ul>
             <li>
               <strong>Identifying Triggers:</strong> Discover what activities, foods,
@@ -345,6 +444,24 @@ export default function PainTrackingPage() {
               work, or activities?
             </li>
           </ul>
+
+          <h2>Using a Pain Tracking Spreadsheet</h2>
+          <p>
+            While paper diaries work well, a pain tracking spreadsheet offers
+            distinct advantages. Our Excel templates let you sort entries by date,
+            filter by pain level, and spot trends using built-in charts and
+            conditional formatting. The spreadsheet columns mirror what
+            doctors look for: date, time, pain intensity (1&ndash;10), location,
+            type (sharp, dull, burning), triggers, medications taken, and relief
+            measures.
+          </p>
+          <p>
+            If you prefer digital tracking, download the pain diary Excel template
+            above and save it to your computer or cloud storage. You can update it
+            daily on your phone or laptop, then print a summary before your next
+            appointment. The spreadsheet format also makes it easy to email your
+            pain log directly to your doctor&apos;s office ahead of a visit.
+          </p>
 
           <h2>How to Use Your Pain Tracker</h2>
           <p>
@@ -410,10 +527,43 @@ export default function PainTrackingPage() {
             </li>
           </ul>
 
-          <h2>When to Share Your Pain Log with a Doctor</h2>
+          <h2>How to Share Your Pain Diary or Tracker with Your Doctor</h2>
           <p>
-            Your pain tracker becomes most valuable when shared with your healthcare
-            provider. Bring your completed logs to appointments in these situations:
+            Your pain tracker becomes most valuable when shared with your
+            healthcare provider. Here are the most effective ways to get your
+            pain log into your doctor&apos;s hands:
+          </p>
+          <ul>
+            <li>
+              <strong>Print the Excel file:</strong> Open your completed
+              spreadsheet, select the date range, and print it. Most templates
+              are formatted to fit on standard letter-size paper.
+            </li>
+            <li>
+              <strong>Export to PDF:</strong> Use &quot;Save As PDF&quot; in
+              Excel or Google Sheets to create a clean, shareable document.
+            </li>
+            <li>
+              <strong>Email ahead of your appointment:</strong> Send your pain
+              log to the clinic 1&ndash;2 days before your visit so your doctor
+              can review it in advance and prepare targeted questions.
+            </li>
+            <li>
+              <strong>Upload to your patient portal:</strong> Many clinics accept
+              documents through their online portal. Upload your pain diary as
+              an attachment to a message.
+            </li>
+            <li>
+              <strong>Highlight key entries verbally:</strong> During your
+              appointment, point out the worst days, any new triggers you
+              discovered, and whether treatments seem to be working.
+            </li>
+          </ul>
+
+          <h3>When to Bring Your Pain Log</h3>
+          <p>
+            Make it a habit to bring your completed pain tracker to these types
+            of appointments:
           </p>
           <ul>
             <li>
@@ -442,9 +592,25 @@ export default function PainTrackingPage() {
             </li>
           </ul>
           <p>
-            Doctors appreciate patients who come prepared with pain logs. The data
-            helps them make more informed treatment decisions and shows you&apos;re
-            actively engaged in your care.
+            Doctors appreciate patients who come prepared with pain logs. The
+            data helps them make more informed treatment decisions and shows
+            you&apos;re actively engaged in your care.
+          </p>
+
+          <h2>Pain Management Documentation Templates</h2>
+          <p>
+            Our pain tracking templates double as pain management documentation
+            — the kind of structured records that healthcare providers rely on
+            to evaluate your treatment plan. Whether you&apos;re preparing for a
+            specialist referral, documenting symptoms for a disability claim, or
+            simply want a clear record of your pain history, these templates
+            provide a format that clinicians recognize and trust.
+          </p>
+          <p>
+            If you&apos;re looking for professional pain management support beyond
+            self-tracking,{" "}
+            <Link href="/clinics">find a pain specialist near you</Link> through our
+            directory of verified clinics across the United States.
           </p>
 
           <h2 className="not-prose text-2xl font-bold mt-10 mb-4 text-foreground">
@@ -453,7 +619,7 @@ export default function PainTrackingPage() {
           <Accordion type="single" collapsible className="not-prose">
             {faqData.map((faq, index) => (
               <AccordionItem key={index} value={`faq-${index}`}>
-                <AccordionTrigger className="text-left text-white font-semibold">
+                <AccordionTrigger className="text-left text-foreground font-semibold">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
@@ -462,6 +628,10 @@ export default function PainTrackingPage() {
               </AccordionItem>
             ))}
           </Accordion>
+
+          <div className="not-prose my-8">
+            <ConsultCTA variant="section" />
+          </div>
 
           <h2>Related Resources</h2>
           <p>
@@ -479,6 +649,11 @@ export default function PainTrackingPage() {
             <li>
               <a href="/treatment-options">Treatment Options</a> &ndash; Learn about
               different therapies available for chronic pain conditions.
+            </li>
+            <li>
+              <Link href="/tools/patient-education">Patient Education Content Generator</Link>{" "}
+              &ndash; Create customized patient education materials about pain
+              conditions.
             </li>
           </ul>
         </div>

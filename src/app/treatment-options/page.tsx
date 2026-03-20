@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { Metadata } from "next";
 import { MedicalReviewBadge } from "@/components/medical-review-badge";
+import { ConsultCTA } from "@/components/consult/consult-cta";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const metadata: Metadata = {
@@ -307,6 +308,27 @@ export default function TreatmentOptionsPage() {
         <h2>Specialized Treatment Guides</h2>
         <ul>
           <li>
+            <a href="/treatment-options/interventional-pain-management">
+              Interventional Pain Management
+            </a>{" "}
+            — Nerve blocks, spinal cord stimulation, epidural injections,
+            radiofrequency ablation, and other minimally invasive procedures
+          </li>
+          <li>
+            <a href="/treatment-options/pain-management-injections">
+              Pain Management Injections
+            </a>{" "}
+            — Epidural steroids, facet joint injections, trigger point
+            injections, nerve blocks, and regenerative injections
+          </li>
+          <li>
+            <a href="/treatment-options/chronic-pain-management">
+              Chronic Pain Management
+            </a>{" "}
+            — Understanding the multidisciplinary approach to long-term pain
+            care, when to see a specialist, and what to expect
+          </li>
+          <li>
             <a href="/treatment-options/regenerative-orthopedic-medicine">
               Regenerative Orthopedic Medicine
             </a>{" "}
@@ -314,6 +336,10 @@ export default function TreatmentOptionsPage() {
             tissue repair
           </li>
         </ul>
+
+        <div className="not-prose my-8">
+          <ConsultCTA variant="section" />
+        </div>
 
         <h2>Find a Pain Specialist</h2>
         <p>

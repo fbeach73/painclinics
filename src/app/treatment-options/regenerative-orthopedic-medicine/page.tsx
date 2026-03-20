@@ -2,6 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ConsultCTA } from "@/components/consult/consult-cta";
 
 export const metadata: Metadata = {
   title:
@@ -331,6 +332,10 @@ export default function RegenerativeOrthopedicMedicinePage() {
               What is your experience performing this specific procedure?
             </li>
           </ol>
+
+          <div className="not-prose my-8">
+            <ConsultCTA variant="section" />
+          </div>
 
           <h2>Find a Regenerative Medicine Specialist</h2>
           <p>
