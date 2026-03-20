@@ -23,12 +23,21 @@ export const metadata: Metadata = {
       "Get an evidence-based pain assessment from PainConsult AI. Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
     url: "/consult",
     type: "website",
+    images: [
+      {
+        url: "/images/consult-plan-cover.png",
+        width: 1024,
+        height: 1536,
+        alt: "PainClinics.com — Your Personalized Pain Management Plan",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Online Pain Assessment | PainConsult AI",
     description:
       "Describe your symptoms, understand potential causes, and find pain management specialists near you — no appointment needed.",
+    images: ["/images/consult-plan-cover.png"],
   },
 };
 

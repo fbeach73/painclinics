@@ -43,6 +43,21 @@
   padding: 40px 20px 80px;
 }
 
+/* ── Hero Cover Image ─────────────────────────────────────── */
+.sp-hero {
+  max-width: 480px;
+  margin: 0 auto 40px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sp-hero-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* ── Document wrapper — looks like a sheet of paper ───────── */
 .sp-doc {
   max-width: 800px;
@@ -681,6 +696,10 @@
    ============================================================ */
 
 @media print {
+  .sp-hero {
+    display: none;
+  }
+
   /* Reset page */
   * {
     -webkit-print-color-adjust: exact;

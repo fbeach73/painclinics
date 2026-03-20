@@ -17,12 +17,21 @@ export const metadata: Metadata = {
       "A preview of the $19.99 personalized pain management plan — evidence-based, condition-specific, and delivered instantly to your email.",
     url: "/consult/sample-plan",
     type: "website",
+    images: [
+      {
+        url: "/images/consult-plan-cover.png",
+        width: 1024,
+        height: 1536,
+        alt: "PainClinics.com Personalized Pain Management Plan — $19.99",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Sample Pain Management Plan | PainConsult AI",
     description:
       "See what a personalized AI pain plan looks like before you buy. Covers likely causes, recovery protocol, red flags, and specialist questions.",
+    images: ["/images/consult-plan-cover.png"],
   },
 };
 
@@ -108,6 +117,18 @@ export default function SamplePlanPage() {
       />
 
       <div className="sp-page">
+        {/* ── Hero cover image ─────────────────────────────────────── */}
+        <div className="sp-hero">
+          <Image
+            src="/images/consult-plan-cover.png"
+            alt="PainClinics.com — Your Personalized Pain Management Plan, $19.99"
+            width={1024}
+            height={1536}
+            className="sp-hero-img"
+            priority
+          />
+        </div>
+
         <article className="sp-doc" aria-label="Sample Pain Management Plan">
 
           {/* ── Print-only header (shown on every page via print styles) ── */}
