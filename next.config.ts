@@ -757,6 +757,95 @@ const nextConfig: NextConfig = {
         destination: "/pain-management/:path*",
         permanent: true,
       },
+
+      // ===========================================
+      // 404 log fixes (Mar 2026)
+      // ===========================================
+
+      // Blog slugs — renamed or long-tail variations
+      {
+        source: "/blog/wong-baker-faces-pain-scale",
+        destination: "/blog/wong-baker-faces",
+        permanent: true,
+      },
+      {
+        source: "/blog/how-pain-doctors-assess-your-pain",
+        destination: "/blog/doctors-assess-your-pain",
+        permanent: true,
+      },
+      {
+        source: "/blog/numeric-pain-rating-scale-nrs-how-the-0-10-pain-scale-works",
+        destination: "/blog/numeric-pain-rating-scale",
+        permanent: true,
+      },
+      {
+        source: "/numeric-pain-rating-scale-nrs-how-the-0-10-pain-scale-works",
+        destination: "/blog/numeric-pain-rating-scale",
+        permanent: true,
+      },
+      {
+        source: "/blog/pain-clinics-near-me",
+        destination: "/clinics",
+        permanent: true,
+      },
+      {
+        source: "/blog/neuropathy",
+        destination: "/treatment-options",
+        permanent: true,
+      },
+
+      // Guides → blog or treatment pages
+      {
+        source: "/guides/:path*",
+        destination: "/pain-management-guide",
+        permanent: true,
+      },
+
+      // /add suffix URLs — old claim form links indexed by Google
+      {
+        source: "/pain-management/:slug/add",
+        destination: "/pain-management/:slug",
+        permanent: true,
+      },
+
+      // Legacy clinic slugs without state/zip
+      {
+        source: "/pain-management/pain-and-spine-specialists-of-maryland-pikesville",
+        destination: "/pain-management/md",
+        permanent: true,
+      },
+      {
+        source: "/pain-management/texas-pain-physicians-uptown",
+        destination: "/pain-management/tx",
+        permanent: true,
+      },
+
+      // Pages that exist at different paths
+      {
+        source: "/pain-symptoms/:path*",
+        destination: "/treatment-options",
+        permanent: true,
+      },
+      {
+        source: "/online-pain-assessment",
+        destination: "/consult",
+        permanent: true,
+      },
+      {
+        source: "/pricing",
+        destination: "/for-clinics",
+        permanent: true,
+      },
+      {
+        source: "/about-us/:path*",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/treatment-options/physical-therapy",
+        destination: "/treatment-options",
+        permanent: true,
+      },
     ];
   },
 };
