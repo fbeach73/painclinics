@@ -864,6 +864,21 @@
   margin-top: 10px;
 }
 
+.upsell-sample-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.upsell-sample-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 /* Input area */
 .input-area {
   position: fixed;

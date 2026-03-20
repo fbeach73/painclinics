@@ -401,7 +401,15 @@ export default function PrepareForPainAppointmentPage() {
           <p>
             Start your free assessment at{" "}
             <Link href="/consult">painclinics.com/consult</Link>. No account
-            required.
+            required.{" "}
+            <a
+              href="/consult/sample-plan"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              See a sample plan
+            </a>{" "}
+            to preview what you&rsquo;ll receive.
           </p>
 
           <h2>Find a Pain Specialist Near You</h2>

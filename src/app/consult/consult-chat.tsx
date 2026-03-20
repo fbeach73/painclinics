@@ -886,6 +886,14 @@ export function ConsultChat() {
                 </svg>
                 Instant PDF delivery to your email
               </div>
+              <a
+                href="/consult/sample-plan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="upsell-sample-link"
+              >
+                See a sample plan &rarr;
+              </a>
             </div>
           )}
         </div>
