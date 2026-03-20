@@ -58,6 +58,11 @@
   height: auto;
 }
 
+/* ── Print-only header — hidden on screen ─────────────────── */
+.sp-print-header {
+  display: none;
+}
+
 /* ── Document wrapper — looks like a sheet of paper ───────── */
 .sp-doc {
   max-width: 800px;
